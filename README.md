@@ -26,7 +26,7 @@
 
 ---
 
-**Honesty check - what runs today:** **Maturity: scaffolding.** What does not depend on the board is real and tested on a computer (the settings, what the panel knows of the server and when that is stale, the voice conversation, the board's pins and the words of the screen in seven languages: four test programs) and so is the web page (run against a stand-in in a real browser). **The firmware has never been built or run on a board:** the screen, the touch, the sound and the link to the server are written from Waveshare's examples for this family of boards and need their first compilation and their first power-up. The speech service the assistant talks to does not exist yet and there is no wake word: it is push to talk.
+**Honesty check - what runs today:** **Maturity: scaffolding.** What does not depend on the board is real and tested on a computer (the settings, what the panel knows of the server and when that is stale, the voice conversation, the board's pins and the words of the screen in seven languages: four test programs) and so is the web page (run against a stand-in in a real browser). **The firmware builds (ESP-IDF 5.5.5, an image of about 2.4 MB) but has never been run on a board:** the screen, the touch, the sound and the link to the server are written from Waveshare's examples for this family of boards and need their first power-up. The speech service the assistant talks to does not exist yet and there is no wake word: it is push to talk.
 
 ---
 
@@ -59,7 +59,7 @@ ARMOR-HMI/
 cmake -S tests -B build/host && cmake --build build/host && ctest --test-dir build/host   # the settings, the server view, the voice conversation, the board's pins and the screen's words
 node tools/panel_mock.mjs --user admin:adminpass123                                       # the web page without a board
 node tools/panel_browser_test.mjs                                                         # the page in a real browser, every page in seven languages
-tools/build_node.sh generic                                                               # the firmware image in the ESP-IDF container: dist/generic-lcd7box.bin (never built yet)
+tools/build_node.sh generic                                                               # the firmware image in the ESP-IDF container: dist/generic-lcd7box.bin
 ```
 
 See the [firmware guide](docs/NODE_FIRMWARE.md) and the [Bluetooth channel](docs/BLE_PROVISIONING.md).

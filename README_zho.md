@@ -26,7 +26,7 @@
 
 ---
 
-**诚实性检查 - 今天真正能运行的部分:** **成熟度：脚手架。** 不依赖开发板的部分是真实的，并已在计算机上测试（设置、面板对服务器的了解及其过期条件、语音对话、开发板引脚以及七种语言的屏幕文字：四个测试程序），网页也已在真实浏览器中对替身运行。**固件从未在开发板上构建或运行：** 屏幕、触摸、声音以及与服务器的连接是依据 Waveshare 针对该系列开发板的示例编写的，需要第一次编译和第一次上电。助手所对话的语音服务尚不存在，也没有唤醒词：目前是按键说话。
+**诚实性检查 - 今天真正能运行的部分:** **成熟度：脚手架。** 不依赖开发板的部分是真实的，并已在计算机上测试（设置、面板对服务器的了解及其过期条件、语音对话、开发板引脚以及七种语言的屏幕文字：四个测试程序），网页也已在真实浏览器中对替身运行。**固件可以构建（ESP-IDF 5.5.5，镜像约 2.4 MB），但从未在开发板上运行：** 屏幕、触摸、声音以及与服务器的连接是依据 Waveshare 针对该系列开发板的示例编写的，需要第一次上电。助手所对话的语音服务尚不存在，也没有唤醒词：目前是按键说话。
 
 ---
 
@@ -59,7 +59,7 @@ ARMOR-HMI/
 cmake -S tests -B build/host && cmake --build build/host && ctest --test-dir build/host   # the settings, the server view, the voice conversation, the board's pins and the screen's words
 node tools/panel_mock.mjs --user admin:adminpass123                                       # the web page without a board
 node tools/panel_browser_test.mjs                                                         # the page in a real browser, every page in seven languages
-tools/build_node.sh generic                                                               # the firmware image in the ESP-IDF container: dist/generic-lcd7box.bin (never built yet)
+tools/build_node.sh generic                                                               # the firmware image in the ESP-IDF container: dist/generic-lcd7box.bin
 ```
 
 See the [firmware guide](docs/NODE_FIRMWARE.md) and the [Bluetooth channel](docs/BLE_PROVISIONING.md).
