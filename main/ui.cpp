@@ -8,7 +8,7 @@
 //   |  (mic)  Say "armor"            |   * ...                                     |
 //   |                                |  [ Acknowledge all ]                        |
 //   +--------------------------------+---------------------------------------------+
-//   | hint: how to set the panel up, or that the server is not answering      v0.0.1 |
+//   | hint: how to set the panel up, or that the server is not answering      v0.0.2 |
 //   +------------------------------------------------------------------------------+
 //
 // Arming and disarming ask for a confirmation on the screen first (the same rule as Studio and the Android app). The words are core/screen_text.hpp (seven languages); the
@@ -21,10 +21,8 @@
 #include <string>
 #include <string_view>
 #include <vector>
-extern "C" {
 #include "esp_log.h"
 #include "lvgl.h"
-}
 #include "core/screen_text.hpp"
 #include "core/server_view.hpp"
 #include "display.hpp"

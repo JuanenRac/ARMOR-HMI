@@ -12,8 +12,9 @@
  * anything: arming and disarming are the person's, confirmed on the screen, and the server's.
  */
 #include <cstdio>
+#include <algorithm>
 #include <cstring>
-extern "C" {
+#include <ctime>
 #include "esp_app_desc.h"
 #include "esp_event.h"
 #include "esp_log.h"
@@ -23,7 +24,6 @@ extern "C" {
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "sdkconfig.h"
-}
 #include "audio.hpp"
 #include "ble_provision.hpp"
 #include "core/netplan.hpp"

@@ -5,7 +5,6 @@
 #include "display.hpp"
 
 #include <atomic>
-extern "C" {
 #include "esp_lcd_panel_io.h"
 #include "esp_lcd_panel_ops.h"
 #include "esp_lcd_panel_rgb.h"
@@ -13,7 +12,6 @@ extern "C" {
 #include "esp_log.h"
 #include "esp_lvgl_port.h"
 #include "esp_timer.h"
-}
 #include "board_io.hpp"
 #include "core/board_s3.hpp"
 
@@ -65,8 +63,13 @@ esp_lcd_panel_handle_t make_panel() {
 esp_lcd_touch_handle_t make_touch() {
   boardio::reset_touch();
   esp_lcd_panel_io_handle_t io = nullptr;
-  esp_lcd_panel_io_i2c_config_t io_config = ESP_LCD_TOUCH_IO_I2C_GT911_CONFIG();
+  // The component's ESP_LCD_TOUCH_IO_I2C_GT911_CONFIG() lists its fields in an order C++ rejects, so the same values are set by name.
+  esp_lcd_panel_io_i2c_config_t io_config{};
+  io_config.dev_addr = ESP_LCD_TOUCH_IO_I2C_GT911_ADDRESS;
   io_config.scl_speed_hz = board::kI2cHz;
+  io_config.control_phase_bytes = 1;
+  io_config.lcd_cmd_bits = 16;
+  io_config.flags.disable_control_phase = 1;
   if (esp_lcd_new_panel_io_i2c(boardio::bus(), &io_config, &io) != ESP_OK) { ESP_LOGE(kTag, "the touch controller's bus could not be opened"); return nullptr; }
   esp_lcd_touch_config_t touch_config{};
   touch_config.x_max = board::kLcdWidth;

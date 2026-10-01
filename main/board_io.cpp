@@ -5,12 +5,10 @@
 
 #include <algorithm>
 #include <mutex>
-extern "C" {
 #include "driver/gpio.h"
 #include "esp_log.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
-}
 #include "core/board_s3.hpp"
 
 namespace armor::boardio {

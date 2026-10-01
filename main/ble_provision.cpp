@@ -10,7 +10,6 @@
 #include <cstring>
 #include <memory>
 #include <string>
-extern "C" {
 #include "esp_log.h"
 #include "esp_timer.h"
 #include "freertos/FreeRTOS.h"
@@ -22,7 +21,6 @@ extern "C" {
 #include "nimble/nimble_port_freertos.h"
 #include "services/gap/ble_svc_gap.h"
 #include "services/gatt/ble_svc_gatt.h"
-}
 #include "api_shared.hpp"
 #include "core/ble_dispatch.hpp"
 #include "network.hpp"

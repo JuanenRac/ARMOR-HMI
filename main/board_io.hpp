@@ -3,9 +3,7 @@
 #pragma once
 #include <cstdint>
 
-extern "C" {
 #include "driver/i2c_master.h"
-}
 
 namespace armor::boardio {
 

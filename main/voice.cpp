@@ -3,9 +3,9 @@
 #include "voice.hpp"
 
 #include <atomic>
+#include <cstring>
 #include <mutex>
 #include <vector>
-extern "C" {
 #include "esp_crt_bundle.h"
 #include "esp_heap_caps.h"
 #include "esp_http_client.h"
@@ -14,7 +14,6 @@ extern "C" {
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "mbedtls/base64.h"
-}
 #include "audio.hpp"
 #include "core/json.hpp"
 #include "core/board_s3.hpp"

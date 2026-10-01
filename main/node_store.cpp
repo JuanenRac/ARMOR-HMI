@@ -4,7 +4,6 @@
 
 #include <cstring>
 #include <mutex>
-extern "C" {
 #include "esp_log.h"
 #include "esp_mac.h"
 #include "mbedtls/md.h"
@@ -12,7 +11,6 @@ extern "C" {
 #include "nvs.h"
 #include "nvs_flash.h"
 #include "sdkconfig.h"
-}
 #include "entropy.hpp"
 
 namespace armor::store {

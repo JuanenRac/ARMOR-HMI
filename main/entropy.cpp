@@ -2,11 +2,9 @@
 // Copyright (C) 2026 JuanenRac (Electro Hobby 3D). GPL-3.0-or-later.
 #include "entropy.hpp"
 
-extern "C" {
 #include "bootloader_random.h"
 #include "esp_random.h"
 #include "esp_timer.h"
-}
 
 namespace armor {
 

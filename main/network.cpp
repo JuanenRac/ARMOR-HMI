@@ -10,7 +10,6 @@
 #include <cstdio>
 #include <cstring>
 #include <mutex>
-extern "C" {
 #include "esp_event.h"
 #include "esp_log.h"
 #include "esp_mac.h"
@@ -18,7 +17,6 @@ extern "C" {
 #include "esp_timer.h"
 #include "esp_wifi.h"
 #include "sdkconfig.h"
-}
 #if defined(ARMOR_BOARD_S3_ETH)
 #include "board_ethernet.hpp"
 #endif

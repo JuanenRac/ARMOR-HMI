@@ -7,7 +7,6 @@
 #include <cmath>
 #include <mutex>
 #include <vector>
-extern "C" {
 #include "driver/i2s_std.h"
 #include "driver/i2s_tdm.h"
 #include "esp_codec_dev.h"
@@ -15,7 +14,6 @@ extern "C" {
 #include "esp_log.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
-}
 #include "board_io.hpp"
 #include "core/board_s3.hpp"
 
