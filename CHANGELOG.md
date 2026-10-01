@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented here.
 
+## [0.0.3] - A login that actually leaves you signed in
+
+- **The session cookie was garbage:** it was built in a function's own local variable, and the HTTP server only keeps a pointer to a header's text, not a copy of it; by the time the response was really sent, that memory had already been reused for something else. The login or the first-time set-up answered "ok", but no browser ever kept a real session - re-entering the panel always looked like a fresh sign-in. The cookie is now kept alive until the response goes out.
+- Built with ESP-IDF 5.5.5.
+
 ## [0.0.2] - The firmware builds
 
 - **First real build** with ESP-IDF 5.5.5 for the ESP32-S3: the image is about 2.4 MB, well inside its 6 MB partition.
