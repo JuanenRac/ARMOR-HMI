@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 400" role="img" aria-labelledby="title desc">
+  <title id="title">ARMOR-HMI</title><desc id="desc">ARMOR-HMI | A.R.M.O.R. Autonomous Radar &amp; Multimodal Observation Range</desc>
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%"><stop stop-color="#07090C"/><stop offset="1" stop-color="#12161C"/></linearGradient>
+    <filter id="g"><feGaussianBlur stdDeviation="4" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+  </defs>
+  <rect width="1200" height="400" fill="url(#bg)"/>
+  <g fill="none" stroke="#00E5FF" stroke-width="1" opacity=".25"><path d="M0 100H200L250 150H600"/><path d="M1200 300H1000L950 250H600"/><path d="M1200 80H1040L1000 120H760"/></g>
+  <g transform="translate(205 190)"><g transform="scale(1.0)" filter="url(#g)" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke="#00E5FF" stroke-width="4">
+    <path d="M0,-84 L66,-58 V4 C66,48 34,72 0,88 C-34,72 -66,48 -66,4 V-58 Z"/>
+    <g transform="scale(.78) translate(0 4)" stroke-width="4">
+    <rect x="-44" y="-36" width="88" height="56" rx="7"/><path d="M-30,-20 h30 M-30,-8 h44 M-30,4 h22" stroke-width="3" opacity=".7"/>
+    <rect x="12" y="-6" width="9" height="16" rx="4.5" stroke="#FFB020" stroke-width="3"/><path d="M8,6 a9,9 0 0 0 17,0 M16.5,15 v6" stroke="#FFB020" stroke-width="2.6"/>
+    <path d="M-16,34 h32 M0,20 v14" stroke-width="3"/>
+    </g>
+  </g></g>
+  <text x="360" y="136" font-family="Arial,sans-serif" font-size="50" font-weight="bold" fill="#FFF" letter-spacing="8">A.R.M.O.R.</text>
+  <text x="364" y="181" font-family="Arial,sans-serif" font-size="17" fill="#00E5FF" letter-spacing="4">AUTONOMOUS RADAR &amp; MULTIMODAL OBSERVATION RANGE</text>
+  <text x="360" y="246" font-family="Arial,sans-serif" font-size="29" font-weight="bold" fill="#FFF">ARMOR-HMI</text>
+  <text x="362" y="280" font-family="Arial,sans-serif" font-size="16" fill="#FFB020" letter-spacing="3">TOUCH PANEL &amp; VOICE ASSISTANT</text>
+  <g font-family="monospace" font-size="12" fill="#00E5FF" opacity=".65"><text x="105" y="360">#ESP32-S3</text><text x="255" y="360">#LVGL</text><text x="405" y="360">#I2S</text><text x="555" y="360">#MQTT</text><text x="705" y="360">#C++</text></g>
+</svg>
