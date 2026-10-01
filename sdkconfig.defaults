@@ -1,0 +1,66 @@
+# ARMOR-HMI defaults. Copyright (C) 2026 JuanenRac (Electro Hobby 3D). GPL-3.0-or-later.
+#
+# The board is the Waveshare ESP32-S3-Touch-LCD-7C-BOX: 32 MB of flash, 16 MB of octal PSRAM, a 7-inch RGB screen, a USB-C socket on the chip's native USB (the log comes out of
+# it and it is the one used to flash). Waveshare's own example for this board family uses quad flash at 80 MHz and octal PSRAM at 80 MHz; if the module of a board turns out to
+# have an octal flash, change CONFIG_ESPTOOLPY_FLASHMODE_QIO to CONFIG_ESPTOOLPY_OCT_FLASH (the bootloader says so on the console when it cannot read the flash).
+CONFIG_IDF_TARGET="esp32s3"
+CONFIG_ESP_DEFAULT_CPU_FREQ_MHZ_240=y
+CONFIG_ESP_CONSOLE_USB_SERIAL_JTAG=y
+CONFIG_LOG_DEFAULT_LEVEL_INFO=y
+CONFIG_ESP_TASK_WDT_EN=y
+CONFIG_FREERTOS_HZ=1000
+CONFIG_COMPILER_OPTIMIZATION_PERF=y
+
+# Two application slots for over-the-air updates (partitions.csv); the boot loader goes back to the previous image when a new one does not confirm itself.
+CONFIG_ESPTOOLPY_FLASHMODE_QIO=y
+CONFIG_ESPTOOLPY_FLASHFREQ_80M=y
+CONFIG_ESPTOOLPY_FLASHSIZE_32MB=y
+CONFIG_PARTITION_TABLE_CUSTOM=y
+CONFIG_PARTITION_TABLE_CUSTOM_FILENAME="partitions.csv"
+CONFIG_PARTITION_TABLE_FILENAME="partitions.csv"
+CONFIG_BOOTLOADER_APP_ROLLBACK_ENABLE=y
+
+# 16 MB of octal PSRAM hold the two frame buffers of the screen (2 x 750 KB) and the audio. A board whose PSRAM does not answer still starts (without a screen).
+CONFIG_SPIRAM=y
+CONFIG_SPIRAM_MODE_OCT=y
+CONFIG_SPIRAM_SPEED_80M=y
+CONFIG_SPIRAM_IGNORE_NOTFOUND=y
+CONFIG_SPIRAM_USE_MALLOC=y
+CONFIG_SPIRAM_FETCH_INSTRUCTIONS=y
+CONFIG_SPIRAM_RODATA=y
+CONFIG_IDF_EXPERIMENTAL_FEATURES=y
+CONFIG_ESP32S3_DATA_CACHE_LINE_64B=y
+CONFIG_ESP32S3_DATA_CACHE_64KB=y
+
+CONFIG_LWIP_MAX_SOCKETS=16
+# The HTTPS panel: a second server with its own certificate; the TLS buffers are released while a connection is idle.
+CONFIG_ESP_HTTPS_SERVER_ENABLE=y
+CONFIG_MBEDTLS_DYNAMIC_BUFFER=y
+CONFIG_MBEDTLS_DYNAMIC_FREE_CONFIG_DATA=y
+CONFIG_MBEDTLS_DYNAMIC_FREE_CA_CERT=y
+# The panel makes its own certificate on the first boot in this task: mbedTLS needs several KB of stack to write a certificate, and 6144 overflowed on a real board of
+# this family (every boot ended in "A stack overflow in task main").
+CONFIG_ESP_MAIN_TASK_STACK_SIZE=16384
+
+# The link to ARMOR-SERVER and to the speech service: HTTPS checked against the usual certificate authorities, or (a deliberate choice in the settings) not checked, for a server
+# that only has its own certificate.
+CONFIG_MBEDTLS_CERTIFICATE_BUNDLE=y
+CONFIG_MBEDTLS_CERTIFICATE_BUNDLE_DEFAULT_FULL=y
+CONFIG_ESP_TLS_INSECURE=y
+CONFIG_ESP_TLS_SKIP_SERVER_CERT_VERIFY=y
+
+# LVGL: the fonts are the generated ones (main/fonts); the default font is only for the microphone symbol.
+CONFIG_LV_COLOR_DEPTH_16=y
+CONFIG_LV_MEM_CUSTOM=y
+CONFIG_LV_FONT_MONTSERRAT_14=y
+CONFIG_LV_USE_SYSMON=n
+CONFIG_LV_USE_PERF_MONITOR=n
+
+# Bluetooth Low Energy (NimBLE) is only the peripheral side, for configuring the panel from a phone (docs/BLE_PROVISIONING.md); it is started only when the settings say so.
+CONFIG_BT_ENABLED=y
+CONFIG_BT_NIMBLE_ENABLED=y
+CONFIG_BT_NIMBLE_ROLE_CENTRAL=n
+CONFIG_BT_NIMBLE_ROLE_OBSERVER=n
+CONFIG_BT_NIMBLE_MAX_CONNECTIONS=1
+CONFIG_BT_NIMBLE_NVS_PERSIST=n
+CONFIG_BT_NIMBLE_ATT_PREFERRED_MTU=247

@@ -1,0 +1,11 @@
+# ARMOR-HMI partition table for the 32 MB flash of the Waveshare ESP32-S3-Touch-LCD-7C-BOX.
+# Two application slots of 6 MB (over-the-air updates with rollback; the generated fonts and the screen make the image large), the settings store, a core dump, and
+# 16 MB of storage for what comes later (sounds, pictures, a speech model).
+# Name,     Type, SubType,  Offset,    Size,      Flags
+nvs,        data, nvs,      0x9000,    0x10000,
+otadata,    data, ota,      0x19000,   0x2000,
+phy_init,   data, phy,      0x1b000,   0x1000,
+ota_0,      app,  ota_0,    0x20000,   0x600000,
+ota_1,      app,  ota_1,    0x620000,  0x600000,
+coredump,   data, coredump, 0xC20000,  0x10000,
+storage,    data, spiffs,   0xC30000,  0x1000000,

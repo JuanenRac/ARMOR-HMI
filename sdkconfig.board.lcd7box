@@ -1,0 +1,3 @@
+# ARMOR-HMI, board profile lcd7box: the Waveshare ESP32-S3-Touch-LCD-7C-BOX (Wi-Fi only; its connector is USB or CAN, not Ethernet). Copyright (C) 2026 JuanenRac (Electro Hobby 3D). GPL-3.0-or-later.
+# The shared Kconfig of the node projects asks for a board; the panel has no Ethernet, which is what "s3-wifi" means to it.
+CONFIG_ARMOR_BOARD_S3_WIFI=y
