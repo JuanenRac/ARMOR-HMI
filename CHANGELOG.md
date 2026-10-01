@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented here.
 
+## [0.0.2] - The firmware builds
+
+- **First real build** with ESP-IDF 5.5.5 for the ESP32-S3: the image is about 2.4 MB, well inside its 6 MB partition.
+- **Fixes the build found:** the ESP-IDF headers are no longer wrapped in `extern "C"` (ESP-IDF 5.5 declares C++ overloads there), the GT911 touch configuration is filled by name instead of through the component's macro, and a few standard headers (`<ctime>`, `<cstring>`, `<algorithm>`) are included where they are used.
+- Still never run on a board.
+
 ## [0.0.1] - The touch panel
 
 - **First version.** A new project for the Waveshare ESP32-S3-Touch-LCD-7C-BOX: a 7-inch wall screen that shows the state of the system, arms, disarms and acknowledges, with the microphone and the speaker the voice assistant will use. It is a node of the family (the settings, Wi-Fi, web page, Bluetooth set-up and firmware update with roll-back come from `ARMOR-COMMON/firmware_base`, synchronised into this repository) and a client of ARMOR-SERVER like the Android app.

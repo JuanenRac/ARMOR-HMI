@@ -13,7 +13,6 @@
 #include <cstring>
 #include <mutex>
 #include <string>
-extern "C" {
 #include "esp_app_desc.h"
 #include "esp_heap_caps.h"
 #include "esp_http_server.h"
@@ -25,7 +24,6 @@ extern "C" {
 #include "esp_timer.h"
 #include "mbedtls/sha256.h"
 #include "sdkconfig.h"
-}
 #include "core/auth.hpp"
 #include "core/board_s3.hpp"
 #include "core/netplan.hpp"

@@ -27,7 +27,7 @@ if (seeded) { const [name, password] = seeded.split(":"); users.set(name, { pass
 const sessions = new Map();
 const started = Date.now();
 let rebootAt = 0;
-let logText = "I (1200) armor-hmi: A.R.M.O.R. touch panel hmi-a1b2c3, firmware 0.0.1\nI (1500) armor-net: link up\nI (2600) armor-net: address 192.168.0.181, gateway 192.168.0.1, netmask 255.255.255.0 (wire)\nW (9000) armor-link: signed in to 192.168.0.180 as \"panel-salon\"\n";
+let logText = "I (1200) armor-hmi: A.R.M.O.R. touch panel hmi-a1b2c3, firmware 0.0.2\nI (1500) armor-net: link up\nI (2600) armor-net: address 192.168.0.181, gateway 192.168.0.1, netmask 255.255.255.0 (wire)\nW (9000) armor-link: signed in to 192.168.0.180 as \"panel-salon\"\n";
 
 const config = {
   v: 1, node: { id: "hmi-a1b2c3", name: "Living room panel", hostname: "" },
@@ -57,7 +57,7 @@ const tokenOf = request => /armor_session=([0-9a-f]+)/.exec(request.headers.cook
 
 function status() {
   return {
-    node_id: config.node.id, name: config.node.name, version: "0.0.1", uptime_s: Math.floor((Date.now() - started) / 1000) + 5400, reset_reason: "power_on", heap_free: 182000, heap_min: 151000, psram_free: 14400000, partition: "ota_0",
+    node_id: config.node.id, name: config.node.name, version: "0.0.2", uptime_s: Math.floor((Date.now() - started) / 1000) + 5400, reset_reason: "power_on", heap_free: 182000, heap_min: 151000, psram_free: 14400000, partition: "ota_0",
     network: { board, ethernet_available: wired, ethernet_ok: true, layout: wired ? "ethernet+ap" : "wifi-station+ap", link_up: true, has_ip: true, ip: "192.168.0.181", netmask: "255.255.255.0", gateway: "192.168.0.1", dns: "192.168.0.1", mac: "34:85:18:a1:b2:c3",
       ap_active: config.ap.enabled, ap_setup: users.size === 0, ap_ssid: users.size === 0 ? "ARMOR-SETUP-A1B2C3" : config.ap.ssid, ap_channel: 6, ap_clients: 1, sta_connected: true, sta_ssid: config.sta.ssid, sta_rssi: -52 },
     mqtt: { enabled: config.mqtt.enabled, connected: true, clock_set: true, published: 400 + Math.floor((Date.now() - started) / 5000), dropped: 0 },

@@ -3,14 +3,12 @@
 #include "api_shared.hpp"
 
 #include <cstring>
-extern "C" {
 #include "esp_app_desc.h"
 #include "esp_heap_caps.h"
 #include "esp_log.h"
 #include "esp_ota_ops.h"
 #include "esp_system.h"
 #include "esp_timer.h"
-}
 #include "core/board_s3.hpp"
 #include "core/json.hpp"
 #include "core/server_view.hpp"

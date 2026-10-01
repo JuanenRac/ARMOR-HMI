@@ -5,7 +5,6 @@
 #include <cstdio>
 #include <cstring>
 #include <vector>
-extern "C" {
 #include "esp_log.h"
 #include "mbedtls/ctr_drbg.h"
 #include "mbedtls/ecp.h"
@@ -14,7 +13,6 @@ extern "C" {
 #include "mbedtls/pk.h"
 #include "mbedtls/sha256.h"
 #include "mbedtls/x509_crt.h"
-}
 #include "core/auth.hpp"
 #include "node_store.hpp"
 
