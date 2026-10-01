@@ -21,7 +21,7 @@ every order exactly as it does for the Android app).
 | The pins of the board (`core/board_s3.hpp`) | the computer | `tests/test_board.cpp` and a `static_assert`: no two functions share a GPIO and none is a pin the chip keeps |
 | The words of the screen (`core/screen_text.hpp`) | the computer | `tests/test_board.cpp`: every row in seven languages |
 | The web page (`panel/`) | a real browser | `node tools/panel_browser_test.mjs` against `tools/panel_mock.mjs`: every page in seven languages |
-| The firmware (`main/`) | **nowhere yet** | it builds with ESP-IDF 5.4 (`tools/build_node.sh generic`) and has never been built or run on a board |
+| The firmware (`main/`) | **nowhere yet** | it builds with ESP-IDF 5.4 and 5.5 (`tools/build_node.sh generic`, or `idf.py` on the machine) and has never been run on a board |
 
 ## The link to the server
 

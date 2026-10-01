@@ -26,7 +26,7 @@
 
 ---
 
-**Vérification d'honnêteté - ce qui fonctionne aujourd'hui:** **Maturité : échafaudage.** Ce qui ne dépend pas de la carte est réel et testé sur un ordinateur (les réglages, ce que le panneau sait du serveur et quand c'est périmé, la conversation vocale, les broches de la carte et les textes de l'écran en sept langues : quatre programmes de test), ainsi que la page web (exécutée contre un substitut dans un vrai navigateur). **Le firmware n'a jamais été compilé ni exécuté sur une carte :** l'écran, le tactile, le son et la liaison avec le serveur sont écrits d'après les exemples de Waveshare pour cette famille de cartes et ont besoin de leur première compilation et de leur première mise sous tension. Le service vocal avec lequel parle l'assistant n'existe pas encore et il n'y a pas de mot de réveil : c'est appuyer pour parler.
+**Vérification d'honnêteté - ce qui fonctionne aujourd'hui:** **Maturité : échafaudage.** Ce qui ne dépend pas de la carte est réel et testé sur un ordinateur (les réglages, ce que le panneau sait du serveur et quand c'est périmé, la conversation vocale, les broches de la carte et les textes de l'écran en sept langues : quatre programmes de test), ainsi que la page web (exécutée contre un substitut dans un vrai navigateur). **Le firmware compile (ESP-IDF 5.5.5, une image d'environ 2,4 Mo) mais n'a jamais été exécuté sur une carte :** l'écran, le tactile, le son et la liaison avec le serveur sont écrits d'après les exemples de Waveshare pour cette famille de cartes et ont besoin de leur première mise sous tension. Le service vocal avec lequel parle l'assistant n'existe pas encore et il n'y a pas de mot de réveil : c'est appuyer pour parler.
 
 ---
 
@@ -59,7 +59,7 @@ ARMOR-HMI/
 cmake -S tests -B build/host && cmake --build build/host && ctest --test-dir build/host   # the settings, the server view, the voice conversation, the board's pins and the screen's words
 node tools/panel_mock.mjs --user admin:adminpass123                                       # the web page without a board
 node tools/panel_browser_test.mjs                                                         # the page in a real browser, every page in seven languages
-tools/build_node.sh generic                                                               # the firmware image in the ESP-IDF container: dist/generic-lcd7box.bin (never built yet)
+tools/build_node.sh generic                                                               # the firmware image in the ESP-IDF container: dist/generic-lcd7box.bin
 ```
 
 See the [firmware guide](docs/NODE_FIRMWARE.md) and the [Bluetooth channel](docs/BLE_PROVISIONING.md).

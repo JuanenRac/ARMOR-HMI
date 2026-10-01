@@ -6,7 +6,7 @@ All notable changes to this project are documented here.
 
 - **First real build** with ESP-IDF 5.5.5 for the ESP32-S3: the image is about 2.4 MB, well inside its 6 MB partition.
 - **Fixes the build found:** the ESP-IDF headers are no longer wrapped in `extern "C"` (ESP-IDF 5.5 declares C++ overloads there), the GT911 touch configuration is filled by name instead of through the component's macro, and a few standard headers (`<ctime>`, `<cstring>`, `<algorithm>`) are included where they are used.
-- Still never run on a board.
+- The seven READMEs and the build and design documents now say it builds, and that it has never been run on a board.
 
 ## [0.0.1] - The touch panel
 

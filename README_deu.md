@@ -26,7 +26,7 @@
 
 ---
 
-**Ehrlichkeitsprüfung - was heute läuft:** **Reifegrad: Gerüst.** Was nicht vom Board abhängt, ist echt und auf einem Computer getestet (die Einstellungen, was das Panel vom Server weiß und wann das veraltet ist, das Sprachgespräch, die Pins des Boards und die Bildschirmtexte in sieben Sprachen: vier Testprogramme), ebenso die Webseite (gegen einen Ersatz in einem echten Browser ausgeführt). **Die Firmware wurde nie auf einem Board gebaut oder ausgeführt:** Bildschirm, Touch, Ton und die Verbindung zum Server sind nach Waveshares Beispielen für diese Boardfamilie geschrieben und brauchen ihre erste Kompilierung und ihren ersten Start. Der Sprachdienst, mit dem der Assistent spricht, existiert noch nicht, und es gibt kein Aktivierungswort: es ist Push-to-talk.
+**Ehrlichkeitsprüfung - was heute läuft:** **Reifegrad: Gerüst.** Was nicht vom Board abhängt, ist echt und auf einem Computer getestet (die Einstellungen, was das Panel vom Server weiß und wann das veraltet ist, das Sprachgespräch, die Pins des Boards und die Bildschirmtexte in sieben Sprachen: vier Testprogramme), ebenso die Webseite (gegen einen Ersatz in einem echten Browser ausgeführt). **Die Firmware lässt sich bauen (ESP-IDF 5.5.5, ein Image von etwa 2,4 MB), wurde aber nie auf einem Board ausgeführt:** Bildschirm, Touch, Ton und die Verbindung zum Server sind nach Waveshares Beispielen für diese Boardfamilie geschrieben und brauchen ihren ersten Start. Der Sprachdienst, mit dem der Assistent spricht, existiert noch nicht, und es gibt kein Aktivierungswort: es ist Push-to-talk.
 
 ---
 
@@ -59,7 +59,7 @@ ARMOR-HMI/
 cmake -S tests -B build/host && cmake --build build/host && ctest --test-dir build/host   # the settings, the server view, the voice conversation, the board's pins and the screen's words
 node tools/panel_mock.mjs --user admin:adminpass123                                       # the web page without a board
 node tools/panel_browser_test.mjs                                                         # the page in a real browser, every page in seven languages
-tools/build_node.sh generic                                                               # the firmware image in the ESP-IDF container: dist/generic-lcd7box.bin (never built yet)
+tools/build_node.sh generic                                                               # the firmware image in the ESP-IDF container: dist/generic-lcd7box.bin
 ```
 
 See the [firmware guide](docs/NODE_FIRMWARE.md) and the [Bluetooth channel](docs/BLE_PROVISIONING.md).
