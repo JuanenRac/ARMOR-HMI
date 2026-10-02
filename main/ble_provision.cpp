@@ -10,6 +10,7 @@
 #include <cstring>
 #include <memory>
 #include <string>
+extern "C" {
 #include "esp_log.h"
 #include "esp_timer.h"
 #include "freertos/FreeRTOS.h"
@@ -21,6 +22,7 @@
 #include "nimble/nimble_port_freertos.h"
 #include "services/gap/ble_svc_gap.h"
 #include "services/gatt/ble_svc_gatt.h"
+}
 #include "api_shared.hpp"
 #include "core/ble_dispatch.hpp"
 #include "network.hpp"
@@ -42,6 +44,7 @@ std::uint8_t g_own_address_type = 0;
 std::uint16_t g_connection = BLE_HS_CONN_HANDLE_NONE;
 std::uint16_t g_tx_handle = 0;
 bool g_running = false;
+bool g_advertising_stopped = false;   // set once the node has an address and the phone had its chance to read the outcome: no more advertising
 ble::Assembler g_assembler;
 ble::Session g_session;
 auth::LoginThrottle g_throttle;
@@ -55,7 +58,7 @@ class NodeBackend : public ble::Backend {
     const network::Status n = network::status();
     json::Writer w;
     w.begin_object().field("kind", "hmi").field("node_id", s.node_id).field("name", s.node_name).field("mac", n.mac).field("firmware", api::version_text()).field("setup", store::users_empty())
-        .field("layout", n.layout).field("has_ip", n.has_ip).field("ip", n.ip).field("sta_connected", n.sta_connected).field("sta_ssid", n.sta_ssid).field("ap_active", n.ap_active).end_object();
+        .field("layout", n.layout).field("has_ip", n.has_ip).field("ip", n.ip).field("sta_connected", n.sta_connected).field("sta_ssid", n.sta_ssid).field("sta_error", n.sta_error).field("ap_active", n.ap_active).end_object();
     return w.str();
   }
   bool setup_code_ok(std::string_view code) override { return !store::setup_code().empty() && auth::same_text(code, store::setup_code()); }
@@ -179,6 +182,7 @@ int on_gap(struct ble_gap_event* event, void*) {
 }
 
 void advertise() {
+  if (g_advertising_stopped) return;
   struct ble_hs_adv_fields fields;
   std::memset(&fields, 0, sizeof fields);
   fields.flags = BLE_HS_ADV_F_DISC_GEN | BLE_HS_ADV_F_BREDR_UNSUP;
@@ -208,6 +212,24 @@ void on_sync() {
 
 void on_reset(int reason) { ESP_LOGW(kTag, "the Bluetooth stack reset (%d)", reason); }
 
+// A node that is set up but whose Wi-Fi was just given over Bluetooth is not reachable until it has an address: it keeps advertising, so the app can come back
+// and read why it did not join (hello: has_ip, sta_connected, sta_error), and stops two minutes after it has an address.
+void advertising_watch_task(void*) {
+  constexpr int kGraceSeconds = 120;
+  int with_address = 0;
+  for (;;) {
+    vTaskDelay(pdMS_TO_TICKS(5000));
+    with_address = network::has_ip() ? with_address + 5 : 0;
+    if (with_address >= kGraceSeconds && g_connection == BLE_HS_CONN_HANDLE_NONE) {
+      g_advertising_stopped = true;
+      ble_gap_adv_stop();
+      ESP_LOGI(kTag, "the node has an address: Bluetooth stops advertising");
+      break;
+    }
+  }
+  vTaskDelete(nullptr);
+}
+
 void host_task(void*) {
   nimble_port_run();   // returns only when the stack is stopped
   nimble_port_freertos_deinit();
@@ -215,7 +237,9 @@ void host_task(void*) {
 }  // namespace
 
 bool start(const config::Settings& settings, bool setup_mode) {
-  const bool wanted = settings.ble == config::BleMode::kAlways || (settings.ble == config::BleMode::kSetup && setup_mode);
+  // In `setup` mode the node listens at every start: until it has an address it cannot be reached any other way (a board with a cable that is not plugged in, a Wi-Fi
+  // network that was not joined), and the watch task stops the advertising a couple of minutes after the node has an address.
+  const bool wanted = settings.ble == config::BleMode::kAlways || settings.ble == config::BleMode::kSetup;
   if (!wanted) return false;
   g_name = "ARMOR-" + store::mac_tail();
   for (char& c : g_name) if (c >= 'a' && c <= 'z') c = static_cast<char>(c - 'a' + 'A');
@@ -233,9 +257,10 @@ bool start(const config::Settings& settings, bool setup_mode) {
   if (ble_gatts_count_cfg(kServices) != 0 || ble_gatts_add_svcs(kServices) != 0) { ESP_LOGE(kTag, "the Bluetooth service could not be added"); return false; }
   ble_svc_gap_device_name_set(g_name.c_str());
   ble_att_set_preferred_mtu(247);
-  xTaskCreate(worker_task, "ble-worker", 8192, nullptr, 4, nullptr);
+  xTaskCreate(worker_task, "ble-worker", 16384, nullptr, 4, nullptr);
   nimble_port_freertos_init(host_task);
   g_running = true;
+  if (settings.ble == config::BleMode::kSetup && !setup_mode) xTaskCreate(advertising_watch_task, "ble-watch", 3072, nullptr, 2, nullptr);
   return true;
 }
 

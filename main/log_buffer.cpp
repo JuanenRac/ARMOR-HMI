@@ -5,8 +5,10 @@
 #include <cstdarg>
 #include <cstdio>
 #include <cstring>
+extern "C" {
 #include "esp_log.h"
 #include "freertos/FreeRTOS.h"
+}
 
 namespace armor::logbuf {
 namespace {
