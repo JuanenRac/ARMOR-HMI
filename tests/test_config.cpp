@@ -82,6 +82,10 @@ static void test_document() {
   CHECK(!config::load("{\"server\":{\"port\":\"x\"}}", base, out, problems) && has(problems, "server.port", "invalid"));
   problems.clear();
   CHECK(!config::load("not json", base, out, problems));
+  problems.clear();
+  CHECK(config::load("{\"system\":{\"auto_restart_hours\":12}}", base, out, problems) && out.auto_restart_hours == 12);
+  problems.clear();
+  CHECK(!config::load("{\"system\":{\"auto_restart_hours\":5}}", base, out, problems) && has(problems, "system.auto_restart_hours", "invalid"));
   // a password never leaves: the panel's copy says only that there is one
   config::Settings with_secret = base;
   with_secret.server.password = "secreto-secreto";
