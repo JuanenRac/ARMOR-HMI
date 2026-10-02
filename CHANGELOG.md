@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented here.
 
+## [0.0.5] - A proper goodbye to the access point before restarting
+
+- **The node never told the access point it was leaving before a restart:** `esp_restart()` just cuts the radio, with no deauthentication frame sent; some access points get stuck holding the old association and need restarting themselves before the node can rejoin. It now calls `esp_wifi_disconnect()` and gives it a moment before restarting, on every restart path (the panel, a firmware update).
+- **The "Restarting..." screen never appeared after a firmware update:** `S.rebooting = true` was set without calling `render()` on that one path - the panel just sat on the old screen until the auto-reload kicked in on its own six seconds later. Now it shows immediately.
+- **The default HTTP header limit (512 bytes) was too small for a real browser:** a session cookie plus a modern browser's own request headers can exceed it, which the panel refused outright - a blank page saying "Header fields are too long". Raised to 2048 bytes.
+
 ## [0.0.4] - This panel had never actually received the other nodes' fixes
 
 - **The Bluetooth stack-overflow fix never reached this project:** `ble-worker`'s stack was still 8 KB, the exact size that overflows and restarts the node mid-save on ARMOR-RADAR/-SOLAR/-ELECTRICAL before their fix; it is now 16 KB here too. Found by checking `firmware_base/` against every project's own copy of the files it shares, not by reproducing the crash on this board (it has never run on real hardware yet).

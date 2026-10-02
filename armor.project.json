@@ -2,7 +2,7 @@
   "schema_version": "1.0",
   "ecosystem": "A.R.M.O.R.",
   "name": "ARMOR-HMI",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "role": "Touch panel: shows the state of the system on a wall screen, arms, disarms and acknowledges from there, and is where the voice assistant will live",
   "stack": "C++17 (host-tested core); ESP-IDF firmware for the ESP32-S3 with LVGL, with its web page",
   "technologies": [
@@ -18,5 +18,5 @@
   "parent": "ARMOR-SERVER",
   "build": "cmake -S tests -B build/host && cmake --build build/host && ctest --test-dir build/host",
   "notes": "The settings, what the panel knows of the server (the summary, the state of the link and when what it shows is old), the voice conversation, the pins of the board and the words of the screen in seven languages are tested on a computer (four test programs, all passing), and the web page is tested in a real browser against a stand-in of the panel. The firmware (the screen, the touch, the sound and the link to ARMOR-SERVER, on top of the node firmware the family shares) has never been built or run on a board: it is written from Waveshare's examples for this family of boards. There is no wake word (it is push to talk) and the speech service the assistant would talk to does not exist yet.",
-  "native_version": "0.0.4"
+  "native_version": "0.0.5"
 }
