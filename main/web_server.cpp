@@ -342,6 +342,14 @@ esp_err_t get_config(httpd_req_t* r) {
   return send_json(r, 200, api::config_get_json());
 }
 
+// An admin's "download the whole configuration" - secrets included, the same document the flash keeps - to clone it onto an identical
+// board when setting up more than one.
+esp_err_t get_config_export(httpd_req_t* r) {
+  Who who;
+  if (!require(r, who, true, false)) return ESP_OK;
+  return send_json(r, 200, api::config_export_json());
+}
+
 esp_err_t put_config(httpd_req_t* r) {
   Who who;
   if (!require(r, who, true, true)) return ESP_OK;
@@ -556,6 +564,7 @@ esp_err_t api_handler(httpd_req_t* r) {
     if (route == "status") return get_status(r);
     if (route == "wifi/scan") return get_wifi_scan(r);
     if (route == "config") return get_config(r);
+    if (route == "config/export") return get_config_export(r);
     if (route == "screen") return get_screen(r);
     if (route == "users") return get_users(r);
     if (route == "log") return get_log(r);
