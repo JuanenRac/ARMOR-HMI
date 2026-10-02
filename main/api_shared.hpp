@@ -12,6 +12,9 @@ std::string version_text();
 std::string status_json();          // the panel, its network, its broker and its web server, as the Overview page shows them
 std::string screen_json();          // what the screen shows: the link to the server, the summary, the voice assistant
 std::string config_get_json();      // {"config":{...},"channel_auto":n,"firmware":"x.y.z"}: no password ever leaves the panel
+// The same document the flash keeps, secrets and all: an admin downloading the node's whole configuration to load onto an identical
+// unit (manufacturing a batch of nodes), not something the ordinary panel pages ever call.
+std::string config_export_json();
 std::string problems_json(const config::Problems& problems);   // [{"path":..,"code":..}]
 
 enum class PutResult { kSaved, kInvalid, kStorage };

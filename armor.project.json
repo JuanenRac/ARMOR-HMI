@@ -2,7 +2,7 @@
   "schema_version": "1.0",
   "ecosystem": "A.R.M.O.R.",
   "name": "ARMOR-HMI",
-  "version": "0.0.7",
+  "version": "0.0.8",
   "role": "Touch panel: shows the state of the system on a wall screen, arms, disarms and acknowledges from there, and is where the voice assistant will live",
   "stack": "C++17 (host-tested core); ESP-IDF firmware for the ESP32-S3 with LVGL, with its web page",
   "technologies": [
