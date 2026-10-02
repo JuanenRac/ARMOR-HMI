@@ -2,6 +2,13 @@
 
 All notable changes to this project are documented here.
 
+## [0.0.4] - This panel had never actually received the other nodes' fixes
+
+- **The Bluetooth stack-overflow fix never reached this project:** `ble-worker`'s stack was still 8 KB, the exact size that overflows and restarts the node mid-save on ARMOR-RADAR/-SOLAR/-ELECTRICAL before their fix; it is now 16 KB here too. Found by checking `firmware_base/` against every project's own copy of the files it shares, not by reproducing the crash on this board (it has never run on real hardware yet).
+- **Bluetooth still would not advertise without an address:** the same older `wanted` condition (extra `&& setup_mode`) that kept the other three nodes undiscoverable before their own fix was still here; now Bluetooth advertises at every start while in set-up mode, same as the rest of the family.
+- **The panel's title said "A.R.M.O.R. node"** instead of naming its own kind, same as the other three nodes already did; now "A.R.M.O.R. hmi".
+- No behaviour change beyond catching up: `main/network.cpp/.hpp`, `main/mqtt_link.cpp` and `main/node_store.cpp` were also brought back in line with the shared base. The earlier fixes had been written straight into each project's own copy without updating `ARMOR-COMMON/firmware_base`, so `sync_firmware_base.py check` never had a current base to compare this project against.
+
 ## [0.0.3] - A login that actually leaves you signed in
 
 - **The session cookie was garbage:** it was built in a function's own local variable, and the HTTP server only keeps a pointer to a header's text, not a copy of it; by the time the response was really sent, that memory had already been reused for something else. The login or the first-time set-up answered "ok", but no browser ever kept a real session - re-entering the panel always looked like a fresh sign-in. The cookie is now kept alive until the response goes out.

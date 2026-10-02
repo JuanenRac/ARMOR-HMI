@@ -7,6 +7,7 @@
 
 #include <atomic>
 #include <ctime>
+extern "C" {
 #include <sys/time.h>
 #include "esp_log.h"
 #include "esp_sntp.h"
@@ -14,6 +15,7 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "mqtt_client.h"
+}
 #include "network.hpp"
 
 namespace armor::mqtt_link {
