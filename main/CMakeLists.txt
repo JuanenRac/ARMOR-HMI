@@ -4,7 +4,7 @@ file(GLOB ARMOR_FONTS "${CMAKE_CURRENT_LIST_DIR}/fonts/*.c")
 set(ARMOR_SOURCES "api_shared.cpp" "app_main.cpp" "audio.cpp" "ble_provision.cpp" "board_io.cpp" "display.cpp" "entropy.cpp" "log_buffer.cpp" "mqtt_link.cpp" "network.cpp"
                   "node_store.cpp" "server_link.cpp" "tls_cert.cpp" "ui.cpp" "voice.cpp" "web_server.cpp" ${ARMOR_FONTS})
 set(ARMOR_REQUIRES driver esp_driver_gpio esp_driver_i2c esp_driver_i2s esp_event esp_netif esp_timer esp_wifi esp_http_server esp_https_server esp_http_client esp-tls
-                   app_update esp_partition esp_app_format mbedtls bootloader_support mqtt nvs_flash lwip esp_hw_support esp_system heap log bt esp_lcd esp_psram)
+                   app_update esp_partition esp_app_format mbedtls bootloader_support mqtt nvs_flash lwip esp_hw_support esp_system heap log bt esp_lcd esp_psram spi_flash)
 idf_component_register(SRCS ${ARMOR_SOURCES}
                        INCLUDE_DIRS "." ".."
                        REQUIRES ${ARMOR_REQUIRES})
