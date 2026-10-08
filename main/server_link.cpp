@@ -5,6 +5,7 @@
 // Copyright (C) 2026 JuanenRac (Electro Hobby 3D). GPL-3.0-or-later.
 #include "server_link.hpp"
 
+#include <algorithm>
 #include <atomic>
 #include <mutex>
 #include "esp_crt_bundle.h"
@@ -19,7 +20,8 @@
 namespace armor::server_link {
 namespace {
 constexpr char kTag[] = "armor-link";
-constexpr std::size_t kMaxAnswer = 8 * 1024;
+// The server's longest answer the node keeps (the screen reads the state of the whole site from one). An answer longer than this is cut and said so in the log.
+constexpr std::size_t kMaxAnswer = 32 * 1024;
 constexpr int kRequestTimeoutMs = 6000;
 
 std::mutex g_lock;
@@ -41,6 +43,7 @@ struct Answer {
   int status = 0;            // 0: no answer at all
   std::string body;
   std::string cookie;        // "name=value" from Set-Cookie
+  bool truncated = false;    // the answer was longer than kMaxAnswer
 };
 
 esp_err_t on_http_event(esp_http_client_event_t* event) {
@@ -53,7 +56,13 @@ esp_err_t on_http_event(esp_http_client_event_t* event) {
       answer->cookie = value.substr(0, value.find(';'));
     }
   } else if (event->event_id == HTTP_EVENT_ON_DATA && answer != nullptr && event->data != nullptr) {
-    if (answer->body.size() + static_cast<std::size_t>(event->data_len) <= kMaxAnswer) answer->body.append(static_cast<const char*>(event->data), static_cast<std::size_t>(event->data_len));
+    const std::size_t room = kMaxAnswer > answer->body.size() ? kMaxAnswer - answer->body.size() : 0;
+    const std::size_t take = std::min(room, static_cast<std::size_t>(event->data_len));
+    answer->body.append(static_cast<const char*>(event->data), take);
+    if (take < static_cast<std::size_t>(event->data_len) && !answer->truncated) {
+      answer->truncated = true;
+      ESP_LOGW(kTag, "the server's answer is longer than %u bytes: it was cut", static_cast<unsigned>(kMaxAnswer));
+    }
   }
   return ESP_OK;
 }

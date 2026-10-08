@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented here.
 
+## [0.1.2] - An answer longer than the buffer is no longer cut without a word
+
+- The longest answer of the server the screen keeps goes from 8 KB to 32 KB, and when an answer is still longer it is cut at the limit (it used to lose the whole piece that did not fit) and the log says so.
+
+
 ## [0.1.1] - About and Help pages, date and time, hints everywhere and a panel that can always be reached
 
 - **"Keep me signed in on this browser"** at login: unchecked, nothing changes (30 minutes idle still signs out); checked, the session survives closing the browser and lasts 30 days of actual use.
