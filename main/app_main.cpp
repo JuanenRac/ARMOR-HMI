@@ -26,6 +26,7 @@
 #include "sdkconfig.h"
 #include "audio.hpp"
 #include "ble_provision.hpp"
+#include "clock_sync.hpp"
 #include "core/netplan.hpp"
 #include "core/screen_text.hpp"
 #include "core/server_view.hpp"
@@ -133,6 +134,7 @@ extern "C" void app_main() {
   const armor::netplan::Plan plan = armor::netplan::plan_network(settings, setup, armor::store::setup_code(), armor::store::mac_tail(), armor::store::mac_sum());
   const bool network_ok = armor::network::start(settings, plan);
   if (!network_ok) ESP_LOGE(kTag, "the network could not be started: the panel stays local");
+  armor::clocksync::start(settings);
   const bool panel_ok = network_ok && armor::web::start(settings);
   armor::mqtt_link::start(settings);
   armor::ble_provision::start(settings, setup);
