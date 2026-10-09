@@ -37,3 +37,5 @@ cmake -S tests -B build/host && cmake --build build/host && ctest --test-dir bui
 node tools/panel_mock.mjs --user admin:adminpass123                                       # the web page without a board, on http://127.0.0.1:8090/
 node tools/panel_browser_test.mjs                                                         # the page in a real browser (headless Edge), every page in seven languages
 ```
+
+**Firmware slots.** The panel's *Update* page also lists the two application slots with the version each one holds and boots the other one at the next restart (`POST /api/v1/ota/switch`, an administrator only): the way back to the version that ran before an update, or forward to the one just installed. An empty slot or a firmware of another project is refused.
