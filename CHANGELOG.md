@@ -2,7 +2,7 @@
 
 All notable changes to this project are documented here.
 
-## [0.1.4] - A login over HTTP after one over HTTPS
+## [0.1.4] - A safer broker link and a login over HTTP after one over HTTPS
 
 - **The broker link no longer races with itself** when the node moves to another saved broker: the client is replaced under a lock and the old one is stopped outside it, so a message being published at that moment can no longer use a client that is being destroyed.
 - **The panel's help** (*Firmware and log*) describes the firmware slots and their switch, the copy of the log, in the seven languages.
