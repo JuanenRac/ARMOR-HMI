@@ -2,6 +2,13 @@
 
 All notable changes to this project are documented here.
 
+## [0.1.5] - The panel can update itself from GitHub
+
+- **The node can look for a newer firmware on GitHub and install it** (*Firmware and log -> Check GitHub for a new version*), next to - never instead of - the upload of a file: it asks the repository's latest release, offers it only when it is newer and the release carries the SHA-256 of the image, downloads **the image built for this board** (`armor_hmi-<board>.bin`) straight into the other firmware slot with a progress bar, and installs it only when the hash matches; then it restarts into it. Administrators only; it needs the node to reach the Internet. The code is the one the radar node already had, now shared by every node (`main/github_update.*`, `core/semver.hpp`, `core/release_assets.hpp` in ARMOR-COMMON's firmware base).
+- **The panel and its tests:** the *Firmware and log* page has the card in the seven languages, the stand-in node (`tools/panel_mock.mjs`) answers the three routes (`GET /api/v1/ota/check`, `POST /api/v1/ota/install`, `GET /api/v1/ota/progress`), and the host tests check the comparison of versions and, for a release with and without an image per board, that a board never picks an image that is not its own.
+- **The release carries the image under the name of its board** (`armor_hmi-lcd7box.bin`); a release from before, with the plain `armor_hmi.bin`, still serves this board.
+- **A node can subscribe to the broker** (`mqtt_link::subscribe`, shared with the other nodes) and the panel's stylesheet gained two small rules; nothing changes for the touch panel itself.
+
 ## [0.1.4] - A safer broker link and a login over HTTP after one over HTTPS
 
 - **The broker link no longer races with itself** when the node moves to another saved broker: the client is replaced under a lock and the old one is stopped outside it, so a message being published at that moment can no longer use a client that is being destroyed.
