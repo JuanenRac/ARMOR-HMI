@@ -33,12 +33,14 @@ const config = {
   v: 1, node: { id: "hmi-a1b2c3", name: "Living room panel", hostname: "" },
   uplink: "wifi", ip: { dhcp: true, address: "", netmask: "255.255.255.0", gateway: "", dns1: "", dns2: "" },
   ap: { enabled: true, ssid: "ARMOR-HMI-A1B2C3", security: "wpa2", password_set: true, channel: 0, hidden: false, max_clients: 8, tx_power_dbm: 15, bandwidth_mhz: 20, country: "ES" },
-  sta: { enabled: true, ssid: "HomeRouter", password_set: true },
-  mqtt: { enabled: true, uri: "mqtt://192.168.0.180:18883", username: "hmi-node-hmi-a1b2c3", password_set: true, heartbeat_s: 10, ntp: "pool.ntp.org" },
+  sta: { enabled: true, ssid: "HomeRouter", password_set: true, backup: [] },
+  mqtt: { enabled: true, uri: "mqtt://192.168.0.180:18883", username: "hmi-node-hmi-a1b2c3", password_set: true, heartbeat_s: 10, ntp: "pool.ntp.org", backup: [] },
   server: { enabled: true, host: "192.168.0.180", port: 18080, tls: false, insecure: false, user: "panel-salon", password_set: true, poll_s: 3 },
   display: { brightness: 80, sleep_s: 300, night_brightness: 15, night_from: 22, night_to: 7 },
   audio: { volume: 60, alarm_sound: true },
   voice: { enabled: false, url: "", wake_name: "armor", listen_s: 8 },
+  time: { ntp_enabled: true, ntp: "pool.ntp.org", zone: "CET-1CEST,M3.5.0,M10.5.0/3" },
+  system: { auto_restart_hours: 0 },
   web: { mode: "both" },
   ble: { mode: "setup" },
   ui: { language: "en" },
@@ -164,6 +166,9 @@ const server = createServer(async (request, response) => {
     return json(response, 200, { ok: true, restart_required: false });
   }
   if (method === "GET" && route === "log") return json(response, 200, { next: logText.length, text: logText.slice(Number(url.searchParams.get("from") ?? 0)) });
+  if (method === "GET" && route === "ota/check") { if (!needAdmin()) return; return json(response, 200, { ok: true, current_version: "0.2.3", latest_version: "9.9.9", update_available: true }); }
+  if (method === "POST" && route === "ota/install") { if (!needAdmin()) return; return json(response, 200, { ok: true, started: true }); }
+  if (method === "GET" && route === "ota/progress") { if (!needAdmin()) return; return json(response, 200, { state: "downloading", got: 300000, total: 1200000 }); }
   if (method === "POST" && route === "ota/switch") { if (!needAdmin()) return; rebootAt = Date.now(); return json(response, 200, { ok: true, restart_required: true, slot: "ota_1", version: "0.0.0" }); }
   if (method === "POST" && route === "reboot") { if (!needAdmin()) return; rebootAt = Date.now(); return json(response, 200, { ok: true, restart_required: false }); }
   if (method === "POST" && route === "factory-reset") { if (!needAdmin()) return; if (body.confirm !== "RESET") return json(response, 422, { error: "confirm_required" }); users.clear(); return json(response, 200, { ok: true, restart_required: true }); }
