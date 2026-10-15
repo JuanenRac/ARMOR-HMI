@@ -58,7 +58,7 @@ struct Screen {
   std::function<Context()> context;
   std::string language;                 // the language the fonts were last set for
   std::vector<Labelled> labels;
-  lv_obj_t *mode = nullptr, *link = nullptr, *clock = nullptr, *arm_button = nullptr, *arm_label = nullptr, *nodes = nullptr, *mic_button = nullptr, *voice_label = nullptr;
+  lv_obj_t *mode = nullptr, *link = nullptr, *clock = nullptr, *arm_button = nullptr, *arm_label = nullptr, *nodes = nullptr, *energy = nullptr, *mic_button = nullptr, *voice_label = nullptr;
   lv_obj_t *alarms_title = nullptr, *ack_button = nullptr, *ack_label = nullptr, *footer = nullptr, *version = nullptr, *none = nullptr;
   lv_obj_t* alarm_row[kAlarmRows] = {};
   lv_obj_t* alarm_dot[kAlarmRows] = {};
@@ -200,6 +200,21 @@ void refresh(lv_timer_t*) {
   std::snprintf(nodes_text, sizeof nodes_text, "%s  %d / %d", text_of("nodes").c_str(), summary.nodes_online, summary.nodes_total);
   lv_label_set_text(g_screen.nodes, known ? nodes_text : "");
 
+  // the energy: what the panels make, what the house draws and the battery (nothing until the server sends the block, and a word when no solar equipment reports)
+  char energy_text[160] = "";
+  if (known && summary.energy.reporting) {
+    const hmi::Energy& e = summary.energy;
+    int n = std::snprintf(energy_text, sizeof energy_text, "%s %s   %s %s", text_of("energy_solar").c_str(), hmi::power_text(e.pv_w).c_str(), text_of("energy_house").c_str(), hmi::power_text(e.load_w).c_str());
+    if (e.has_battery && n > 0 && n < static_cast<int>(sizeof energy_text)) {
+      std::snprintf(energy_text + n, sizeof energy_text - static_cast<std::size_t>(n), "\n%s %d %%  %s %s", text_of("energy_battery").c_str(), e.soc_percent,
+                    text_of(e.battery_w >= 0 ? "energy_charging" : "energy_discharging").c_str(), hmi::power_text(e.battery_w < 0 ? -e.battery_w : e.battery_w).c_str());
+    }
+  } else if (known && summary.energy.present && !summary.energy.reporting && snap.link != hmi::Link::kStale) {
+    std::snprintf(energy_text, sizeof energy_text, "%s", text_of("energy_none").c_str());
+  }
+  lv_label_set_text(g_screen.energy, energy_text);
+  lv_obj_set_style_text_color(g_screen.energy, lv_color_hex(summary.energy.reporting ? kText : kMuted), 0);
+
   // the alarms
   char title[96];
   std::snprintf(title, sizeof title, "%s (%d)", text_of("alarms").c_str(), summary.alarms_active);
@@ -269,7 +284,11 @@ void build(lv_obj_t* screen_object) {
   lv_obj_t* left = make_panel(screen_object, 16, 76, 372, 330);
   g_screen.arm_button = make_button(left, 0, 0, 346, 130, kBorder, on_arm, &g_screen.arm_label, Size::kLarge);
   g_screen.nodes = make_label(left, Size::kNormal, kText);
-  lv_obj_set_pos(g_screen.nodes, 6, 150);
+  lv_obj_set_pos(g_screen.nodes, 6, 138);
+  g_screen.energy = make_label(left, Size::kSmall, kText);
+  lv_obj_set_pos(g_screen.energy, 6, 166);
+  lv_obj_set_width(g_screen.energy, 346);
+  lv_label_set_long_mode(g_screen.energy, LV_LABEL_LONG_DOT);
   g_screen.mic_button = make_button(left, 0, 214, 84, 84, kCyan, on_mic, nullptr, Size::kNormal);
   lv_obj_set_style_radius(g_screen.mic_button, LV_RADIUS_CIRCLE, 0);
   lv_obj_t* mic = lv_label_create(g_screen.mic_button);

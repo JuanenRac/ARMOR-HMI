@@ -20,6 +20,7 @@
 #include "audio.hpp"
 #include "mqtt_link.hpp"
 #include "network.hpp"
+#include "task_health.hpp"
 #include "node_store.hpp"
 #include "server_link.hpp"
 #include "voice.hpp"
@@ -141,6 +142,8 @@ std::string status_json() {
       .field("dropped", static_cast<long long>(m.dropped)).end_object();
   const web::TlsStatus tls = web::tls_status();
   w.key("web").begin_object().field("mode", tls.mode).field("https", tls.running).field("cert_sha256", tls.fingerprint).end_object();
+  w.key("tasks").raw(taskhealth::json());
+  taskhealth::warn_if_low();
   w.end_object();
   return w.str();
 }

@@ -32,6 +32,27 @@ static void test_summary() {
   CHECK(parse_summary(many, big) && big.alarms.size() == 6 && big.alarms_active == 9 && big.mode == Mode::kDisarmed);
 }
 
+static void test_energy() {
+  Summary s;
+  // an older server sends no energy block: nothing to show, nothing invented
+  CHECK(parse_summary(kSummary, s) && !s.energy.present && !s.energy.reporting && !s.energy.has_battery);
+  const std::string head = "{\"mode\":\"armed\",\"nodes\":{\"online\":1,\"total\":1},\"alarms\":{\"active\":0,\"unacknowledged\":0,\"items\":[]},\"energy\":";
+  // the panels make, the house draws and the battery charges
+  CHECK(parse_summary(head + "{\"reporting\":true,\"pv_w\":1234,\"load_w\":850,\"battery_w\":300,\"soc_percent\":85,\"mode\":\"line\",\"inverters\":1,\"batteries\":1,\"stale\":0}}", s));
+  CHECK(s.energy.present && s.energy.reporting && s.energy.pv_w == 1234 && s.energy.load_w == 850 && s.energy.has_battery && s.energy.battery_w == 300 && s.energy.soc_percent == 85);
+  // the battery discharging, and one that says nothing (null power and charge)
+  CHECK(parse_summary(head + "{\"reporting\":true,\"pv_w\":0,\"load_w\":400,\"battery_w\":-400,\"soc_percent\":40}}", s) && s.energy.battery_w == -400 && s.energy.soc_percent == 40);
+  CHECK(parse_summary(head + "{\"reporting\":true,\"pv_w\":500,\"load_w\":300,\"battery_w\":null,\"soc_percent\":null}}", s) && s.energy.reporting && !s.energy.has_battery && s.energy.pv_w == 500);
+  // nothing reports: the block is there and says so
+  CHECK(parse_summary(head + "{\"reporting\":false,\"pv_w\":0,\"load_w\":0,\"battery_w\":null,\"soc_percent\":null,\"inverters\":0,\"batteries\":0,\"stale\":0}}", s) && s.energy.present && !s.energy.reporting);
+  // a block that is not an object, or numbers out of range, never spoils the rest
+  CHECK(parse_summary(head + "5}", s) && !s.energy.present && s.mode == Mode::kArmed);
+  CHECK(parse_summary(head + "{\"reporting\":true,\"pv_w\":99999999999,\"load_w\":-5}}", s) && s.energy.pv_w >= 0 && s.energy.pv_w <= 10000000 && s.energy.load_w >= 0);
+  // a power in the words of a wall
+  CHECK(power_text(0) == "0 W" && power_text(850) == "850 W" && power_text(999) == "999 W" && power_text(1000) == "1.0 kW" && power_text(1234) == "1.2 kW" && power_text(9949) == "9.9 kW");
+  CHECK(power_text(10000) == "10 kW" && power_text(12500) == "13 kW" && power_text(-300) == "-300 W" && power_text(-1500) == "-1.5 kW");
+}
+
 static void test_link() {
   LinkTracker link(3);
   CHECK(link.link() == Link::kNotConfigured);
@@ -131,6 +152,7 @@ static void test_night_brightness() {
 
 int main() {
   test_summary();
+  test_energy();
   test_link();
   test_link_denied();
   test_new_alarms_and_tone();

@@ -22,7 +22,7 @@ struct Row {
 };
 
 // clang-format off
-constexpr std::array<Row, 43> kRows{{
+constexpr std::array<Row, 49> kRows{{
     {"armed", {"ARMED", "ARMADO", "SCHARF", "ARMÉ", "ATTIVO", "警戒中", "已布防"}},
     {"disarmed", {"DISARMED", "DESARMADO", "UNSCHARF", "DÉSARMÉ", "DISATTIVO", "解除中", "已撤防"}},
     {"arm", {"Arm", "Armar", "Scharf schalten", "Armer", "Attiva", "警戒する", "布防"}},
@@ -65,6 +65,12 @@ constexpr std::array<Row, 43> kRows{{
     {"alarm_internet_down", {"The internet line is down", "La línea de internet está caída", "Die Internetverbindung ist unterbrochen", "La ligne internet est coupée", "La linea internet è caduta", "インターネット回線が切断されています", "互联网线路已中断"}},
     {"alarm_network_new_device", {"A new device joined the network", "Un dispositivo nuevo entró en la red", "Ein neues Gerät ist im Netzwerk", "Un nouvel appareil est sur le réseau", "Un nuovo dispositivo è entrato in rete", "新しい機器がネットワークに参加しました", "有新设备加入网络"}},
     {"alarm_network_port_opened", {"A port opened on a device", "Se abrió un puerto en un dispositivo", "Ein Port wurde an einem Gerät geöffnet", "Un port s'est ouvert sur un appareil", "Si è aperta una porta su un dispositivo", "機器のポートが開きました", "设备上打开了一个端口"}},
+    {"energy_solar", {"Solar", "Sol", "Solar", "Solaire", "Solare", "太陽光", "光伏"}},
+    {"energy_house", {"House", "Casa", "Haus", "Maison", "Casa", "住宅", "住宅"}},
+    {"energy_battery", {"Battery", "Batería", "Batterie", "Batterie", "Batteria", "電池", "电池"}},
+    {"energy_charging", {"charging", "cargando", "lädt", "charge", "in carica", "充電中", "充电中"}},
+    {"energy_discharging", {"discharging", "descargando", "entlädt", "décharge", "in scarica", "放電中", "放电中"}},
+    {"energy_none", {"No solar equipment reports", "Ningún equipo solar informa", "Keine Solaranlage meldet sich", "Aucun équipement solaire ne répond", "Nessun impianto solare risponde", "太陽光設備からの報告なし", "没有光伏设备上报"}},
     {"alarm_unknown", {"Alarm", "Alarma", "Alarm", "Alarme", "Allarme", "アラーム", "警报"}},
 }};
 // clang-format on
