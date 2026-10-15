@@ -26,7 +26,7 @@
 
 ---
 
-**正直さのチェック - 今日動いているもの:** **成熟度：足場段階。** ボードに依存しない部分は実物でありコンピューター上でテスト済みです（設定、パネルがサーバーについて知っていることとそれが古くなる条件、音声の会話、ボードのピン、7言語の画面テキスト：4つのテストプログラム）。Webページも実ブラウザで代替機に対して実行済みです。**ファームウェアはビルドできます（ESP-IDF 5.5.5、約2.4 MBのイメージ）が、ボード上では一度も実行されていません。** 画面、タッチ、サウンド、サーバーとの接続はこの系列のボード向けのWaveshareのサンプルから書かれており、最初の電源投入が必要です。アシスタントが話しかける音声サービスはまだ存在せず、ウェイクワードもありません。プッシュトゥトークです。
+**正直さのチェック - 今日動いているもの:** **成熟度：足場段階。** ボードに依存しない部分は実物でありコンピューター上でテスト済みです（設定、パネルがサーバーについて知っていることとそれが古くなる条件、音声の会話、ボードのピン、7言語の画面テキスト：4つのテストプログラム）。Webページも実ブラウザで代替機に対して実行済みです。**ファームウェアはボード上で一度もビルド・実行されていません。** 画面、タッチ、サウンド、サーバーとの接続はこの系列のボード向けのWaveshareのサンプルから書かれており、最初のコンパイルと最初の電源投入が必要です。アシスタントが話しかける音声サービスはまだ存在せず、ウェイクワードもありません。プッシュトゥトークです。
 
 ---
 
@@ -38,7 +38,6 @@
 * **音声アシスタント（プッシュトゥトーク）：** タッチでマイクが開き、音声は設定したアドレスの音声サービスにのみ送られ（既定ではオフ）、返答が表示・読み上げされます。手順の順序、時間制限、タッチの動作はテスト済みのステートマシンで、パネルが自らコマンドを実行することはありません（[契約](docs/VOICE.md)）。
 * **ボード：** Waveshare ESP32-S3-Touch-LCD-7C-BOX（フラッシュ32 MB、PSRAM 16 MB、GT911タッチ付き7インチRGB画面、マイク4個、スピーカー）。ピンはWaveshareのサンプル由来で、2つの機能が同じGPIOを共有しないことをテストで証明しています（[ボード](docs/HARDWARE.md)）。
 * **未対応：** ファームウェアの最初のコンパイルと電源投入、ウェイクワード、Jetson 上の音声サービス、画面上のカメラ表示。
-* **解除用の PIN テンキー：** 解除は画面で PIN を求め（点で表示し、送信後に消去）、サーバーが確認します。間違い、ロック、PIN 未設定はフッターに 7 言語で表示されます。メッセージはキューを通り、ブローカーとのデッドロックはありません。
 
 ## 📂 リポジトリの構成
 
@@ -60,7 +59,7 @@ ARMOR-HMI/
 cmake -S tests -B build/host && cmake --build build/host && ctest --test-dir build/host   # the settings, the server view, the voice conversation, the board's pins and the screen's words
 node tools/panel_mock.mjs --user admin:adminpass123                                       # the web page without a board
 node tools/panel_browser_test.mjs                                                         # the page in a real browser, every page in seven languages
-tools/build_node.sh generic                                                               # the firmware image in the ESP-IDF container: dist/generic-lcd7box.bin
+tools/build_node.sh generic                                                               # the firmware image in the ESP-IDF container: dist/generic-lcd7box.bin (never built yet)
 ```
 
 See the [firmware guide](docs/NODE_FIRMWARE.md) and the [Bluetooth channel](docs/BLE_PROVISIONING.md).
@@ -75,14 +74,12 @@ See the [firmware guide](docs/NODE_FIRMWARE.md) and the [Bluetooth channel](docs
 * **[ARMOR-RADAR](https://github.com/JuanenRac/ARMOR-RADAR)** - ESP32-S3 用フィールドノードのファームウェア。レーダー 3 基と独自の Web パネル付き
 * **[ARMOR-SOLAR](https://github.com/JuanenRac/ARMOR-SOLAR)** - 太陽光インバーターとバッテリーのプロトコル、およびゲートウェイノードのメッセージ
 * **[ARMOR-ELECTRICAL](https://github.com/JuanenRac/ARMOR-ELECTRICAL)** - 電気ノード：電力量計、電力網の計測メッセージ、開閉のルール
-* **[ARMOR-ALARM](https://github.com/JuanenRac/ARMOR-ALARM)** - 警報ノードと警報盤：警戒区域、警戒セット、遅延、サイレン、PIN。サーバーがあってもなくても
 * **ARMOR-HMI** (このリポジトリ) - タッチパネル：壁面ディスプレイでのシステム状態表示、警戒・確認操作、音声アシスタントの拠点
 * **[ARMOR-NETWORK](https://github.com/JuanenRac/ARMOR-NETWORK)** - ローカルネットワーク：機器、インターネット、そして変化
 * **[ARMOR-SERVER](https://github.com/JuanenRac/ARMOR-SERVER)** - 中央コーディネーター：テレメトリ、アラーム、デバイス、太陽光の測定値、カメラ
 * **[ARMOR-STUDIO](https://github.com/JuanenRac/ARMOR-STUDIO)** - Web コンソール：カメラ、レーダー、アラーム、太陽光発電、2D/3D サイト設計
 * **[ARMOR-ANDROID-CONTROL](https://github.com/JuanenRac/ARMOR-ANDROID-CONTROL)** - リアルタイム 2D/3D レーダー付きの Android オペレータークライアント
 * **[ARMOR-SERVER-AI](https://github.com/JuanenRac/ARMOR-SERVER-AI)** - 判断を説明し、決して動作しない視覚推論ポリシー
-* **[ARMOR-VISION](https://github.com/JuanenRac/ARMOR-VISION)** - Jetson Orin NX 向けのカメラのゾーン、マスク、検知ルール
 * **[ARMOR-VOICE-AI](https://github.com/JuanenRac/ARMOR-VOICE-AI)** - 偽造できない確認を備えたオフライン音声インテント
 * **[ARMOR-HARDWARE](https://github.com/JuanenRac/ARMOR-HARDWARE)** - 筐体、電子部品、ベンチ受け入れマトリクス
 * **[ARMOR-DEVOPS](https://github.com/JuanenRac/ARMOR-DEVOPS)** - デプロイ、CM5 テストベンチ、バックアップ、TLS

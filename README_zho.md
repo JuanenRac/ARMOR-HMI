@@ -26,7 +26,7 @@
 
 ---
 
-**诚实性检查 - 今天真正能运行的部分:** **成熟度：脚手架。** 不依赖开发板的部分是真实的，并已在计算机上测试（设置、面板对服务器的了解及其过期条件、语音对话、开发板引脚以及七种语言的屏幕文字：四个测试程序），网页也已在真实浏览器中对替身运行。**固件可以构建（ESP-IDF 5.5.5，镜像约 2.4 MB），但从未在开发板上运行：** 屏幕、触摸、声音以及与服务器的连接是依据 Waveshare 针对该系列开发板的示例编写的，需要第一次上电。助手所对话的语音服务尚不存在，也没有唤醒词：目前是按键说话。
+**诚实性检查 - 今天真正能运行的部分:** **成熟度：脚手架。** 不依赖开发板的部分是真实的，并已在计算机上测试（设置、面板对服务器的了解及其过期条件、语音对话、开发板引脚以及七种语言的屏幕文字：四个测试程序），网页也已在真实浏览器中对替身运行。**固件从未在开发板上构建或运行：** 屏幕、触摸、声音以及与服务器的连接是依据 Waveshare 针对该系列开发板的示例编写的，需要第一次编译和第一次上电。助手所对话的语音服务尚不存在，也没有唤醒词：目前是按键说话。
 
 ---
 
@@ -38,7 +38,6 @@
 * **语音助手，按键说话：** 触摸打开麦克风，音频只会发送到设置中填写地址的语音服务（默认关闭），回答会显示并朗读；步骤顺序、时间限制以及触摸的作用是一个经过测试的状态机，面板自己不执行任何命令（[契约](docs/VOICE.md)）。
 * **开发板：** Waveshare ESP32-S3-Touch-LCD-7C-BOX（32 MB 闪存、16 MB PSRAM、带 GT911 触摸的7英寸RGB屏幕、四个麦克风、一个扬声器）；引脚来自 Waveshare 的示例，并有测试证明没有两个功能共用同一个 GPIO（[开发板](docs/HARDWARE.md)）。
 * **尚未完成：** 固件的第一次编译和上电、唤醒词、Jetson 上的语音服务，以及屏幕上的摄像头视图。
-* **撤防 PIN 键盘：** 撤防时在屏幕上要求输入 PIN（以圆点显示，发送后清除），由服务器校验；PIN 错误、被锁定或未设置会在页脚以七种语言提示。消息经队列发送，与代理不会死锁。
 
 ## 📂 仓库结构
 
@@ -60,7 +59,7 @@ ARMOR-HMI/
 cmake -S tests -B build/host && cmake --build build/host && ctest --test-dir build/host   # the settings, the server view, the voice conversation, the board's pins and the screen's words
 node tools/panel_mock.mjs --user admin:adminpass123                                       # the web page without a board
 node tools/panel_browser_test.mjs                                                         # the page in a real browser, every page in seven languages
-tools/build_node.sh generic                                                               # the firmware image in the ESP-IDF container: dist/generic-lcd7box.bin
+tools/build_node.sh generic                                                               # the firmware image in the ESP-IDF container: dist/generic-lcd7box.bin (never built yet)
 ```
 
 See the [firmware guide](docs/NODE_FIRMWARE.md) and the [Bluetooth channel](docs/BLE_PROVISIONING.md).
@@ -75,14 +74,12 @@ See the [firmware guide](docs/NODE_FIRMWARE.md) and the [Bluetooth channel](docs
 * **[ARMOR-RADAR](https://github.com/JuanenRac/ARMOR-RADAR)** - 适用于 ESP32-S3 的现场节点固件，带三个雷达和自带网页面板
 * **[ARMOR-SOLAR](https://github.com/JuanenRac/ARMOR-SOLAR)** - 太阳能逆变器与电池的协议，以及网关节点的消息
 * **[ARMOR-ELECTRICAL](https://github.com/JuanenRac/ARMOR-ELECTRICAL)** - 电气节点：电表、电网读数消息和开关规则
-* **[ARMOR-ALARM](https://github.com/JuanenRac/ARMOR-ALARM)** - 报警节点与报警主机：防区、布防、延时、警笛和 PIN，有无服务器均可
 * **ARMOR-HMI** (本仓库) - 触摸面板：墙面屏幕上的系统状态、布防与确认，以及语音助手的所在
 * **[ARMOR-NETWORK](https://github.com/JuanenRac/ARMOR-NETWORK)** - 本地网络：其设备、互联网以及变化
 * **[ARMOR-SERVER](https://github.com/JuanenRac/ARMOR-SERVER)** - 中央协调器：遥测、报警、设备、太阳能读数和摄像头
 * **[ARMOR-STUDIO](https://github.com/JuanenRac/ARMOR-STUDIO)** - 网页控制台：摄像头、雷达、报警、太阳能和 2D/3D 场地设计器
 * **[ARMOR-ANDROID-CONTROL](https://github.com/JuanenRac/ARMOR-ANDROID-CONTROL)** - 带实时 2D/3D 雷达的 Android 操作员客户端
 * **[ARMOR-SERVER-AI](https://github.com/JuanenRac/ARMOR-SERVER-AI)** - 会解释决策且从不执行动作的视觉推理策略
-* **[ARMOR-VISION](https://github.com/JuanenRac/ARMOR-VISION)** - Jetson Orin NX 上的摄像头区域、遮罩与检测规则
 * **[ARMOR-VOICE-AI](https://github.com/JuanenRac/ARMOR-VOICE-AI)** - 带无法伪造确认的离线语音意图
 * **[ARMOR-HARDWARE](https://github.com/JuanenRac/ARMOR-HARDWARE)** - 外壳、电子器件和台架验收矩阵
 * **[ARMOR-DEVOPS](https://github.com/JuanenRac/ARMOR-DEVOPS)** - 部署、CM5 测试台、备份与 TLS
