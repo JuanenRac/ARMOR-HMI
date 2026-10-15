@@ -38,6 +38,7 @@
 * **L'assistant vocal, appuyer pour parler :** un toucher ouvre le micro, le son part seulement vers le service vocal dont l'adresse est dans les réglages (désactivé par défaut), la réponse est affichée et dite ; l'ordre des étapes, les limites de temps et ce que fait un toucher sont une machine à états testée, et le panneau n'exécute aucune commande de lui-même ([le contrat](docs/VOICE.md)).
 * **La carte :** Waveshare ESP32-S3-Touch-LCD-7C-BOX (32 Mo de flash, 16 Mo de PSRAM, écran RGB de 7 pouces avec tactile GT911, quatre micros, un haut-parleur) ; les broches viennent des exemples de Waveshare et un test prouve que deux fonctions ne partagent pas un GPIO ([la carte](docs/HARDWARE.md)).
 * **Pas encore :** une première compilation et mise sous tension du firmware, un mot de réveil, le service vocal sur le Jetson et une vue des caméras à l'écran.
+* **Un clavier de code PIN pour désarmer :** désarmer demande le code à l'écran (affiché en points, effacé une fois envoyé) ; le serveur le vérifie, et un code erroné, bloqué ou absent est indiqué en bas dans sept langues. Les messages passent par une file, sans interblocage avec le broker.
 
 ## 📂 Structure du dépôt
 
@@ -81,6 +82,7 @@ Voir la [conception](docs/DESIGN.md), la [carte](docs/HARDWARE.md), l'[assistant
 * **[ARMOR-STUDIO](https://github.com/JuanenRac/ARMOR-STUDIO)** - Console web : caméras, radar, alarmes, énergie solaire et concepteur de site 2D/3D
 * **[ARMOR-ANDROID-CONTROL](https://github.com/JuanenRac/ARMOR-ANDROID-CONTROL)** - Client Android de l'opérateur avec radar 2D/3D en direct
 * **[ARMOR-SERVER-AI](https://github.com/JuanenRac/ARMOR-SERVER-AI)** - Politique d'inférence visuelle qui explique ses décisions et n'agit jamais
+* **[ARMOR-VISION](https://github.com/JuanenRac/ARMOR-VISION)** - Zones de caméra, masques et règles de détection pour la Jetson Orin NX
 * **[ARMOR-VOICE-AI](https://github.com/JuanenRac/ARMOR-VOICE-AI)** - Intentions vocales hors ligne avec une confirmation impossible à falsifier
 * **[ARMOR-HARDWARE](https://github.com/JuanenRac/ARMOR-HARDWARE)** - Boîtiers, électronique et matrice d'acceptation sur banc
 * **[ARMOR-DEVOPS](https://github.com/JuanenRac/ARMOR-DEVOPS)** - Déploiement, banc d'essai CM5, sauvegarde et TLS

@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented here.
 
+## [0.1.7] - The PIN to disarm on the screen, and no deadlock between the panel and the broker
+
+- **A message is never published while a lock of the node is held:** `mqtt_link::publish()` puts the message in a short queue (48, the oldest dropped first) and a task of its own hands it to the client. Before, a task that held a lock of its module and published could wait for the client's own lock while the client, running the handler of an incoming command, waited for that module lock: both for ever, with nothing to restart the board.
+- **Disarming asks for the PIN on the screen:** a keypad (digits, clear, erase) under the question; the PIN goes to the server with the order, which checks it (the server also refuses a user that has none when it requires one), and a wrong, locked or missing PIN is told in the footer for a few seconds, in the seven languages. Arming asks for none. The digits typed are shown as dots and wiped after being sent. `core/pin_entry.hpp` is tested on a computer; the keypad has not been seen on the screen.
+
 ## [0.1.6] - The energy on the wall, and the shared improvements
 
 - **The energy of the house on the screen:** under the nodes, what the panels make, what the house draws and the battery (its charge, and whether it is charging or discharging with its power), taken from the new `energy` block of the server's panel summary (a server without it shows nothing; one whose solar equipment is silent says so). Powers are written the way a wall wants them: 850 W, 1.2 kW, 12 kW. The words are in the seven languages. Host tests cover the block, a battery that says nothing, a block that is not an object, numbers out of range and the powers' words.
