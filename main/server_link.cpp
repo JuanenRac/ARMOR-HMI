@@ -15,6 +15,7 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "core/json.hpp"
+#include "core/pin_entry.hpp"
 #include "network.hpp"
 
 namespace armor::server_link {
@@ -30,6 +31,7 @@ hmi::LinkTracker g_tracker;
 std::string g_cookie;                                  // "name=value" of the session
 std::string g_action_error;
 std::atomic<bool> g_action_pending{false};
+std::string g_pending_pin;                            // under g_lock: the PIN that goes with the pending order
 std::atomic<int> g_pending_mode{-1};                   // -1 none, otherwise a hmi::Mode
 std::atomic<bool> g_pending_acknowledge{false};
 std::function<void(const std::vector<hmi::AlarmLine>&)> g_on_new_alarms;
@@ -155,11 +157,17 @@ void poll_summary() {
 void do_pending_actions() {
   const int mode = g_pending_mode.exchange(-1);
   if (mode >= 0) {
+    std::string pin;
+    { std::lock_guard<std::mutex> guard(g_lock); pin.swap(g_pending_pin); }
     json::Writer w;
-    w.begin_object().field("mode", mode == static_cast<int>(hmi::Mode::kArmed) ? "armed" : "disarmed").end_object();
+    w.begin_object().field("mode", mode == static_cast<int>(hmi::Mode::kArmed) ? "armed" : "disarmed");
+    if (mode == static_cast<int>(hmi::Mode::kDisarmed) && !pin.empty()) w.field("pin", pin);
+    w.end_object();
     const Answer answer = request(HTTP_METHOD_POST, "/api/v1/mode", w.str(), true);
+    std::fill(pin.begin(), pin.end(), '\0');
+    const std::string pin_error = hmi::pin_error_of(answer.status, answer.body);
     std::lock_guard<std::mutex> guard(g_lock);
-    g_action_error = answer.status == 200 ? "" : answer.status == 0 ? "no_answer" : answer.status == 401 ? "unauthorized" : answer.status == 403 ? "forbidden" : "failed";
+    g_action_error = answer.status == 200 ? "" : !pin_error.empty() ? pin_error : answer.status == 0 ? "no_answer" : answer.status == 401 ? "unauthorized" : answer.status == 403 ? "forbidden" : "failed";
     if (answer.status == 401) g_cookie.clear();
   }
   if (g_pending_acknowledge.exchange(false)) {
@@ -223,8 +231,9 @@ Snapshot snapshot() {
   return snap;
 }
 
-void request_mode(hmi::Mode mode) {
+void request_mode(hmi::Mode mode, const std::string& pin) {
   if (mode == hmi::Mode::kUnknown) return;
+  { std::lock_guard<std::mutex> guard(g_lock); g_pending_pin = pin; }
   g_action_pending = true;
   g_pending_mode = static_cast<int>(mode);
   if (g_task != nullptr) xTaskNotifyGive(g_task);

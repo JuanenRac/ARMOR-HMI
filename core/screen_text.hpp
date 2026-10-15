@@ -22,13 +22,18 @@ struct Row {
 };
 
 // clang-format off
-constexpr std::array<Row, 49> kRows{{
+constexpr std::array<Row, 54> kRows{{
     {"armed", {"ARMED", "ARMADO", "SCHARF", "ARMÉ", "ATTIVO", "警戒中", "已布防"}},
     {"disarmed", {"DISARMED", "DESARMADO", "UNSCHARF", "DÉSARMÉ", "DISATTIVO", "解除中", "已撤防"}},
     {"arm", {"Arm", "Armar", "Scharf schalten", "Armer", "Attiva", "警戒する", "布防"}},
     {"disarm", {"Disarm", "Desarmar", "Unscharf schalten", "Désarmer", "Disattiva", "解除する", "撤防"}},
     {"confirm_arm", {"Arm the system?", "¿Armar el sistema?", "System scharf schalten?", "Armer le système ?", "Attivare il sistema?", "システムを警戒しますか？", "要布防系统吗？"}},
     {"confirm_disarm", {"Disarm the system?", "¿Desarmar el sistema?", "System unscharf schalten?", "Désarmer le système ?", "Disattivare il sistema?", "システムを解除しますか？", "要撤防系统吗？"}},
+    {"pin_prompt", {"Type your PIN", "Escribe tu PIN", "PIN eingeben", "Saisissez votre code", "Digita il PIN", "PIN を入力", "请输入 PIN"}},
+    {"pin_wrong", {"The PIN is not right", "El PIN no es correcto", "Die PIN ist falsch", "Le code n'est pas bon", "Il PIN non è corretto", "PIN が違います", "PIN 不正确"}},
+    {"pin_locked", {"Too many wrong PINs: wait", "Demasiados PIN erróneos: espera", "Zu viele falsche PINs: warten", "Trop d'erreurs : patientez", "Troppi PIN errati: attendi", "PIN の誤りが多すぎます。お待ちください", "错误太多：请稍等"}},
+    {"pin_not_set", {"This panel's user has no PIN", "El usuario de este panel no tiene PIN", "Der Benutzer dieses Panels hat keine PIN", "L'utilisateur de ce panneau n'a pas de code", "L'utente di questo pannello non ha un PIN", "このパネルのユーザーには PIN がありません", "此面板的用户没有 PIN"}},
+    {"pin_clear", {"Clear", "Borrar", "Löschen", "Effacer", "Cancella", "消去", "清除"}},
     {"yes", {"Yes", "Sí", "Ja", "Oui", "Sì", "はい", "是"}},
     {"no", {"No", "No", "Nein", "Non", "No", "いいえ", "否"}},
     {"nodes", {"Nodes online", "Nodos conectados", "Knoten online", "Nœuds en ligne", "Nodi online", "オンラインのノード", "在线节点"}},

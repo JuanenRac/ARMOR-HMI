@@ -3,6 +3,7 @@
 #include <string>
 #include <vector>
 
+#include "../core/pin_entry.hpp"
 #include "../core/server_view.hpp"
 #include "check.hpp"
 
@@ -150,7 +151,29 @@ static void test_night_brightness() {
   CHECK(effective_brightness(3, 80, 15, 5, 5) == 80);                                                         // an empty night
 }
 
+static void test_pin() {
+  PinEntry pin;
+  CHECK(pin.empty() && pin.masked().empty());
+  CHECK(pin.add('4') && pin.add('2') && pin.add('0'));
+  CHECK(!pin.add('x') && !pin.add(' ') && !pin.add('/') && !pin.add(':'));
+  CHECK(pin.digits() == "420" && pin.masked() == "***" && !pin.empty());
+  pin.erase_last();
+  CHECK(pin.digits() == "42");
+  for (int i = 0; i < 20; ++i) pin.add('7');
+  CHECK(pin.digits().size() == PinEntry::kMaxDigits && !pin.add('1'));
+  pin.clear();
+  CHECK(pin.empty());
+  pin.erase_last();   // nothing to erase is not a fault
+  CHECK(pin.empty());
+  // the refusals of the server that are about the PIN, and nothing else
+  CHECK(pin_error_of(403, "{\"error\":\"the PIN is not right\",\"code\":\"wrong_pin\"}") == "wrong_pin");
+  CHECK(pin_error_of(429, "{\"error\":\"too many\",\"code\":\"pin_locked\",\"retry_after_s\":60}") == "pin_locked");
+  CHECK(pin_error_of(403, "{\"error\":\"x\",\"code\":\"pin_not_set\"}") == "pin_not_set");
+  CHECK(pin_error_of(403, "{\"error\":\"forbidden\"}").empty() && pin_error_of(200, "{\"code\":\"wrong_pin\"}").empty() && pin_error_of(500, "{\"code\":\"wrong_pin\"}").empty() && pin_error_of(403, "").empty());
+}
+
 int main() {
+  test_pin();
   test_summary();
   test_energy();
   test_link();

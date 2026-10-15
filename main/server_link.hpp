@@ -26,7 +26,8 @@ void start(const config::Settings& settings);
 Snapshot snapshot();
 
 // What the person asked for at the screen. The server decides: its answer (the new mode) shows at the next summary.
-void request_mode(hmi::Mode mode);
+// Disarming carries the PIN typed at the screen (the server checks it); arming never does.
+void request_mode(hmi::Mode mode, const std::string& pin = "");
 void request_acknowledge_all();
 
 // Called, from the link's task, with the alarms that are new and nobody has acknowledged (never for the ones that existed when the panel started).

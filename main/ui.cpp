@@ -23,6 +23,7 @@
 #include <vector>
 #include "esp_log.h"
 #include "lvgl.h"
+#include "core/pin_entry.hpp"
 #include "core/screen_text.hpp"
 #include "core/server_view.hpp"
 #include "display.hpp"
@@ -65,6 +66,11 @@ struct Screen {
   lv_obj_t* alarm_text[kAlarmRows] = {};
   lv_obj_t *confirm = nullptr, *confirm_text = nullptr, *confirm_yes = nullptr, *confirm_no = nullptr, *confirm_yes_label = nullptr, *confirm_no_label = nullptr;
   hmi::Mode confirm_for = hmi::Mode::kUnknown;
+  hmi::PinEntry pin;
+  lv_obj_t *pin_prompt = nullptr, *pin_dots = nullptr;
+  std::vector<lv_obj_t*> keys;   // the keypad of the PIN, shown only to disarm
+  std::string error_seen;        // the last refusal shown in the footer, and since when
+  std::uint32_t error_since_ms = 0;
 };
 Screen g_screen;
 
@@ -116,19 +122,46 @@ std::string text_of(std::string_view key) { return std::string(screen::text(g_sc
 
 // ---- the actions of the person ------------------------------------------------------------------------------------------------------------------------------
 
+void show_pin() {
+  lv_label_set_text(g_screen.pin_dots, g_screen.pin.masked().c_str());
+}
+
 void show_confirm(hmi::Mode target) {
   g_screen.confirm_for = target;
+  g_screen.pin.clear();
+  const bool disarming = target == hmi::Mode::kDisarmed;
   lv_label_set_text(g_screen.confirm_text, text_of(target == hmi::Mode::kArmed ? "confirm_arm" : "confirm_disarm").c_str());
+  // disarming asks for the PIN: the question goes to the top, the keypad under it and the two buttons at the bottom
+  lv_obj_align(g_screen.confirm_text, disarming ? LV_ALIGN_TOP_MID : LV_ALIGN_CENTER, 0, disarming ? 14 : -60);
+  lv_obj_set_pos(g_screen.confirm_yes, 140, disarming ? 384 : 300);
+  lv_obj_set_pos(g_screen.confirm_no, 440, disarming ? 384 : 300);
+  lv_obj_set_height(g_screen.confirm_yes, disarming ? 76 : 90);
+  lv_obj_set_height(g_screen.confirm_no, disarming ? 76 : 90);
+  for (lv_obj_t* key : g_screen.keys) { if (disarming) lv_obj_clear_flag(key, LV_OBJ_FLAG_HIDDEN); else lv_obj_add_flag(key, LV_OBJ_FLAG_HIDDEN); }
+  if (disarming) { lv_obj_clear_flag(g_screen.pin_prompt, LV_OBJ_FLAG_HIDDEN); lv_obj_clear_flag(g_screen.pin_dots, LV_OBJ_FLAG_HIDDEN); }
+  else { lv_obj_add_flag(g_screen.pin_prompt, LV_OBJ_FLAG_HIDDEN); lv_obj_add_flag(g_screen.pin_dots, LV_OBJ_FLAG_HIDDEN); }
+  show_pin();
   lv_obj_clear_flag(g_screen.confirm, LV_OBJ_FLAG_HIDDEN);
 }
-void hide_confirm() { lv_obj_add_flag(g_screen.confirm, LV_OBJ_FLAG_HIDDEN); }
+void hide_confirm() { g_screen.pin.clear(); show_pin(); lv_obj_add_flag(g_screen.confirm, LV_OBJ_FLAG_HIDDEN); }
 
 void on_arm(lv_event_t*) {
   const server_link::Snapshot snap = server_link::snapshot();
   if (!snap.have_summary || snap.link == hmi::Link::kStale) return;   // never arm or disarm on what may be old news
   show_confirm(snap.summary.mode == hmi::Mode::kArmed ? hmi::Mode::kDisarmed : hmi::Mode::kArmed);
 }
-void on_yes(lv_event_t*) { server_link::request_mode(g_screen.confirm_for); hide_confirm(); }
+void on_yes(lv_event_t*) {
+  server_link::request_mode(g_screen.confirm_for, g_screen.confirm_for == hmi::Mode::kDisarmed ? g_screen.pin.digits() : std::string());
+  hide_confirm();
+}
+// the keys of the keypad: a digit, 'C' to clear everything, '<' to erase the last one
+void on_key(lv_event_t* event) {
+  const char key = static_cast<char>(reinterpret_cast<std::intptr_t>(lv_event_get_user_data(event)));
+  if (key == 'C') g_screen.pin.clear();
+  else if (key == '<') g_screen.pin.erase_last();
+  else g_screen.pin.add(key);
+  show_pin();
+}
 void on_no(lv_event_t*) { hide_confirm(); }
 void on_ack(lv_event_t*) { server_link::request_acknowledge_all(); }
 void on_mic(lv_event_t*) { voice_task::press(); }
@@ -164,6 +197,7 @@ void apply_language(const std::string& language) {
   lv_label_set_text(g_screen.ack_label, text_of("acknowledge_all").c_str());
   lv_label_set_text(g_screen.confirm_yes_label, text_of("yes").c_str());
   lv_label_set_text(g_screen.confirm_no_label, text_of("no").c_str());
+  lv_label_set_text(g_screen.pin_prompt, text_of("pin_prompt").c_str());
 }
 
 void refresh(lv_timer_t*) {
@@ -260,6 +294,9 @@ void refresh(lv_timer_t*) {
   } else if (snap.link == hmi::Link::kStale || snap.link == hmi::Link::kDenied) {
     footer = text_of(link_key(snap.link));
   }
+  // a refusal of the PIN stays in the footer for a few seconds, then goes
+  if (snap.action_error != g_screen.error_seen) { g_screen.error_seen = snap.action_error; g_screen.error_since_ms = lv_tick_get(); }
+  if ((snap.action_error == "wrong_pin" || snap.action_error == "pin_locked" || snap.action_error == "pin_not_set") && lv_tick_elaps(g_screen.error_since_ms) < 8000) footer = text_of(snap.action_error == "wrong_pin" ? "pin_wrong" : snap.action_error);
   lv_label_set_text(g_screen.footer, footer.c_str());
   lv_label_set_text(g_screen.version, context.version.c_str());
 }
@@ -349,6 +386,28 @@ void build(lv_obj_t* screen_object) {
   g_screen.confirm_yes = make_button(g_screen.confirm, 140, 300, 220, 90, kGreen, on_yes, &g_screen.confirm_yes_label, Size::kNormal);
   g_screen.confirm_no = make_button(g_screen.confirm, 440, 300, 220, 90, kBorder, on_no, &g_screen.confirm_no_label, Size::kNormal);
   lv_obj_set_style_text_color(g_screen.confirm_no_label, lv_color_hex(kText), 0);
+  g_screen.pin_prompt = make_label(g_screen.confirm, Size::kSmall, kMuted);
+  lv_obj_align(g_screen.pin_prompt, LV_ALIGN_TOP_MID, 0, 52);
+  g_screen.pin_dots = make_label(g_screen.confirm, Size::kLarge, kText);
+  lv_obj_align(g_screen.pin_dots, LV_ALIGN_TOP_MID, 0, 78);
+  {
+    const char layout[4][3] = {{'1', '2', '3'}, {'4', '5', '6'}, {'7', '8', '9'}, {'C', '0', '<'}};
+    for (int row = 0; row < 4; ++row) {
+      for (int column = 0; column < 3; ++column) {
+        lv_obj_t* button = lv_button_create(g_screen.confirm);
+        lv_obj_set_pos(button, 250 + column * 110, 116 + row * 66);
+        lv_obj_set_size(button, 100, 58);
+        lv_obj_set_style_bg_color(button, lv_color_hex(kBorder), 0);
+        lv_obj_set_style_radius(button, 10, 0);
+        lv_obj_set_style_shadow_width(button, 0, 0);
+        lv_obj_add_event_cb(button, on_key, LV_EVENT_CLICKED, reinterpret_cast<void*>(static_cast<std::intptr_t>(layout[row][column])));
+        const char shown[2] = {layout[row][column], 0};
+        lv_obj_t* label = make_label(button, Size::kNormal, kText, shown);
+        lv_obj_center(label);
+        g_screen.keys.push_back(button);
+      }
+    }
+  }
   lv_obj_add_flag(g_screen.confirm, LV_OBJ_FLAG_HIDDEN);
 }
 }  // namespace

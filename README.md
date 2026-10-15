@@ -38,6 +38,7 @@
 * **The voice assistant, push to talk:** a touch opens the microphone, the audio goes only to the speech service whose address is in the settings (off by default), the reply is shown and spoken; the order of the steps, the time limits and what a touch does are a tested state machine, and the panel carries out no command by itself ([the contract](docs/VOICE.md)).
 * **The board:** Waveshare ESP32-S3-Touch-LCD-7C-BOX (32 MB flash, 16 MB PSRAM, a 7-inch RGB screen with a GT911 touch, four microphones, a speaker); the pins come from Waveshare's examples and a test proves that no two functions share a GPIO ([the board](docs/HARDWARE.md)).
 * **Not yet:** a first compilation and power-up of the firmware, a wake word, the speech service on the Jetson, and a view of the cameras on the screen.
+* **A PIN keypad to disarm:** disarming asks for the PIN on the screen (shown as dots, wiped once sent); the server checks it, and a wrong, locked or missing PIN is told in the footer in seven languages. Messages go through a queue, with no deadlock with the broker.
 
 ## 📂 Repository Structure
 
@@ -81,6 +82,7 @@ See the [design](docs/DESIGN.md), the [board](docs/HARDWARE.md), the [voice assi
 * **[ARMOR-STUDIO](https://github.com/JuanenRac/ARMOR-STUDIO)** - Web console: cameras, radar, alarms, solar energy and the 2D/3D site designer
 * **[ARMOR-ANDROID-CONTROL](https://github.com/JuanenRac/ARMOR-ANDROID-CONTROL)** - Android operator client with a live 2D/3D radar
 * **[ARMOR-SERVER-AI](https://github.com/JuanenRac/ARMOR-SERVER-AI)** - Visual inference policy that explains its decisions and never actuates
+* **[ARMOR-VISION](https://github.com/JuanenRac/ARMOR-VISION)** - Camera zones, masks and detection rules for the Jetson Orin NX
 * **[ARMOR-VOICE-AI](https://github.com/JuanenRac/ARMOR-VOICE-AI)** - Offline voice intents with a confirmation that cannot be forged
 * **[ARMOR-HARDWARE](https://github.com/JuanenRac/ARMOR-HARDWARE)** - Enclosures, electronics and the bench acceptance matrix
 * **[ARMOR-DEVOPS](https://github.com/JuanenRac/ARMOR-DEVOPS)** - Deployment, the CM5 test bench, backup and TLS

@@ -11,6 +11,8 @@ is the place where the voice assistant will live. It is two things at once, and 
 The panel decides nothing. What it shows is what the server says; arming and disarming are the person's, confirmed on the screen, and the server's (it authenticates and authorises
 every order exactly as it does for the Android app).
 
+Disarming asks for a PIN on the screen. It is the PIN of the panel's own account on the server (an administrator sets it in Studio, Configuration > Users); the server checks it, locks the account after three wrong ones and, if the duress PIN is typed, disarms while it raises a critical alarm in silence. The digits are drawn as dots and wiped from memory once sent.
+
 ## What is tested where
 
 | Part | Where | How |
@@ -29,7 +31,7 @@ every order exactly as it does for the Android app).
 panel                                     ARMOR-SERVER
   | POST /api/v1/studio/session {user, password}        -> 201 + cookie
   | GET  /api/v1/panel/summary  (every poll_s seconds)  -> {mode, nodes{online,total}, alarms{active, unacknowledged, items[<=6]}}
-  | POST /api/v1/mode {"mode":"armed"|"disarmed"}       (after the person confirms on the screen)
+  | POST /api/v1/mode {"mode":"armed"|"disarmed","pin":"..."}  (after the person confirms on the screen; a disarm carries the PIN typed on the keypad, which the server checks)
   | POST /api/v1/alarms/acknowledge                      (the button "Acknowledge all")
 ```
 
