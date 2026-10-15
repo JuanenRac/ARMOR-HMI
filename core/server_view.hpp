@@ -10,6 +10,7 @@
 #pragma once
 #include <algorithm>
 #include <cstdint>
+#include <cstdio>
 #include <string>
 #include <string_view>
 #include <vector>
@@ -27,6 +28,16 @@ struct AlarmLine {
   bool acknowledged = false;
 };
 
+// The energy block of the summary: what the panels make, what the house draws, and the battery. Absent (`reporting` false) when no solar equipment has said anything lately.
+struct Energy {
+  bool present = false;         // the server sent the block at all (an older one does not)
+  bool reporting = false;
+  int pv_w = 0, load_w = 0;
+  bool has_battery = false;     // the battery's power and charge are known
+  int battery_w = 0;            // positive while charging
+  int soc_percent = 0;
+};
+
 struct Summary {
   Mode mode = Mode::kUnknown;
   long long revision = 0;
@@ -34,6 +45,7 @@ struct Summary {
   int nodes_online = 0, nodes_total = 0;
   int alarms_active = 0, alarms_unacknowledged = 0;
   std::vector<AlarmLine> alarms;   // at most six, the ones nobody has seen first
+  Energy energy;                   // what the solar equipment says (a server older than this block sends none)
 };
 
 inline Severity severity_from(std::string_view text) {
@@ -77,8 +89,32 @@ inline bool parse_summary(std::string_view text, Summary& out) {
       summary.alarms.push_back(std::move(line));
     }
   }
+  if (const json::Value* energy = document.get("energy"); energy != nullptr && energy->is_object()) {
+    summary.energy.present = true;
+    summary.energy.reporting = energy->bool_or("reporting", false);
+    summary.energy.pv_w = static_cast<int>(energy->integer_or("pv_w", 0, 0, 10000000));
+    summary.energy.load_w = static_cast<int>(energy->integer_or("load_w", 0, 0, 10000000));
+    const json::Value* soc = energy->get("soc_percent");
+    const json::Value* power = energy->get("battery_w");
+    if (soc != nullptr && soc->is_number() && power != nullptr && power->is_number()) {
+      summary.energy.has_battery = true;
+      summary.energy.soc_percent = static_cast<int>(energy->integer_or("soc_percent", 0, 0, 100));
+      summary.energy.battery_w = static_cast<int>(energy->integer_or("battery_w", 0, -10000000, 10000000));
+    }
+  }
   out = std::move(summary);
   return true;
+}
+
+// A power in the words of a wall: "850 W" under a kilowatt, "1.2 kW" up to ten, "12 kW" above.
+inline std::string power_text(int watts) {
+  const bool negative = watts < 0;
+  const int w = negative ? -watts : watts;
+  char buffer[24];
+  if (w < 1000) std::snprintf(buffer, sizeof buffer, "%d W", w);
+  else if (w < 10000) std::snprintf(buffer, sizeof buffer, "%.1f kW", w / 1000.0);
+  else std::snprintf(buffer, sizeof buffer, "%d kW", (w + 500) / 1000);
+  return std::string(negative ? "-" : "") + buffer;
 }
 
 // ---- the state of the link ------------------------------------------------------------------------------------------------------------------------

@@ -27,6 +27,7 @@
 #include "audio.hpp"
 #include "ble_provision.hpp"
 #include "clock_sync.hpp"
+#include "improv_serial.hpp"
 #include "core/netplan.hpp"
 #include "core/screen_text.hpp"
 #include "core/server_view.hpp"
@@ -135,6 +136,7 @@ extern "C" void app_main() {
   const bool network_ok = armor::network::start(settings, plan);
   if (!network_ok) ESP_LOGE(kTag, "the network could not be started: the panel stays local");
   armor::clocksync::start(settings);
+  armor::improv_serial::start();   // Improv Wi-Fi over the USB cable (ESP Web Tools)
   const bool panel_ok = network_ok && armor::web::start(settings);
   armor::mqtt_link::start(settings);
   armor::ble_provision::start(settings, setup);
