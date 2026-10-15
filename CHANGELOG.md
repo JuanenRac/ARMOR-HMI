@@ -2,6 +2,13 @@
 
 All notable changes to this project are documented here.
 
+## [0.1.8] - Audit round two: hardening of the web server, the broker link and the sessions
+
+- The web server gives up a request that announces a body and sends nothing (or an upload that stalls) after fifteen seconds, instead of keeping its only thread for ever.
+- The restart after an installation from GitHub no longer depends on a browser asking how far it is: a timer of the node watches the installation and restarts it when it is done.
+- A "remember me" session is no longer taken for free after thirty minutes when the table fills up, and a session token that starts again replaces the old one instead of living twice.
+- On a saved broker that is not the first one, the node tries the first one again every half hour instead of forgetting it until the next restart.
+
 ## [0.1.7] - The PIN to disarm on the screen, and no deadlock between the panel and the broker
 
 - **A message is never published while a lock of the node is held:** `mqtt_link::publish()` puts the message in a short queue (48, the oldest dropped first) and a task of its own hands it to the client. Before, a task that held a lock of its module and published could wait for the client's own lock while the client, running the handler of an incoming command, waited for that module lock: both for ever, with nothing to restart the board.
