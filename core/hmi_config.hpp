@@ -97,9 +97,13 @@ struct Display {
   int night_to = 7;
 };
 
+// The least serious alarm that makes a sound: a warning (every alarm), a high one or only a critical one.
+enum class AlarmFloor { kWarning, kHigh, kCritical };
+
 struct Audio {
   int volume = 60;            // percent
   bool alarm_sound = true;    // a tone when a new alarm arrives
+  AlarmFloor min_severity = AlarmFloor::kWarning;   // below this severity an alarm makes no sound (the screen still shows it)
 };
 
 // The voice assistant: the microphone is listened to only after the wake word, and what is heard goes only to the speech service of the installation.
@@ -334,6 +338,7 @@ inline void read_settings(const json::Value& document, Settings& s, Problems& pr
   if (const json::Value* audio = document.get("audio"); audio != nullptr && audio->is_object()) {
     read_int(*audio, "volume", s.audio.volume, 0, 100, "audio.volume", problems);
     read_bool(*audio, "alarm_sound", s.audio.alarm_sound, "audio.alarm_sound", problems);
+    if (audio->get("min_severity") != nullptr && !read_choice<AlarmFloor>(*audio, "min_severity", {{"warning", AlarmFloor::kWarning}, {"high", AlarmFloor::kHigh}, {"critical", AlarmFloor::kCritical}}, s.audio.min_severity)) bad(problems, "audio.min_severity", "invalid");
   }
   if (const json::Value* voice = document.get("voice"); voice != nullptr && voice->is_object()) {
     read_bool(*voice, "enabled", s.voice.enabled, "voice.enabled", problems);
@@ -370,7 +375,7 @@ inline bool time_zone_is_valid(std::string_view zone) {
 }
 
 inline bool language_is_known(std::string_view code) {
-  for (const char* known : {"en", "es", "de", "fr", "it", "ja", "zh"}) if (code == known) return true;
+  for (const char* known : {"en", "es", "de", "fr", "it", "ja", "zh", "pt"}) if (code == known) return true;
   return false;
 }
 
@@ -545,7 +550,7 @@ inline std::string to_json(const Settings& s, bool secrets) {
   w.field("poll_s", s.server.poll_s).end_object();
   w.key("display").begin_object().field("brightness", s.display.brightness).field("sleep_s", s.display.sleep_s).field("night_brightness", s.display.night_brightness)
       .field("night_from", s.display.night_from).field("night_to", s.display.night_to).end_object();
-  w.key("audio").begin_object().field("volume", s.audio.volume).field("alarm_sound", s.audio.alarm_sound).end_object();
+  w.key("audio").begin_object().field("volume", s.audio.volume).field("alarm_sound", s.audio.alarm_sound).field("min_severity", s.audio.min_severity == AlarmFloor::kCritical ? "critical" : s.audio.min_severity == AlarmFloor::kHigh ? "high" : "warning").end_object();
   w.key("voice").begin_object().field("enabled", s.voice.enabled).field("url", s.voice.url).field("wake_name", s.voice.wake_name).field("listen_s", s.voice.listen_s);
   if (secrets) w.field("token", s.voice.token); else w.field("token_set", !s.voice.token.empty());
   w.end_object();

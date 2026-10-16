@@ -154,9 +154,17 @@ extern "C" void app_main() {
   armor::ble_provision::start(settings, setup);
 
   if (!setup) {
-    armor::server_link::on_new_alarms([settings](const std::vector<armor::hmi::AlarmLine>&) {
+    armor::server_link::on_new_alarms([settings](const std::vector<armor::hmi::AlarmLine>& fresh) {
       armor::display::wake();                                            // an alarm wakes the screen
-      if (armor::store::settings().audio.alarm_sound && armor::audio::ready()) armor::audio::beep(armor::audio::Tone::kAlarm);
+      const auto audio = armor::store::settings().audio;
+      if (!audio.alarm_sound || !armor::audio::ready()) return;
+      const int floor = audio.min_severity == armor::config::AlarmFloor::kCritical ? 2 : audio.min_severity == armor::config::AlarmFloor::kHigh ? 1 : 0;
+      switch (armor::hmi::cue_for(fresh, floor)) {   // the sound goes with the most serious of them
+        case armor::hmi::Cue::kSiren: armor::audio::beep(armor::audio::Tone::kSiren); break;
+        case armor::hmi::Cue::kAlarm: armor::audio::beep(armor::audio::Tone::kAlarm); break;
+        case armor::hmi::Cue::kNotice: armor::audio::beep(armor::audio::Tone::kNotice); break;
+        case armor::hmi::Cue::kNone: break;
+      }
     });
     armor::server_link::start(settings);
     armor::voice_task::start(settings);

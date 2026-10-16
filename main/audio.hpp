@@ -7,7 +7,7 @@
 
 namespace armor::audio {
 
-enum class Tone { kNotice, kAlarm, kConfirm };
+enum class Tone { kNotice, kAlarm, kConfirm, kSiren };
 
 // Starts the I2S port and both codecs. False when a codec does not answer (the panel then works without sound).
 bool start();

@@ -287,7 +287,8 @@ function overviewPage() {
     card(t("ovNetwork"), kv([[t("layout"), n.layout], [t("link"), n.link_up ? t("linkUp") : t("linkDown")], [t("address"), n.has_ip ? n.ip : "—"], [t("netmask"), n.netmask || "—"], [t("gateway"), n.gateway || "—"],
       [t("dns"), n.dns || "—"], [t("mac"), n.mac],
       n.ap_active ? [t("apActive"), "“" + n.ap_ssid + "” · " + t("channel") + " " + n.ap_channel + " · " + n.ap_clients + " " + t("apClients") + " · " + layoutNote] : null,
-      n.sta_ssid ? [t("station"), n.sta_ssid + (n.sta_connected ? " · " + n.sta_rssi + " dBm" : " · " + t("notConnected"))] : null])),
+      n.sta_ssid ? [t("station"), n.sta_ssid + (n.sta_connected ? " · " + n.sta_rssi + " dBm" : " · " + t("notConnected"))] : null]),
+      n.ap_active && n.sta_connected && !n.ap_setup ? note(t("apStaWarning")) : null),
     card(t("ovBroker"), kv([[t("navBroker"), !m.enabled ? t("notConfigured") : m.connected ? t("connected") : t("notConnected")], [t("clock"), m.clock_set ? t("clockSet") : t("clockNotSet")], [t("messages"), m.published],
       m.dropped ? [t("mqDropped"), m.dropped] : null])));
 }
@@ -428,7 +429,7 @@ function screenPage() {
     card(t("screenTitle"), el("div", { class: "row" }, field("brightness", "display.brightness", { type: "number", min: 5, max: 100 }), field("sleepAfter", "display.sleep_s", { type: "number", min: 0, max: 3600 })),
       el("div", { class: "row" }, field("nightBrightness", "display.night_brightness", { type: "number", min: 1, max: 100 }), field("nightFrom", "display.night_from", { type: "number", min: 0, max: 23 }), field("nightTo", "display.night_to", { type: "number", min: 0, max: 23 })),
       note(t("screenNote"), "info")),
-    card(t("soundTitle"), field("volume", "audio.volume", { type: "number", min: 0, max: 100 }), field("alarmSound", "audio.alarm_sound", { type: "checkbox" })));
+    card(t("soundTitle"), field("volume", "audio.volume", { type: "number", min: 0, max: 100 }), field("alarmSound", "audio.alarm_sound", { type: "checkbox" }), field("alarmFloor", "audio.min_severity", { type: "select", options: [["warning", t("floorWarning")], ["high", t("floorHigh")], ["critical", t("floorCritical")]] })));
 }
 
 function voicePage() {
