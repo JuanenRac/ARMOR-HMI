@@ -91,7 +91,12 @@ Answer request(esp_http_client_method_t method, const std::string& path, const s
   config.event_handler = on_http_event;
   config.user_data = &answer;
   config.disable_auto_redirect = true;
-  if (s.server.tls && !s.server.insecure) config.crt_bundle_attach = esp_crt_bundle_attach;
+  if (s.server.tls && !s.server.insecure) {
+    // A server with its own certificate is trusted by pinning that certificate (the chain must end at it; the address of a server on the LAN is no name to check): a man in the middle of
+    // the LAN cannot take the password of the panel's user. Without a pinned certificate the usual certificate authorities are used.
+    if (!s.server.cert_pem.empty()) { config.cert_pem = s.server.cert_pem.c_str(); config.skip_cert_common_name_check = true; }
+    else config.crt_bundle_attach = esp_crt_bundle_attach;
+  }
   esp_http_client_handle_t client = esp_http_client_init(&config);
   if (client == nullptr) return answer;
   if (!body.empty()) {
@@ -163,7 +168,11 @@ void do_pending_actions() {
     w.begin_object().field("mode", mode == static_cast<int>(hmi::Mode::kArmed) ? "armed" : "disarmed");
     if (mode == static_cast<int>(hmi::Mode::kDisarmed) && !pin.empty()) w.field("pin", pin);
     w.end_object();
-    const Answer answer = request(HTTP_METHOD_POST, "/api/v1/mode", w.str(), true);
+    Answer answer = request(HTTP_METHOD_POST, "/api/v1/mode", w.str(), true);
+    if (answer.status == 401) {   // the session ended: sign in again and ask once more, instead of making the person do it again
+      { std::lock_guard<std::mutex> guard(g_lock); g_cookie.clear(); }
+      if (sign_in()) answer = request(HTTP_METHOD_POST, "/api/v1/mode", w.str(), true);
+    }
     std::fill(pin.begin(), pin.end(), '\0');
     const std::string pin_error = hmi::pin_error_of(answer.status, answer.body);
     std::lock_guard<std::mutex> guard(g_lock);
@@ -171,9 +180,13 @@ void do_pending_actions() {
     if (answer.status == 401) g_cookie.clear();
   }
   if (g_pending_acknowledge.exchange(false)) {
-    const Answer answer = request(HTTP_METHOD_POST, "/api/v1/alarms/acknowledge", "{}", true);
+    Answer answer = request(HTTP_METHOD_POST, "/api/v1/alarms/acknowledge", "{}", true);
+    if (answer.status == 401) {
+      { std::lock_guard<std::mutex> guard(g_lock); g_cookie.clear(); }
+      if (sign_in()) answer = request(HTTP_METHOD_POST, "/api/v1/alarms/acknowledge", "{}", true);
+    }
     std::lock_guard<std::mutex> guard(g_lock);
-    g_action_error = answer.status == 200 ? "" : answer.status == 0 ? "no_answer" : "failed";
+    g_action_error = answer.status == 200 ? "" : answer.status == 0 ? "no_answer" : answer.status == 401 ? "unauthorized" : answer.status == 403 ? "forbidden" : "failed";
   }
   g_action_pending = false;
 }

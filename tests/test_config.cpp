@@ -47,6 +47,17 @@ static void test_server_link() {
   CHECK(has(config::validate(s), "server.insecure", "needs_tls"));
   s.server.tls = true;
   CHECK(config::validate(s).empty());
+  // a pinned certificate: a PEM, and only with TLS and without "accept any"
+  s.server.insecure = false;
+  s.server.cert_pem = "not a certificate";
+  CHECK(has(config::validate(s), "server.cert_pem", "invalid"));
+  s.server.cert_pem = "-----BEGIN CERTIFICATE-----\nMIIB\n-----END CERTIFICATE-----\n";
+  CHECK(config::validate(s).empty());
+  s.server.tls = false;
+  CHECK(has(config::validate(s), "server.cert_pem", "needs_tls"));
+  s.server.tls = true;
+  s.server.cert_pem.clear();
+  s.server.insecure = true;
   // a disabled link asks for nothing
   config::Settings off = valid_settings();
   off.server.host = "???";
