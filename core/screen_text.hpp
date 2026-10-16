@@ -1,12 +1,12 @@
-// ARMOR-HMI - the words of the touch screen, in the seven languages of the ecosystem.
+// ARMOR-HMI - the words of the touch screen, in the eight languages of the ecosystem.
 // Copyright (C) 2026 JuanenRac (Electro Hobby 3D). GPL-3.0-or-later.
 //
-// One table: a key and its seven texts (en, es, de, fr, it, ja, zh). A key without a text in a language falls back to English, and the tests fail when a row has an empty
+// One table: a key and its eight texts (en, es, de, fr, it, ja, zh, pt). A key without a text in a language falls back to English, and the tests fail when a row has an empty
 // text, so a text can never reach the screen in only some of the languages.
 //
-// The screen's font: the Latin languages (en, es, de, fr, it) are drawn with the font that is always in the image. Japanese and Chinese need a font with those glyphs, which
+// The screen's font: the Latin languages (en, es, de, fr, it, pt) are drawn with the font that is always in the image. Japanese and Chinese need a font with those glyphs, which
 // is large and is compiled in only when the build asks for it (CONFIG_ARMOR_HMI_CJK_FONT); without it the screen falls back to English for those two (the web panel, which
-// the browser draws, is in the seven languages whatever the image holds). effective_language() is that rule.
+// the browser draws, is in the eight languages whatever the image holds). effective_language() is that rule.
 #pragma once
 #include <array>
 #include <cstddef>

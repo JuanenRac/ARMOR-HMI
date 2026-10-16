@@ -13,7 +13,7 @@
     "MQTT"
   ],
   "deployment_target": "Waveshare ESP32-S3-Touch-LCD-7C-BOX (the firmware has never been built or run on the board)",
-  "maturity": "scaffolding",
+  "maturity": "functional",
   "family": "Clients",
   "parent": "ARMOR-SERVER",
   "build": "cmake -S tests -B build/host && cmake --build build/host && ctest --test-dir build/host",

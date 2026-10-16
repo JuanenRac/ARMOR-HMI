@@ -11,7 +11,7 @@
 //   | hint: how to set the panel up, or that the server is not answering      v0.0.2 |
 //   +------------------------------------------------------------------------------+
 //
-// Arming and disarming ask for a confirmation on the screen first (the same rule as Studio and the Android app). The words are core/screen_text.hpp (seven languages); the
+// Arming and disarming ask for a confirmation on the screen first (the same rule as Studio and the Android app). The words are core/screen_text.hpp (eight languages); the
 // fonts are generated from Inter, Noto Sans JP and Noto Sans SC (main/fonts, see docs/FONTS.md) so that accents, Japanese and Chinese are drawn properly.
 // Copyright (C) 2026 JuanenRac (Electro Hobby 3D). GPL-3.0-or-later.
 #include "ui.hpp"
