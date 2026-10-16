@@ -82,6 +82,7 @@ struct ServerLink {
   int port = 18080;
   bool tls = false;          // https:// (the certificate is checked unless "insecure" is set)
   bool insecure = false;     // accept any certificate: for a server that only has its own self-signed one
+  std::string cert_pem;      // the certificate of the server (PEM), pinned: the connection is accepted only if the server presents a chain that ends at it. Better than `insecure` for a self-signed server
   std::string user;
   std::string password;
   int poll_s = 3;            // how often the screen asks for the state
@@ -107,6 +108,7 @@ struct Voice {
   std::string url;                   // ARMOR-VOICE-AI, for example http://192.168.0.180:8765
   std::string wake_name = "armor";   // the name it answers to (shown on the screen)
   int listen_s = 8;                  // the longest it listens for one request
+  std::string token;         // the service's token (X-Armor-Voice-Token): the service answers nobody without it
 };
 
 // What time the node believes it is: a time server on the Internet (or the browser's clock when that is off) and the zone the local time is
@@ -317,6 +319,7 @@ inline void read_settings(const json::Value& document, Settings& s, Problems& pr
     read_int(*server, "port", s.server.port, 1, 65535, "server.port", problems);
     read_bool(*server, "tls", s.server.tls, "server.tls", problems);
     read_bool(*server, "insecure", s.server.insecure, "server.insecure", problems);
+    read_text(*server, "cert_pem", s.server.cert_pem, 4000, "server.cert_pem", problems);
     read_text(*server, "user", s.server.user, 48, "server.user", problems);
     read_secret(*server, "password", s.server.password, "server.password", problems);
     read_int(*server, "poll_s", s.server.poll_s, 1, 60, "server.poll_s", problems);
@@ -335,6 +338,7 @@ inline void read_settings(const json::Value& document, Settings& s, Problems& pr
   if (const json::Value* voice = document.get("voice"); voice != nullptr && voice->is_object()) {
     read_bool(*voice, "enabled", s.voice.enabled, "voice.enabled", problems);
     read_text(*voice, "url", s.voice.url, 160, "voice.url", problems);
+    read_secret(*voice, "token", s.voice.token, "voice.token", problems);
     read_text(*voice, "wake_name", s.voice.wake_name, 24, "voice.wake_name", problems);
     read_int(*voice, "listen_s", s.voice.listen_s, 2, 30, "voice.listen_s", problems);
   }
@@ -482,6 +486,8 @@ inline Problems validate(const Settings& s) {
     if (s.server.password.empty()) bad(problems, "server.password", "required");
   }
   if (s.server.insecure && !s.server.tls) bad(problems, "server.insecure", "needs_tls");
+  if (!s.server.cert_pem.empty() && (s.server.cert_pem.find("-----BEGIN CERTIFICATE-----") == std::string::npos || s.server.cert_pem.find("-----END CERTIFICATE-----") == std::string::npos)) bad(problems, "server.cert_pem", "invalid");
+  if (!s.server.cert_pem.empty() && !s.server.tls) bad(problems, "server.cert_pem", "needs_tls");
 
   // the screen: equal night hours make an empty night, which only makes sense when the night is as bright as the day
   if (s.display.night_from == s.display.night_to && s.display.night_brightness != s.display.brightness) bad(problems, "display.night_to", "conflict");
@@ -534,13 +540,15 @@ inline std::string to_json(const Settings& s, bool secrets) {
   w.end_array();
   w.end_object();
   w.key("server").begin_object().field("enabled", s.server.enabled).field("host", s.server.host).field("port", s.server.port).field("tls", s.server.tls)
-      .field("insecure", s.server.insecure).field("user", s.server.user);
+      .field("insecure", s.server.insecure).field("cert_pem", s.server.cert_pem).field("user", s.server.user);
   if (secrets) w.field("password", s.server.password); else w.field("password_set", !s.server.password.empty());
   w.field("poll_s", s.server.poll_s).end_object();
   w.key("display").begin_object().field("brightness", s.display.brightness).field("sleep_s", s.display.sleep_s).field("night_brightness", s.display.night_brightness)
       .field("night_from", s.display.night_from).field("night_to", s.display.night_to).end_object();
   w.key("audio").begin_object().field("volume", s.audio.volume).field("alarm_sound", s.audio.alarm_sound).end_object();
-  w.key("voice").begin_object().field("enabled", s.voice.enabled).field("url", s.voice.url).field("wake_name", s.voice.wake_name).field("listen_s", s.voice.listen_s).end_object();
+  w.key("voice").begin_object().field("enabled", s.voice.enabled).field("url", s.voice.url).field("wake_name", s.voice.wake_name).field("listen_s", s.voice.listen_s);
+  if (secrets) w.field("token", s.voice.token); else w.field("token_set", !s.voice.token.empty());
+  w.end_object();
   w.key("web").begin_object().field("mode", to_text(s.web)).end_object();
   w.key("ble").begin_object().field("mode", to_text(s.ble)).end_object();
   w.key("ui").begin_object().field("language", s.language).end_object();

@@ -97,14 +97,17 @@ function field(labelKey, path, options = {}) {
     input = el("input", { type: "checkbox", checked: !!current, disabled, onchange: e => { setValue(path, e.target.checked); if (options.rerender) render(); } });
     return el("label", { class: "check", tip: labelKey }, input, t(labelKey), problem ? el("span", { class: "err" }, problemText(problem)) : null);
   }
-  if (options.type === "select") {
+  if (options.type === "textarea") {
+    input = el("textarea", { rows: options.rows || 6, disabled, placeholder: options.placeholder || "", maxLength: options.max, spellcheck: false, style: "font-family:monospace;font-size:.8rem", oninput: e => setValue(path, e.target.value) });
+    input.value = current === undefined ? "" : current;
+  } else if (options.type === "select") {
     input = el("select", { disabled, onchange: e => { const v = e.target.value; setValue(path, options.number ? Number(v) : v); if (options.after) options.after(v); if (options.rerender) render(); } },
       options.options.map(([value, text]) => el("option", { value: String(value), selected: String(current) === String(value) }, text)));
   } else if (options.type === "number") {
     input = el("input", { type: "number", min: options.min, max: options.max, step: options.step || 1, value: current === undefined ? "" : current, disabled,
       oninput: e => setValue(path, e.target.value === "" ? NaN : Number(e.target.value)) });
   } else if (options.type === "password") {
-    const stored = getValue(path.replace(/password$/, "password_set"));
+    const stored = getValue(path.replace(/(password|token)$/, "$1_set"));
     input = el("input", { type: "password", value: "", autocomplete: "new-password", disabled, placeholder: stored ? "••••••••" : "", oninput: e => setValue(path, e.target.value) });
   } else {
     input = el("input", { type: "text", value: current === undefined ? "" : current, disabled, maxLength: options.max, placeholder: options.placeholder || "", oninput: e => setValue(path, e.target.value) });
@@ -413,6 +416,7 @@ function serverPage() {
         el("div", { class: "row" }, field("serverHost", "server.host", { max: 64, placeholder: "192.168.0.180" }), field("serverPort", "server.port", { type: "number", min: 1, max: 65535 })),
         field("serverTls", "server.tls", { type: "checkbox", rerender: true }),
         sv.tls ? field("serverInsecure", "server.insecure", { type: "checkbox" }) : null,
+        sv.tls && !sv.insecure ? field("serverCert", "server.cert_pem", { type: "textarea", max: 4000, placeholder: "-----BEGIN CERTIFICATE-----" }) : null,
         el("div", { class: "row" }, field("serverUser", "server.user", { max: 48 }), field("serverPassword", "server.password", { type: "password" })),
         field("serverPoll", "server.poll_s", { type: "number", min: 1, max: 60 })] : null,
       S.screen ? linkPill(S.screen.link.state) : null,
@@ -432,6 +436,7 @@ function voicePage() {
   return el("div", { class: "grid wide" },
     card(t("voiceTitle"), field("voiceEnable", "voice.enabled", { type: "checkbox", rerender: true }),
       v.enabled ? [field("voiceUrl", "voice.url", { max: 160, placeholder: "http://192.168.0.180:8765" }),
+        field("voiceToken", "voice.token", { type: "password" }),
         el("div", { class: "row" }, field("voiceWake", "voice.wake_name", { max: 24 }), field("voiceListen", "voice.listen_s", { type: "number", min: 2, max: 30 }))] : null,
       S.screen ? el("p", { class: "muted" }, t("vs_" + S.screen.voice.state)) : null,
       note(t("voiceNote"), "info")));
@@ -492,11 +497,18 @@ function uploadFirmware(file, progressBar, label, done) {
 
 async function githubCheck() {
   S.github.busy = true; S.github.error = ""; render();
-  const r = await api("GET", "ota/check");
-  S.github.busy = false;
-  if (r.ok && r.data.ok) { S.github.checked = true; S.github.available = r.data.update_available; S.github.latest = r.data.latest_version; }
-  else { S.github.checked = true; S.github.available = false; S.github.error = errorText((r.data && r.data.error) || "network"); }
-  render();
+  // The look for a release is done by the node in a task of its own: it is started, and asked about every second or so.
+  const start = await api("POST", "ota/check", {});
+  if (!start.ok) { S.github.busy = false; S.github.checked = true; S.github.available = false; S.github.error = errorText((start.data && start.data.error) || "network"); render(); return; }
+  const poll = async (tries) => {
+    const r = await api("GET", "ota/check");
+    if (r.ok && r.data.state === "checking" && tries < 40) { setTimeout(() => poll(tries + 1), 800); return; }
+    S.github.busy = false;
+    if (r.ok && r.data.ok) { S.github.checked = true; S.github.available = r.data.update_available; S.github.latest = r.data.latest_version; }
+    else { S.github.checked = true; S.github.available = false; S.github.error = errorText((r.data && r.data.error) || "network"); }
+    render();
+  };
+  setTimeout(() => poll(0), 800);
 }
 // The install runs in the node (a task of its own): this starts it and asks, twice a second, how far it is - the bar of the file upload, for the download.
 async function githubInstall() {

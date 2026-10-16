@@ -59,6 +59,7 @@ bool ask_service(const std::int16_t* samples, std::size_t count, const config::S
   if (client == nullptr) { failure = "client"; return false; }
   esp_http_client_set_header(client, "Content-Type", "audio/L16;rate=16000");
   esp_http_client_set_header(client, "X-Armor-Language", s.language.c_str());
+  if (!s.voice.token.empty()) esp_http_client_set_header(client, "X-Armor-Voice-Token", s.voice.token.c_str());   // the service answers nobody without it
   esp_http_client_set_post_field(client, reinterpret_cast<const char*>(samples), static_cast<int>(count * sizeof(std::int16_t)));
   const esp_err_t result = esp_http_client_perform(client);
   reply.status = result == ESP_OK ? esp_http_client_get_status_code(client) : 0;
