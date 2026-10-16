@@ -53,6 +53,15 @@
 * **带 PIN 的蓝牙配对：**六位 PIN 由设置码派生，打印在 USB 控制台上并向管理员显示在面板中；手机必须输入它才能写入节点的设置。
 * **尚未完成：** 固件的第一次编译和上电、唤醒词、Jetson 上的语音服务，以及屏幕上的摄像头视图。
 
+## 🖼️ 屏幕截图
+
+在测试台上以 1920×1080 截取，使用示例数据，背后没有真实的安装。
+
+<table>
+<tr><td width="50%" valign="top"><img src="images/screenshots/overview.png" alt="概览：节点状态一目了然——网络、代理、固件及其上报内容。" width="100%"><br><sub>概览：节点状态一目了然——网络、代理、固件及其上报内容。</sub></td><td width="50%" valign="top"><img src="images/screenshots/screen.png" alt="屏幕和声音：亮度、夜间时段、音量以及播报哪些警报。" width="100%"><br><sub>屏幕和声音：亮度、夜间时段、音量以及播报哪些警报。</sub></td></tr>
+<tr><td width="50%" valign="top"><img src="images/screenshots/voice.png" alt="语音助手：按键说话，默认关闭，以及其音频发送到的服务。" width="100%"><br><sub>语音助手：按键说话，默认关闭，以及其音频发送到的服务。</sub></td><td width="50%" valign="top"><img src="images/screenshots/server.png" alt="服务器：A.R.M.O.R. 服务器的地址、面板所用的用户以及查询间隔。" width="100%"><br><sub>服务器：A.R.M.O.R. 服务器的地址、面板所用的用户以及查询间隔。</sub></td></tr>
+</table>
+
 ## 🧩 在 A.R.M.O.R. 中的角色
 
 ARMOR-HMI 是壁挂面板：与 Android 应用一样是 [ARMOR-SERVER](https://github.com/JuanenRac/ARMOR-SERVER) 的客户端，配有 7 英寸屏幕、麦克风和扬声器。它显示模式、在线节点和需要人处理的报警，可布防和撤防（需 PIN）并确认报警。语音助手（[ARMOR-VOICE-AI](https://github.com/JuanenRac/ARMOR-VOICE-AI)）在其语音服务存在后将住在这里，并且和所有节点一样，从 [ARMOR-STUDIO](https://github.com/JuanenRac/ARMOR-STUDIO) 进行设置和更新。

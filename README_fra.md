@@ -53,6 +53,15 @@
 * **Appairage Bluetooth avec un PIN :** le PIN à six chiffres est dérivé du code de configuration, imprimé sur la console USB et montré à un administrateur dans le panneau ; le téléphone doit le saisir avant de pouvoir écrire les réglages du nœud.
 * **Pas encore :** une première compilation et mise sous tension du firmware, un mot de réveil, le service vocal sur le Jetson et une vue des caméras à l'écran.
 
+## 🖼️ Captures d'écran
+
+Capturées en 1920×1080 sur un banc d'essai, avec des données d'exemple et sans installation réelle derrière.
+
+<table>
+<tr><td width="50%" valign="top"><img src="images/screenshots/overview.png" alt="Résumé : l'état du nœud en un coup d'œil - réseau, broker, firmware et ce qu'il remonte." width="100%"><br><sub>Résumé : l'état du nœud en un coup d'œil - réseau, broker, firmware et ce qu'il remonte.</sub></td><td width="50%" valign="top"><img src="images/screenshots/screen.png" alt="Écran et son : luminosité, heures de nuit, volume et quelles alarmes sont annoncées." width="100%"><br><sub>Écran et son : luminosité, heures de nuit, volume et quelles alarmes sont annoncées.</sub></td></tr>
+<tr><td width="50%" valign="top"><img src="images/screenshots/voice.png" alt="Assistant vocal : appuyer pour parler, désactivé par défaut, et le service vers lequel va son audio." width="100%"><br><sub>Assistant vocal : appuyer pour parler, désactivé par défaut, et le service vers lequel va son audio.</sub></td><td width="50%" valign="top"><img src="images/screenshots/server.png" alt="Serveur : l'adresse du serveur A.R.M.O.R., l'utilisateur du panneau et la fréquence d'interrogation." width="100%"><br><sub>Serveur : l'adresse du serveur A.R.M.O.R., l'utilisateur du panneau et la fréquence d'interrogation.</sub></td></tr>
+</table>
+
 ## 🧩 Rôle dans A.R.M.O.R.
 
 ARMOR-HMI est le panneau mural : un client d'[ARMOR-SERVER](https://github.com/JuanenRac/ARMOR-SERVER), comme l'application Android, avec un écran de 7 pouces, un microphone et un haut-parleur. Il montre le mode, les nœuds en ligne et les alarmes qui demandent une personne, arme et désarme (avec le PIN) et acquitte les alarmes. C'est là que vivra l'assistant vocal ([ARMOR-VOICE-AI](https://github.com/JuanenRac/ARMOR-VOICE-AI)) quand son service vocal existera et, comme tout nœud, il se configure et se met à jour depuis [ARMOR-STUDIO](https://github.com/JuanenRac/ARMOR-STUDIO).

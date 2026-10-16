@@ -53,6 +53,15 @@
 * **署名付きの無線アップデート：**ノードが GitHub からインストールするのは、SHA-256 が一致し、管理者の有効な Ed25519 署名を持つイメージだけです（公開鍵はファームウェア内、秘密鍵は管理者の手元から出ません）。管理者がパネルで手動アップロードしたファイルは引き続き受け付けます。パネルのページとメッセージは 8 言語です。
 * **PIN 付きの Bluetooth ペアリング：**6 桁の PIN は設定コードから導出され、USB コンソールに表示され、管理者にはパネルにも表示されます。スマートフォンはこれを入力して初めてノードの設定を書き込めます。
 
+## 🖼️ スクリーンショット
+
+テストベンチで 1920×1080 で撮影。サンプルデータを使用しており、実際の設備は接続されていません。
+
+<table>
+<tr><td width="50%" valign="top"><img src="images/screenshots/overview.png" alt="概要：ネットワーク、ブローカー、ファームウェア、報告内容など、ノードの状態をひと目で確認できます。" width="100%"><br><sub>概要：ネットワーク、ブローカー、ファームウェア、報告内容など、ノードの状態をひと目で確認できます。</sub></td><td width="50%" valign="top"><img src="images/screenshots/screen.png" alt="画面と音：明るさ、夜間の時間帯、音量、通知する警報の種類。" width="100%"><br><sub>画面と音：明るさ、夜間の時間帯、音量、通知する警報の種類。</sub></td></tr>
+<tr><td width="50%" valign="top"><img src="images/screenshots/voice.png" alt="音声アシスタント：プッシュトゥトーク（既定ではオフ）と、音声の送信先サービス。" width="100%"><br><sub>音声アシスタント：プッシュトゥトーク（既定ではオフ）と、音声の送信先サービス。</sub></td><td width="50%" valign="top"><img src="images/screenshots/server.png" alt="サーバー：A.R.M.O.R. サーバーのアドレス、パネルのユーザー、問い合わせの間隔。" width="100%"><br><sub>サーバー：A.R.M.O.R. サーバーのアドレス、パネルのユーザー、問い合わせの間隔。</sub></td></tr>
+</table>
+
 ## 🧩 A.R.M.O.R. での役割
 
 ARMOR-HMI は壁掛けパネルです。Android アプリと同じく [ARMOR-SERVER](https://github.com/JuanenRac/ARMOR-SERVER) のクライアントで、7 インチ画面、マイク、スピーカーを備えます。モード、オンラインのノード、人が必要な警報を表示し、警戒・解除（PIN 付き）と警報の確認を行います。音声サービスができれば、音声アシスタント（[ARMOR-VOICE-AI](https://github.com/JuanenRac/ARMOR-VOICE-AI)）はここに住み、他のノードと同じく [ARMOR-STUDIO](https://github.com/JuanenRac/ARMOR-STUDIO) から設定・更新します。

@@ -53,6 +53,15 @@
 * **Emparejamiento Bluetooth con PIN:** el PIN de seis cifras se deriva del código de configuración, se imprime en la consola USB y se muestra a un administrador en el panel; el móvil tiene que escribirlo antes de poder cambiar los ajustes del nodo.
 * **Todavía no:** una primera compilación y encendido del firmware, una palabra de activación, el servicio de voz en la Jetson y una vista de las cámaras en la pantalla.
 
+## 🖼️ Capturas de pantalla
+
+Capturadas a 1920×1080 en un banco de pruebas, con datos de ejemplo y sin ninguna instalación real detrás.
+
+<table>
+<tr><td width="50%" valign="top"><img src="images/screenshots/overview.png" alt="Resumen: el estado del nodo de un vistazo - red, broker, firmware y lo que reporta." width="100%"><br><sub>Resumen: el estado del nodo de un vistazo - red, broker, firmware y lo que reporta.</sub></td><td width="50%" valign="top"><img src="images/screenshots/screen.png" alt="Pantalla y sonido: brillo, horas nocturnas, volumen y qué alarmas se anuncian." width="100%"><br><sub>Pantalla y sonido: brillo, horas nocturnas, volumen y qué alarmas se anuncian.</sub></td></tr>
+<tr><td width="50%" valign="top"><img src="images/screenshots/voice.png" alt="Asistente de voz: pulsar para hablar, desactivado por defecto, y el servicio al que va su audio." width="100%"><br><sub>Asistente de voz: pulsar para hablar, desactivado por defecto, y el servicio al que va su audio.</sub></td><td width="50%" valign="top"><img src="images/screenshots/server.png" alt="Servidor: la dirección del servidor A.R.M.O.R., el usuario del panel y cada cuánto pregunta." width="100%"><br><sub>Servidor: la dirección del servidor A.R.M.O.R., el usuario del panel y cada cuánto pregunta.</sub></td></tr>
+</table>
+
 ## 🧩 Papel en A.R.M.O.R.
 
 ARMOR-HMI es el panel de pared: un cliente de [ARMOR-SERVER](https://github.com/JuanenRac/ARMOR-SERVER), como la app Android, con una pantalla de 7 pulgadas, micrófono y altavoz. Muestra el modo, los nodos en línea y las alarmas que necesitan a una persona, arma y desarma (con el PIN) y reconoce alarmas. Es donde vivirá el asistente de voz ([ARMOR-VOICE-AI](https://github.com/JuanenRac/ARMOR-VOICE-AI)) cuando exista su servicio de voz y, como todo nodo, se configura y actualiza desde [ARMOR-STUDIO](https://github.com/JuanenRac/ARMOR-STUDIO).

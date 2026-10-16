@@ -53,6 +53,15 @@
 * **Bluetooth pairing with a PIN:** the six-digit PIN is derived from the set-up code, printed on the USB console and shown to an administrator in the panel; the phone has to enter it before it may write the node's settings.
 * **Not yet:** a first compilation and power-up of the firmware, a wake word, the speech service on the Jetson, and a view of the cameras on the screen.
 
+## 🖼️ Screenshots
+
+Captured at 1920×1080 on a test bench, with sample data and no real installation behind them.
+
+<table>
+<tr><td width="50%" valign="top"><img src="images/screenshots/overview.png" alt="Overview: the state of the node at a glance - network, broker, firmware and what it reports." width="100%"><br><sub>Overview: the state of the node at a glance - network, broker, firmware and what it reports.</sub></td><td width="50%" valign="top"><img src="images/screenshots/screen.png" alt="Screen and sound: brightness, night hours, volume and which alarms are announced." width="100%"><br><sub>Screen and sound: brightness, night hours, volume and which alarms are announced.</sub></td></tr>
+<tr><td width="50%" valign="top"><img src="images/screenshots/voice.png" alt="Voice assistant: push to talk, off by default, and the service its audio goes to." width="100%"><br><sub>Voice assistant: push to talk, off by default, and the service its audio goes to.</sub></td><td width="50%" valign="top"><img src="images/screenshots/server.png" alt="Server: the address of the A.R.M.O.R. server, the user of the panel and how often it asks." width="100%"><br><sub>Server: the address of the A.R.M.O.R. server, the user of the panel and how often it asks.</sub></td></tr>
+</table>
+
 ## 🧩 Role in A.R.M.O.R.
 
 ARMOR-HMI is the wall panel: a client of [ARMOR-SERVER](https://github.com/JuanenRac/ARMOR-SERVER), like the Android app, with a 7-inch screen, a microphone and a speaker. It shows the mode, the nodes online and the alarms that need a person, arms and disarms (with the PIN) and acknowledges alarms. It is where the voice assistant ([ARMOR-VOICE-AI](https://github.com/JuanenRac/ARMOR-VOICE-AI)) will live once its speech service exists, and, like every node, it is set up and updated from [ARMOR-STUDIO](https://github.com/JuanenRac/ARMOR-STUDIO).
