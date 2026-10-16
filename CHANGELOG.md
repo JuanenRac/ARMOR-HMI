@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented here.
 
+## [0.2.3] - A PIN for Bluetooth pairing
+
+- Bluetooth pairing now asks for a 6-digit PIN that the node prints on its USB console next to the setup code; the link is authenticated and nothing is accepted over Bluetooth without it (until now any phone in range could pair without a PIN).
+- The Bluetooth note of the panel explains the PIN in all eight languages.
+
 ## [0.2.2] - Portuguese on the screen and in the panel, a sound for each severity and a warning for the access point and the station at once
 
 - The panel speaks Portuguese, the eighth language, in every page, hint and message of the settings.
