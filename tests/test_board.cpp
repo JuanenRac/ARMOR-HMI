@@ -29,7 +29,7 @@ static void test_pins() {
 }
 
 static void test_text() {
-  // every row has a key and a text in each of the seven languages
+  // every row has a key and a text in each of the eight languages
   std::set<std::string_view> keys;
   for (const screen::Row& row : screen::kRows) {
     CHECK(!row.key.empty());

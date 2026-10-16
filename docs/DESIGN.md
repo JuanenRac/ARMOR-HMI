@@ -21,8 +21,8 @@ Disarming asks for a PIN on the screen. It is the PIN of the panel's own account
 | What the panel knows of the server (`core/server_view.hpp`) | the computer | `tests/test_view.cpp`: the summary, the state of the link, when data is stale, what is new, the colour of the screen, the night brightness |
 | The voice conversation (`core/voice_session.hpp`) | the computer | `tests/test_voice.cpp`: the order of the steps, the time limits, what a touch does |
 | The pins of the board (`core/board_s3.hpp`) | the computer | `tests/test_board.cpp` and a `static_assert`: no two functions share a GPIO and none is a pin the chip keeps |
-| The words of the screen (`core/screen_text.hpp`) | the computer | `tests/test_board.cpp`: every row in seven languages |
-| The web page (`panel/`) | a real browser | `node tools/panel_browser_test.mjs` against `tools/panel_mock.mjs`: every page in seven languages |
+| The words of the screen (`core/screen_text.hpp`) | the computer | `tests/test_board.cpp`: every row in eight languages |
+| The web page (`panel/`) | a real browser | `node tools/panel_browser_test.mjs` against `tools/panel_mock.mjs`: every page in eight languages |
 | The firmware (`main/`) | **nowhere yet** | it builds with ESP-IDF 5.4 and 5.5 (`tools/build_node.sh generic`, or `idf.py` on the machine) and has never been run on a board |
 
 ## The link to the server
@@ -50,7 +50,7 @@ link to its web page like any other node.
 800 by 480, drawn with LVGL 9: the mode of the system in the colour of the worst alarm nobody has seen, a large button to arm or disarm (with a question first), the number of nodes
 online, the alarms (the unseen first, six at most) with a button to acknowledge them all, the microphone and a line at the bottom that says what is wrong (no server in the settings,
 the server not answering, or how to set the panel up). The night hours dim it, a period without a touch puts it to sleep, and a touch or a new alarm wakes it; a new alarm also plays a
-tone. The words are in seven languages (`core/screen_text.hpp`); Japanese and Chinese are drawn with fonts generated for exactly the characters the texts use (see [FONTS](FONTS.md)).
+tone. The words are in eight languages (`core/screen_text.hpp`); Japanese and Chinese are drawn with fonts generated for exactly the characters the texts use (see [FONTS](FONTS.md)).
 
 ## What is not here
 
