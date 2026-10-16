@@ -172,6 +172,21 @@ static void test_pin() {
   CHECK(pin_error_of(403, "{\"error\":\"forbidden\"}").empty() && pin_error_of(200, "{\"code\":\"wrong_pin\"}").empty() && pin_error_of(500, "{\"code\":\"wrong_pin\"}").empty() && pin_error_of(403, "").empty());
 }
 
+static void test_cue() {
+  AlarmLine warning; warning.severity = Severity::kWarning;
+  AlarmLine high; high.severity = Severity::kHigh;
+  AlarmLine critical; critical.severity = Severity::kCritical;
+  CHECK(cue_for({}, 0) == Cue::kNone);
+  CHECK(cue_for({warning}, 0) == Cue::kNotice);
+  CHECK(cue_for({high}, 0) == Cue::kAlarm);
+  CHECK(cue_for({critical}, 0) == Cue::kSiren);
+  CHECK(cue_for({warning, critical, high}, 0) == Cue::kSiren);      // the sound goes with the most serious
+  CHECK(cue_for({warning}, 1) == Cue::kNone);                        // only high and critical sound
+  CHECK(cue_for({high}, 1) == Cue::kAlarm);
+  CHECK(cue_for({high}, 2) == Cue::kNone);                           // only critical sounds
+  CHECK(cue_for({warning, critical}, 2) == Cue::kSiren);
+}
+
 int main() {
   test_pin();
   test_summary();
@@ -179,6 +194,7 @@ int main() {
   test_link();
   test_link_denied();
   test_new_alarms_and_tone();
+  test_cue();
   test_night_brightness();
   FINISH("test_view");
 }

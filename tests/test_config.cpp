@@ -90,6 +90,10 @@ static void test_document() {
   problems.clear();
   CHECK(!config::load("{\"audio\":{\"volume\":101}}", base, out, problems) && has(problems, "audio.volume", "range"));
   problems.clear();
+  CHECK(config::load("{\"audio\":{\"min_severity\":\"critical\"}}", base, out, problems) && out.audio.min_severity == config::AlarmFloor::kCritical);
+  problems.clear();
+  CHECK(!config::load("{\"audio\":{\"min_severity\":\"loud\"}}", base, out, problems) && has(problems, "audio.min_severity", "invalid"));
+  problems.clear();
   CHECK(!config::load("{\"server\":{\"port\":\"x\"}}", base, out, problems) && has(problems, "server.port", "invalid"));
   problems.clear();
   CHECK(!config::load("not json", base, out, problems));

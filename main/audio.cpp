@@ -228,6 +228,9 @@ void beep(Tone tone) {
     case Tone::kAlarm:
       for (int i = 0; i < 3; ++i) { note(samples, 740.0f, 140, 0.8f); note(samples, 988.0f, 140, 0.8f); }
       break;
+    case Tone::kSiren:   // a critical alarm: a wailing siren, four rises and falls
+      for (int i = 0; i < 4; ++i) { for (float hz = 600.0f; hz <= 1200.0f; hz += 100.0f) note(samples, hz, 45, 0.9f); for (float hz = 1200.0f; hz >= 600.0f; hz -= 100.0f) note(samples, hz, 45, 0.9f); }
+      break;
   }
   play(samples.data(), samples.size());
 }

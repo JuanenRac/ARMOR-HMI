@@ -2,6 +2,14 @@
 
 All notable changes to this project are documented here.
 
+## [0.2.2] - Portuguese on the screen and in the panel, a sound for each severity and a warning for the access point and the station at once
+
+- The panel speaks Portuguese, the eighth language, in every page, hint and message of the settings.
+- The overview warns when the node's own Wi-Fi network and its connection to your router are on at the same time (they share one radio and one channel), and the Wi-Fi help explains what that costs and when to switch the access point off.
+- The screen is available in Portuguese, with every sentence and alarm text.
+- A new alarm sounds by its severity: a notice for a warning, the rising pattern for a high alarm and a wailing siren for a critical one, the most serious of the new alarms deciding.
+- A new setting, "Sounds for alarms from", chooses the least serious alarm that makes a sound (every alarm, high and critical only, or critical only); the screen still shows the quieter ones.
+
 ## [0.2.1] - Slot copy, pinned server certificate, token for the voice service and a retried action after a lost session
 
 - A firmware slot can be copied to the other one from the panel, and the update of a node waits for the image to be confirmed only after the node has an address or its own access point is reachable, rolling back after five minutes otherwise.

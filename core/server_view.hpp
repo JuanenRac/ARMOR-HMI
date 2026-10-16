@@ -216,6 +216,19 @@ inline std::vector<std::string> ids_of(const Summary& summary) {
 
 // The most severe unacknowledged alarm decides the colour of the screen.
 enum class Tone { kCalm, kReview, kAlert };
+// What the speaker does for the alarms that have just arrived: nothing, a notice (a warning), the rising pattern of an alarm (a high one) or a siren (a critical one), by the most serious of them.
+// `floor` is the least serious that sounds: 0 any alarm, 1 only high and critical, 2 only critical.
+enum class Cue { kNone, kNotice, kAlarm, kSiren };
+inline Cue cue_for(const std::vector<AlarmLine>& fresh, int floor) {
+  int worst = -1;
+  for (const AlarmLine& alarm : fresh) {
+    const int rank = alarm.severity == Severity::kCritical ? 2 : alarm.severity == Severity::kHigh ? 1 : 0;
+    if (rank > worst) worst = rank;
+  }
+  if (worst < 0 || worst < floor) return Cue::kNone;
+  return worst == 2 ? Cue::kSiren : worst == 1 ? Cue::kAlarm : Cue::kNotice;
+}
+
 inline Tone tone_of(const Summary& summary) {
   Tone tone = Tone::kCalm;
   for (const AlarmLine& line : summary.alarms) {
