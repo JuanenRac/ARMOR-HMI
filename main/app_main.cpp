@@ -63,7 +63,7 @@ void presence_task(void*) {
     const std::int64_t now_ms = static_cast<std::int64_t>(std::time(nullptr)) * 1000;
     if (s.mqtt.enabled && n.has_ip && now_ms > 1700000000000LL) {
       armor::json::Writer health;
-      health.begin_object().field("node_id", s.node_id).key("timestamp_ms").integer(now_ms).field("online", true).end_object();
+      health.begin_object().field("node_id", s.node_id).key("timestamp_ms").integer(now_ms).field("online", true).field("kind", "panel").end_object();   // a wall panel, not a radar: the server keeps it apart
       armor::mqtt_link::publish("armor/node/" + s.node_id + "/health", health.str());
       static int counter = 0;
       if (counter++ % 6 == 0) {

@@ -9,3 +9,4 @@ managed_components/
 certs/
 secrets/*
 !secrets/node.conf.example
+node_modules/

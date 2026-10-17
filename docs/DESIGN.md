@@ -42,7 +42,7 @@ The state of the link is a small machine (`LinkTracker`): *not set up*, *no netw
 the button to arm or disarm is disabled so that nobody acts on old news; the same goes when there is no network or the login was refused, which show what the panel knew, dimmed, and give no orders) and *denied* (the server refused the login twice in a row, or answered 403: someone has to fix the user in the
 settings). After a failure the panel waits longer each time (up to a minute), so that a server that is down is not asked every three seconds.
 
-The panel also publishes `armor/node/<id>/health` and, now and then, `armor/node/<id>/info` (its name, firmware and the address of its page) over MQTT, so that Studio lists it with a
+The panel also publishes `armor/node/<id>/health` (with `"kind":"panel"`, so the server keeps it apart from the radars: it is listed in the services as a wall panel, it does not count as a radar node and its silence is not a node down) and, now and then, `armor/node/<id>/info` (its name, firmware and the address of its page) over MQTT, so that Studio lists it with a
 link to its web page like any other node.
 
 ## The screen

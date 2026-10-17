@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented here.
 
+## [0.2.7] - The screen knows every alarm the server raises, and says that it is a wall panel
+
+The screen text has the alarm codes that the server raises and the screen did not know (network, solar, electrical, alarm zones, glass break, vibration...), in eight languages, so the panel no longer shows a generic Alarm for them; the fonts of Japanese and Chinese were generated again with the new characters.
+The health message carries kind panel, so the server lists the panel as a wall panel and does not count it as a radar or call its silence a node down.
+
 ## [0.2.6] - Only the house may use the panel, wrong passwords counted per person, and a panel that works behind the server's proxy
 
 - **The panel answers only the house.** A new setting, *Networks that may use this panel* (`web.admin_sources`), says which addresses may sign in or change anything: empty means the private ranges of a house (10/8, 172.16/12, 192.168/16, link-local, loopback and 100.64/10, where Tailscale lives), otherwise the list of addresses and networks you write (`192.168.1.0/24, 10.66.0.0/24`). Any other address is told `outside_network`, except the public look at the node's identity, so a port opened by mistake on the router does not let the Internet try passwords here. A list that would shut out the person who is saving it is refused (`would_lock_out`).
