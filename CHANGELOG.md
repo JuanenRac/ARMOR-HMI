@@ -4,8 +4,8 @@ All notable changes to this project are documented here.
 
 ## [0.2.7] - The screen knows every alarm the server raises, and says that it is a wall panel
 
-The screen text has the alarm codes that the server raises and the screen did not know (network, solar, electrical, alarm zones, glass break, vibration...), in eight languages, so the panel no longer shows a generic Alarm for them; the fonts of Japanese and Chinese were generated again with the new characters.
-The health message carries kind panel, so the server lists the panel as a wall panel and does not count it as a radar or call its silence a node down.
+- The screen text has the alarm codes that the server raises and the screen did not know (network, solar, electrical, alarm zones, glass break, vibration...), in eight languages, so the panel no longer shows a generic Alarm for them; the fonts of Japanese and Chinese were generated again with the new characters.
+- The health message carries kind panel, so the server lists the panel as a wall panel and does not count it as a radar or call its silence a node down.
 
 ## [0.2.6] - Only the house may use the panel, wrong passwords counted per person, and a panel that works behind the server's proxy
 
