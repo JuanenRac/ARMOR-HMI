@@ -92,6 +92,12 @@ static void test_document() {
   problems.clear();
   CHECK(config::load("{\"audio\":{\"min_severity\":\"critical\"}}", base, out, problems) && out.audio.min_severity == config::AlarmFloor::kCritical);
   problems.clear();
+  CHECK(config::load("{\"web\":{\"admin_sources\":\"192.168.1.0/24, 10.66.0.0/24\"}}", base, out, problems) && out.admin_sources == "192.168.1.0/24, 10.66.0.0/24");
+  problems.clear();
+  CHECK(!config::load("{\"web\":{\"admin_sources\":\"not a network\"}}", base, out, problems) && has(problems, "web.admin_sources", "invalid"));
+  problems.clear();
+  CHECK(config::load("{}", base, out, problems) && out.admin_sources.empty());
+  problems.clear();
   CHECK(!config::load("{\"audio\":{\"min_severity\":\"loud\"}}", base, out, problems) && has(problems, "audio.min_severity", "invalid"));
   problems.clear();
   CHECK(!config::load("{\"server\":{\"port\":\"x\"}}", base, out, problems) && has(problems, "server.port", "invalid"));
