@@ -187,7 +187,45 @@ static void test_cue() {
   CHECK(cue_for({warning, critical}, 2) == Cue::kSiren);
 }
 
+// The alarm of a duress PIN is silent: it is neither shown nor counted nor heard, whatever the server sends.
+static void test_duress_is_silent() {
+  const std::string head = "{\"mode\":\"disarmed\",\"revision\":7,\"time_ms\":1790000000000,\"nodes\":{\"online\":3,\"total\":4},";
+  Summary s;
+  CHECK(parse_summary(head + "\"alarms\":{\"active\":2,\"unacknowledged\":2,\"items\":["
+        "{\"id\":\"d1\",\"code\":\"duress_disarm\",\"severity\":\"critical\",\"acknowledged\":false},"
+        "{\"id\":\"a2\",\"code\":\"low_battery\",\"severity\":\"warning\",\"acknowledged\":false}]}}", s));
+  CHECK(s.alarms.size() == 1 && s.alarms[0].code == "low_battery" && s.alarms_active == 1 && s.alarms_unacknowledged == 1);
+  CHECK(is_silent_code("duress_disarm") && !is_silent_code("intrusion"));
+  // alone, it leaves a calm screen and no sound
+  CHECK(parse_summary(head + "\"alarms\":{\"active\":1,\"unacknowledged\":1,\"items\":[{\"id\":\"d1\",\"code\":\"duress_disarm\",\"severity\":\"critical\",\"acknowledged\":false}]}}", s));
+  CHECK(s.alarms.empty() && s.alarms_active == 0 && s.alarms_unacknowledged == 0 && tone_of(s) == Tone::kCalm);
+  CHECK(cue_for(new_unacknowledged({}, false, s), 0) == Cue::kNone);
+}
+
+// What is on the screen is old after a few missed polls whatever the reason the answers stopped, and only an online, current link may give orders.
+static void test_old_news_without_a_network() {
+  LinkTracker link(3);
+  link.configure(true, 3);
+  link.set_network(true);
+  Summary s;
+  CHECK(parse_summary(kSummary, s));
+  link.on_summary(1000, s);
+  link.update(1000);
+  CHECK(link.current() && !link.old());
+  link.set_network(false);                     // the Wi-Fi is gone
+  link.update(1000 + 13000);
+  CHECK(link.link() == Link::kNoNetwork && link.old() && !link.current());
+  link.set_network(true);
+  link.on_failure(20000, Failure::kForbidden);   // the server refuses the panel's login
+  link.update(1000 + 20000);
+  CHECK(link.link() == Link::kDenied && link.old() && !link.current());
+  link.on_summary(40000, s);
+  CHECK(link.current() && !link.old());
+}
+
 int main() {
+  test_duress_is_silent();
+  test_old_news_without_a_network();
   test_pin();
   test_summary();
   test_energy();

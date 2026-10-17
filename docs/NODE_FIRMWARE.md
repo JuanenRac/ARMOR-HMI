@@ -22,18 +22,18 @@ A panel with no user is in **set-up**: it opens the Wi-Fi network `ARMOR-SETUP-x
 (`http://192.168.4.1/`). Join the network from a phone, open the address, enter the code and make the administrator (and, if you want, the Wi-Fi it should join). The panel then
 restarts. Bluetooth does the same job from the Android app (see [BLE_PROVISIONING](BLE_PROVISIONING.md)).
 
-In the web page: *Server* (the address, the port and the user of the panel; make that user in Studio, an operator is enough), *Screen and sound*, *Voice assistant*, then the
+In the web page: *Server* (the address, the port and the user of the panel; make that user in Studio with the role *Panel*, which can read the summary, arm, disarm and acknowledge and nothing else), *Screen and sound*, *Voice assistant*, then the
 Wi-Fi, the broker and the users like any other node. Saving a change that needs a restart says so.
 
 ## Updating
 
-*Firmware and log* uploads a new image over the air. The boot loader keeps the old one until the new one has stayed up for 30 seconds with its web page running; if it does not come up, it
+*Firmware and log* uploads a new image over the air. The boot loader keeps the old one until the new one has stayed up for 30 seconds with its web page running (and, before that, until it has an address or its own network, for five minutes at most); if it does not come up, it
 goes back by itself.
 
 ## Tests that do not need a board
 
 ```bash
-cmake -S tests -B build/host && cmake --build build/host && ctest --test-dir build/host   # the four host tests
+cmake -S tests -B build/host && cmake --build build/host && ctest --test-dir build/host   # the host tests (the settings, the view of the server, the voice, the board, the shared base, the release checks, the panel texts and the glyphs of the fonts)
 node tools/panel_mock.mjs --user admin:adminpass123                                       # the web page without a board, on http://127.0.0.1:8090/
 node tools/panel_browser_test.mjs                                                         # the page in a real browser (headless Edge), every page in eight languages
 ```

@@ -36,8 +36,10 @@ static void test_text() {
     CHECK(keys.insert(row.key).second);   // no key twice
     for (std::string_view text : row.text) CHECK(!text.empty());
   }
-  // a format key keeps its placeholder in every language
-  for (std::string_view language : screen::kLanguages) CHECK(screen::text(language, "voice_idle").find("%s") != std::string_view::npos);
+  // no text carries a stray format placeholder (none is formatted), and every reason an order can fail has its words in every language
+  for (const screen::Row& row : screen::kRows) for (std::string_view text : row.text) CHECK(text.find('%') == std::string_view::npos);
+  for (std::string_view language : screen::kLanguages)
+    for (const char* key : {"action_no_answer", "action_forbidden", "action_failed", "voice_idle"}) CHECK(screen::text(language, key) != key && !screen::text(language, key).empty());
   CHECK(screen::text("es", "armed") == "ARMADO" && screen::text("de", "disarmed") == "UNSCHARF" && screen::text("ja", "yes") == "はい");
   CHECK(screen::text("xx", "yes") == "Yes");                    // an unknown language is English
   CHECK(screen::text("en", "no-such-key") == "no-such-key");   // an unknown key is itself

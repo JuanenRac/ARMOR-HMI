@@ -17,21 +17,23 @@ to the people in the house through it. This version has the panel's half of that
 
 * **A wake word.** "Armor" cannot be said yet: a wake word needs a model for the chip (Espressif's ESP-SR) trained for the name, and the board's four microphones can feed it, but it is
   not part of this version. The setting "name it answers to" is what the screen will show once it exists.
-* **The speech service.** ARMOR-VOICE-AI today is an intent gateway with no speech engine (text in, intent out). Speech to text, the answer and text to speech have to be a service on
-  the Jetson that speaks the contract below; until it exists the assistant has nobody to talk to.
+* **A speech service that listens everywhere.** ARMOR-VOICE-AI answers `POST /v1/turn` (speech to text and text to speech by commands the installation chooses), but by default it listens only on the machine
+  it runs on (port 18090): to reach it from the panel it must be started to accept other machines, or sit behind a proxy, and the panel must carry its token.
 
 ## The contract with the speech service
 
 ```
 POST <voice.url>/v1/turn
 Content-Type: audio/L16;rate=16000      16 kHz, mono, 16-bit signed little-endian PCM, at most listen_s seconds
-X-Armor-Language: en|es|de|fr|it|ja|zh  the language of the panel
+X-Armor-Language: en|es|de|fr|it|ja|zh|pt the language of the panel
+X-Armor-Voice-Token: <token>            the token of the service (the setting *Token*, never shown again once saved)
 
 200 {"heard":"arm the system", "reply":"Arm the system? Say yes to confirm.", "audio":"<base64 of 16 kHz mono 16-bit PCM>"}
 ```
 
 `heard` and `audio` are optional (without audio only the text is shown); a reply with neither text nor audio, a non-200 answer or a malformed body is a failure shown on the screen
-("I could not do that"). The panel accepts at most 256 KB of answer.
+("I could not do that"). The panel listens for at most 15 seconds (the service takes 480 KB of audio) and accepts at most 320 KB of answer (the service sends at most 200 KB of audio, which is about 267 KB as base64): the audio is
+taken out of the text by hand (`core/voice_answer.hpp`) because the JSON reader of the node refuses documents over 64 KB, and an answer longer than 320 KB is refused whole and said so (*reply_too_long*).
 
 ## Privacy
 

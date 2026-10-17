@@ -15,6 +15,7 @@ namespace armor::server_link {
 struct Snapshot {
   hmi::Link link = hmi::Link::kNotConfigured;
   bool have_summary = false;
+  bool current = false;              // the link is online and the summary is recent: the only state in which the screen is bright and an order may be given
   hmi::Summary summary;
   bool action_pending = false;       // an order of the person is on its way to the server
   std::string action_error;          // "" or a short code of the last order that failed

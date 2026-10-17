@@ -55,6 +55,11 @@ inline Severity severity_from(std::string_view text) {
   return Severity::kWarning;
 }
 
+// Alarms the panel never shows, never sounds and does not count. A person forced to disarm types the duress PIN: the house disarms like any other time and the server raises a critical alarm
+// IN SILENCE for the people who must hear of it. A wall panel that rang its siren and turned red for that alarm would tell the person who is standing there with the victim. (The server
+// leaves it out of the summary as well; this is the second lock.)
+inline bool is_silent_code(std::string_view code) { return code == "duress_disarm"; }
+
 inline const char* to_text(Mode mode) { return mode == Mode::kArmed ? "armed" : mode == Mode::kDisarmed ? "disarmed" : "unknown"; }
 
 // The answer of /api/v1/panel/summary. False when it is not what the server sends (the panel then keeps what it had).
@@ -86,6 +91,11 @@ inline bool parse_summary(std::string_view text, Summary& out) {
       line.raised_at = item.string_or("raised_at", "");
       line.severity = severity_from(item.string_or("severity", "warning"));
       line.acknowledged = item.bool_or("acknowledged", false);
+      if (is_silent_code(line.code)) {   // not shown and not counted
+        if (summary.alarms_active > 0) --summary.alarms_active;
+        if (!line.acknowledged && summary.alarms_unacknowledged > 0) --summary.alarms_unacknowledged;
+        continue;
+      }
       summary.alarms.push_back(std::move(line));
     }
   }
@@ -145,7 +155,7 @@ class LinkTracker {
   void set_network(bool has_address) { has_network_ = has_address; }
 
   void on_signed_in(std::int64_t now_ms) { signed_in_ = true; failures_ = 0; last_ok_ms_ = now_ms; link_ = Link::kOnline; }
-  void on_summary(std::int64_t now_ms, const Summary& summary) { summary_ = summary; have_summary_ = true; last_ok_ms_ = now_ms; failures_ = 0; link_ = Link::kOnline; signed_in_ = true; }
+  void on_summary(std::int64_t now_ms, const Summary& summary) { summary_ = summary; have_summary_ = true; last_ok_ms_ = now_ms; failures_ = 0; old_ = false; link_ = Link::kOnline; signed_in_ = true; }
   void on_failure(std::int64_t now_ms, Failure why) {
     ++failures_;
     if (why == Failure::kUnauthorized) {
@@ -162,6 +172,8 @@ class LinkTracker {
 
   // Call now and then (the HTTP task does it at every poll): decides between online, stale and the rest from the clock.
   void update(std::int64_t now_ms) {
+    // How old what is on the screen is does not depend on why the answers stopped (no address, a refused login, a server that is down): it is old after a few missed polls.
+    old_ = have_summary_ && now_ms - last_ok_ms_ > kStaleAfterPolls * poll_ms_;
     if (!configured_) { link_ = Link::kNotConfigured; return; }
     if (!has_network_) { link_ = Link::kNoNetwork; return; }
     if (link_ == Link::kDenied) return;
@@ -178,6 +190,10 @@ class LinkTracker {
     return std::min<std::int64_t>(delay, 60000);
   }
 
+  // The summary on the screen is older than a few polls, whatever state the link is in. Together with `current()` it is what the screen uses to dim and to refuse an order.
+  bool old() const { return old_; }
+  // Only an online link gives news the person may act on: with no network, a refused login or a stale summary the screen shows what it knew, dimmed, and orders nothing.
+  bool current() const { return link_ == Link::kOnline && !old_; }
   bool signed_in() const { return signed_in_; }
   Link link() const { return link_; }
   bool has_summary() const { return have_summary_; }
@@ -187,7 +203,7 @@ class LinkTracker {
   static constexpr int kStaleAfterPolls = 4;
 
  private:
-  bool configured_ = false, has_network_ = false, signed_in_ = false, have_summary_ = false;
+  bool configured_ = false, has_network_ = false, signed_in_ = false, have_summary_ = false, old_ = false;
   Link link_ = Link::kNotConfigured;
   std::int64_t poll_ms_ = 3000, last_ok_ms_ = 0;
   int failures_ = 0, refusals_ = 0;

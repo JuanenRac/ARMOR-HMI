@@ -21,14 +21,14 @@
   <img src="https://img.shields.io/badge/License-GPL%203.0-blue.svg" alt="GPL 3.0">
   <img src="https://img.shields.io/badge/Language-C%2B%2B17-00599c.svg" alt="Language">
   <img src="https://img.shields.io/badge/Board-ESP32--S3--Touch--LCD--7C--BOX-e7352c.svg" alt="Board">
-  <img src="https://img.shields.io/badge/Checks-1%2C111-2ea44f.svg" alt="Checks">
-  <img src="https://img.shields.io/badge/Version-0.2.4-0f6cbd.svg" alt="Version">
+  <img src="https://img.shields.io/badge/Checks-1%2C759-2ea44f.svg" alt="Checks">
+  <img src="https://img.shields.io/badge/Version-0.2.5-0f6cbd.svg" alt="Version">
   <img src="https://img.shields.io/badge/Maturity-functional-00E5FF.svg" alt="Maturity">
 </p>
 
 ---
 
-**正直さのチェック - 今日動いているもの:** ボードに依存しない部分は実在し、コンピューター上でテストされています（設定、パネルがサーバーについて知っていることとそれが古くなる時点、音声会話、ボードのピン、8 言語の画面の文言、バージョンと署名の検査：6 つのテストプログラムで 1,111 項目）。Web ページも同様です（実際のブラウザーで代替に対して実行）。**ファームウェアはボード上でビルドも実行もされたことがありません：**画面、タッチ、音声、サーバーとのリンクは、この系統のボード向けの Waveshare のサンプルから書かれており、最初のコンパイルと最初の通電が必要です。アシスタントが話しかける音声サービスはまだ存在せず、ウェイクワードもありません。押して話す方式です。
+**正直さのチェック - 今日動いているもの:** ボードに依存しない部分は実在し、コンピューター上でテストされています（設定、パネルがサーバーについて知っていることとそれが古くなる時点、決して表示されない強要警報、音声会話と音声サービスの長い応答、ボードのピン、8言語の画面テキストとフォントのグリフ、リリースと署名の検査：7つのテストプログラムで 1,759 項目）。Webページも同様です（実ブラウザで代替機に対して実行）。**ファームウェアは一度ビルドされましたが（ESP-IDF 5.5.5、継続的インテグレーションでは確認していません）、ボード上で動作したことはありません。**画面、タッチ、音、サーバーとの接続は、このボード系列向けの Waveshare のサンプルをもとに書かれており、初めての電源投入が必要です。音声サービス（ARMOR-VOICE-AI）はこのパネルの要求に応答します。ウェイクワードはなく、タッチして話します。
 
 ---
 
@@ -36,11 +36,11 @@
 
 | | |
 |---|---|
-| バージョン | `0.2.4` |
+| バージョン | `0.2.5` |
 | 成熟度 | 機能する |
-| テスト | 1,111 checks in 6 programs (`ctest`) |
+| テスト | 1,759 checks in 7 programs (`ctest`) |
 | 技術 | C++17 (host-tested core); ESP-IDF firmware for the ESP32-S3 with LVGL, with its web page |
-| 実機での確認 | まだありません：ファームウェアはボード上でビルドも実行もされていません |
+| 実機での確認 | まだありません：ファームウェアはビルドできます（ESP-IDF 5.5.5、CI では未確認）が、ボード上では動作していません |
 
 ## 🎯 概要
 

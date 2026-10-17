@@ -26,7 +26,15 @@ std::atomic<std::int64_t> g_last_activity_ms{0};
 std::int64_t now_ms() { return esp_timer_get_time() / 1000; }
 
 // Any touch counts as activity: LVGL tells us through the input device's read.
-void on_touch_event(lv_event_t*) { g_last_activity_ms = now_ms(); if (g_asleep) wake(); }
+// The touch that wakes a sleeping screen only wakes it: the widget under the finger would otherwise get it too (the screen is dark, nobody sees what was pressed), so the input device
+// waits for the finger to be lifted before it presses anything.
+void on_touch_event(lv_event_t* event) {
+  g_last_activity_ms = now_ms();
+  if (g_asleep) {
+    wake();
+    lv_indev_wait_release(lv_event_get_indev(event));
+  }
+}
 
 esp_lcd_panel_handle_t make_panel() {
   esp_lcd_rgb_panel_config_t config{};

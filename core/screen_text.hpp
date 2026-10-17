@@ -4,9 +4,9 @@
 // One table: a key and its eight texts (en, es, de, fr, it, ja, zh, pt). A key without a text in a language falls back to English, and the tests fail when a row has an empty
 // text, so a text can never reach the screen in only some of the languages.
 //
-// The screen's font: the Latin languages (en, es, de, fr, it, pt) are drawn with the font that is always in the image. Japanese and Chinese need a font with those glyphs, which
-// is large and is compiled in only when the build asks for it (CONFIG_ARMOR_HMI_CJK_FONT); without it the screen falls back to English for those two (the web panel, which
-// the browser draws, is in the eight languages whatever the image holds). effective_language() is that rule.
+// The screen's font: the Latin languages (en, es, de, fr, it, pt) are drawn with the Latin font; Japanese and Chinese have a font of their own with only the glyphs these texts use
+// (tools/make_fonts.py makes them, tests/check_font_glyphs.py checks that every character of this table and of main/ui.cpp has its glyph). All of them are always in the image.
+// effective_language() is the rule that picks the language of the screen.
 #pragma once
 #include <array>
 #include <cstddef>
@@ -22,7 +22,7 @@ struct Row {
 };
 
 // clang-format off
-constexpr std::array<Row, 54> kRows{{
+constexpr std::array<Row, 57> kRows{{
     {"armed", {"ARMED", "ARMADO", "SCHARF", "ARMÉ", "ATTIVO", "警戒中", "已布防", "ARMADO"}},
     {"disarmed", {"DISARMED", "DESARMADO", "UNSCHARF", "DÉSARMÉ", "DISATTIVO", "解除中", "已撤防", "DESARMADO"}},
     {"arm", {"Arm", "Armar", "Scharf schalten", "Armer", "Attiva", "警戒する", "布防", "Armar"}},
@@ -33,6 +33,9 @@ constexpr std::array<Row, 54> kRows{{
     {"pin_wrong", {"The PIN is not right", "El PIN no es correcto", "Die PIN ist falsch", "Le code n'est pas bon", "Il PIN non è corretto", "PIN が違います", "PIN 不正确", "O PIN não está certo"}},
     {"pin_locked", {"Too many wrong PINs: wait", "Demasiados PIN erróneos: espera", "Zu viele falsche PINs: warten", "Trop d'erreurs : patientez", "Troppi PIN errati: attendi", "PIN の誤りが多すぎます。お待ちください", "错误太多：请稍等", "Demasiados PIN errados: espere"}},
     {"pin_not_set", {"This panel's user has no PIN", "El usuario de este panel no tiene PIN", "Der Benutzer dieses Panels hat keine PIN", "L'utilisateur de ce panneau n'a pas de code", "L'utente di questo pannello non ha un PIN", "このパネルのユーザーには PIN がありません", "此面板的用户没有 PIN", "O utilizador deste painel não tem PIN"}},
+    {"action_no_answer", {"No answer from the server: nothing was done", "El servidor no responde: no se hizo nada", "Server antwortet nicht: nichts ausgeführt", "Le serveur ne répond pas : rien n'a été fait", "Il server non risponde: nulla è stato fatto", "サーバーが応答しません。何も実行されていません", "服务器无响应：未执行任何操作", "O servidor não responde: nada foi feito"}},
+    {"action_forbidden", {"The server refused this order", "El servidor rechazó la orden", "Der Server hat den Befehl abgelehnt", "Le serveur a refusé l'ordre", "Il server ha rifiutato il comando", "サーバーがこの操作を拒否しました", "服务器拒绝了该操作", "O servidor recusou a ordem"}},
+    {"action_failed", {"The order could not be done", "No se pudo hacer la orden", "Der Befehl ließ sich nicht ausführen", "L'ordre n'a pas pu être exécuté", "Non è stato possibile eseguire il comando", "操作を実行できませんでした", "无法执行该操作", "Não foi possível fazer a ordem"}},
     {"pin_clear", {"Clear", "Borrar", "Löschen", "Effacer", "Cancella", "消去", "清除", "Apagar"}},
     {"yes", {"Yes", "Sí", "Ja", "Oui", "Sì", "はい", "是", "Sim"}},
     {"no", {"No", "No", "Nein", "Non", "No", "いいえ", "否", "Não"}},
@@ -47,7 +50,7 @@ constexpr std::array<Row, 54> kRows{{
     {"link_stale", {"The server is not answering: this is old information", "El servidor no responde: esta información es antigua", "Der Server antwortet nicht: Daten sind veraltet", "Le serveur ne répond pas : informations anciennes", "Il server non risponde: informazioni vecchie", "サーバーが応答しません。古い情報です", "服务器无响应：此为旧信息", "O servidor não responde: esta informação é antiga"}},
     {"link_denied", {"The server refused this panel's login", "El servidor rechazó el usuario de este panel", "Der Server hat die Anmeldung dieses Panels abgelehnt", "Le serveur a refusé la connexion de ce panneau", "Il server ha rifiutato l'accesso di questo pannello", "サーバーがこのパネルのログインを拒否しました", "服务器拒绝了此面板的登录", "O servidor recusou o início de sessão deste painel"}},
     {"setup_hint", {"Open this address from your phone or computer to set the panel up:", "Abre esta dirección desde el móvil o el ordenador para configurar el panel:", "Öffnen Sie diese Adresse am Handy oder Computer, um das Panel einzurichten:", "Ouvrez cette adresse depuis un téléphone ou un ordinateur pour configurer le panneau :", "Apri questo indirizzo da telefono o computer per configurare il pannello:", "パネルを設定するには、スマートフォンまたはパソコンでこのアドレスを開いてください：", "请用手机或电脑打开此地址来设置面板：", "Abra este endereço no telemóvel ou no computador para configurar o painel:"}},
-    {"voice_idle", {"Say \"%s\"", "Di «%s»", "Sagen Sie „%s“", "Dites « %s »", "Di' «%s»", "「%s」と呼びかけてください", "说“%s”", "Diga «%s»"}},
+    {"voice_idle", {"Touch the microphone to talk", "Toca el micrófono para hablar", "Mikrofon antippen und sprechen", "Touchez le micro pour parler", "Tocca il microfono per parlare", "マイクに触れて話してください", "点按麦克风开始说话", "Toque no microfone para falar"}},
     {"voice_listening", {"Listening…", "Escuchando…", "Ich höre zu…", "J'écoute…", "Ti ascolto…", "聞いています…", "正在聆听…", "A ouvir…"}},
     {"voice_thinking", {"Thinking…", "Pensando…", "Ich überlege…", "Je réfléchis…", "Sto pensando…", "考えています…", "正在思考…", "A pensar…"}},
     {"voice_speaking", {"Speaking…", "Hablando…", "Ich spreche…", "Je parle…", "Sto parlando…", "話しています…", "正在回答…", "A falar…"}},

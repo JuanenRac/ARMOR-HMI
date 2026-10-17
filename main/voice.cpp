@@ -16,12 +16,13 @@
 #include "mbedtls/base64.h"
 #include "audio.hpp"
 #include "core/json.hpp"
+#include "core/voice_answer.hpp"
 #include "core/board_s3.hpp"
 
 namespace armor::voice_task {
 namespace {
 constexpr char kTag[] = "armor-voice";
-constexpr std::size_t kMaxReplyBytes = 256 * 1024;   // about eight seconds of reply audio, as base64
+constexpr std::size_t kMaxReplyBytes = 320 * 1024;   // the service sends at most 200 KB of audio, which is about 267 KB as base64, and the words
 
 std::mutex g_lock;
 voice::Session g_session;
@@ -35,12 +36,15 @@ std::uint32_t now_ms() { return static_cast<std::uint32_t>(esp_timer_get_time() 
 struct Reply {
   int status = 0;
   std::string body;
+  bool overflow = false;   // the answer was longer than the panel keeps: it is refused whole, never read with a piece missing
 };
 
 esp_err_t on_event(esp_http_client_event_t* event) {
   Reply* reply = static_cast<Reply*>(event->user_data);
-  if (event->event_id == HTTP_EVENT_ON_DATA && reply != nullptr && event->data != nullptr && reply->body.size() + static_cast<std::size_t>(event->data_len) <= kMaxReplyBytes)
-    reply->body.append(static_cast<const char*>(event->data), static_cast<std::size_t>(event->data_len));
+  if (event->event_id == HTTP_EVENT_ON_DATA && reply != nullptr && event->data != nullptr && !reply->overflow) {
+    if (reply->body.size() + static_cast<std::size_t>(event->data_len) > kMaxReplyBytes) { reply->overflow = true; reply->body.clear(); }
+    else reply->body.append(static_cast<const char*>(event->data), static_cast<std::size_t>(event->data_len));
+  }
   return ESP_OK;
 }
 
@@ -66,11 +70,12 @@ bool ask_service(const std::int16_t* samples, std::size_t count, const config::S
   esp_http_client_cleanup(client);
   if (reply.status == 0) { failure = "no_answer"; return false; }
   if (reply.status != 200) { failure = "service_error"; return false; }
-  json::Value document;
-  if (!json::parse(reply.body, document) || !document.is_object()) { failure = "bad_answer"; return false; }
-  heard = document.string_or("heard", "");
-  reply_text = document.string_or("reply", "");
-  const std::string audio = document.string_or("audio", "");
+  if (reply.overflow) { failure = "reply_too_long"; return false; }
+  armor::voice::Answer answer;
+  if (!armor::voice::parse_answer(reply.body, answer)) { failure = "bad_answer"; return false; }   // the audio is taken out by hand: the JSON reader refuses documents over 64 KB
+  heard = answer.heard;
+  reply_text = answer.reply;
+  const std::string& audio = answer.audio_base64;
   if (!audio.empty()) {
     std::vector<unsigned char> bytes(audio.size());
     std::size_t written = 0;
