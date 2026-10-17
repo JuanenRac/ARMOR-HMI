@@ -22,3 +22,10 @@ add_test(NAME config COMMAND test_config)
 add_test(NAME view COMMAND test_view)
 add_test(NAME voice COMMAND test_voice)
 add_test(NAME board COMMAND test_board)
+
+# the panel's texts, and the glyphs of the screen's fonts for every character the screen can draw
+find_package(Python3 COMPONENTS Interpreter)
+if(Python3_FOUND)
+  add_test(NAME panel_text COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/check_panel_text.py)
+  add_test(NAME font_glyphs COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/check_font_glyphs.py)
+endif()

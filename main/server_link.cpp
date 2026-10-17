@@ -34,6 +34,8 @@ std::atomic<bool> g_action_pending{false};
 std::string g_pending_pin;                            // under g_lock: the PIN that goes with the pending order
 std::atomic<int> g_pending_mode{-1};                   // -1 none, otherwise a hmi::Mode
 std::atomic<bool> g_pending_acknowledge{false};
+std::atomic<std::int64_t> g_pending_since_ms{0};       // when the person gave the pending order
+constexpr std::int64_t kOrderValidMs = 10000;         // an order that has not reached the server in this time is dropped: it was given to a screen, not to a link that comes back hours later
 std::function<void(const std::vector<hmi::AlarmLine>&)> g_on_new_alarms;
 std::vector<std::string> g_known_alarm_ids;
 bool g_first_summary = true;
@@ -191,10 +193,28 @@ void do_pending_actions() {
   g_action_pending = false;
 }
 
+// The person's order is for now. If the link could not carry it within `kOrderValidMs` it is dropped, the PIN with it, and the screen is told it was not sent: arming or disarming the house
+// hours later, when the Wi-Fi comes back, on an order nobody remembers, is worse than not arming.
+void expire_pending_orders(std::int64_t now) {
+  if (!g_action_pending) return;
+  if (now - g_pending_since_ms.load() <= kOrderValidMs) return;
+  g_pending_mode = -1;
+  g_pending_acknowledge = false;
+  {
+    std::lock_guard<std::mutex> guard(g_lock);
+    std::fill(g_pending_pin.begin(), g_pending_pin.end(), ' ');
+    g_pending_pin.clear();
+    g_action_error = "no_answer";
+  }
+  g_action_pending = false;
+  ESP_LOGW(kTag, "an order of the person could not be sent in time and was dropped");
+}
+
 void link_task(void*) {
   for (;;) {
     std::int64_t delay_ms = 1000;
     bool enabled;
+    expire_pending_orders(now_ms());
     {
       std::lock_guard<std::mutex> guard(g_lock);
       enabled = g_settings.server.enabled;
@@ -218,6 +238,7 @@ void link_task(void*) {
         delay_ms = g_tracker.next_delay_ms();
       }
     }
+    if (g_action_pending) delay_ms = std::min<std::int64_t>(delay_ms, 2000);   // an order that waits is looked at soon, to be sent or dropped
     // an order of the person cuts the wait short
     ulTaskNotifyTake(pdTRUE, pdMS_TO_TICKS(static_cast<std::uint32_t>(delay_ms)));
   }
@@ -238,6 +259,7 @@ Snapshot snapshot() {
   Snapshot snap;
   snap.link = g_tracker.link();
   snap.have_summary = g_tracker.has_summary();
+  snap.current = g_tracker.current();
   snap.summary = g_tracker.summary();
   snap.action_pending = g_action_pending;
   snap.action_error = g_action_error;
@@ -247,12 +269,14 @@ Snapshot snapshot() {
 void request_mode(hmi::Mode mode, const std::string& pin) {
   if (mode == hmi::Mode::kUnknown) return;
   { std::lock_guard<std::mutex> guard(g_lock); g_pending_pin = pin; }
+  g_pending_since_ms = now_ms();
   g_action_pending = true;
   g_pending_mode = static_cast<int>(mode);
   if (g_task != nullptr) xTaskNotifyGive(g_task);
 }
 
 void request_acknowledge_all() {
+  g_pending_since_ms = now_ms();
   g_action_pending = true;
   g_pending_acknowledge = true;
   if (g_task != nullptr) xTaskNotifyGive(g_task);

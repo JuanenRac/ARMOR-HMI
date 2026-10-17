@@ -26,7 +26,7 @@ config ARMOR_NODE_ID
         Each node needs its own identity on the broker (ARMOR-DEVOPS: scripts/mqtt_identity.sh add hmi-node ID).
 
 config ARMOR_SETUP_CODE
-    string "Setup code (empty: a new random one at every start, shown on the USB console)"
+    string "Setup code (empty: a random one made the first time and kept, shown on the USB console)"
     default ""
     help
         The first administrator of a node is created with this code, from the panel. 8 to 32 characters.
@@ -83,11 +83,16 @@ config ARMOR_MQTT_USERNAME
 config ARMOR_MQTT_PASSWORD
     string "MQTT password"
     default ""
+config ARMOR_BOOT_FACTORY_RESET
+    bool "BOOT button erases the settings (hold it 8 s in the first 30 s after power-up)"
+    default y
+    help
+        Whoever can reach the board can wipe the node's settings and users with the button. Turn it off for a node in a place anyone can open; the reset of the panel (an administrator) stays.
 config ARMOR_NTP_SERVER
     string "NTP server (message timestamps are wall-clock time)"
     default "pool.ntp.org"
     help
-        The node publishes nothing until its clock is set. On a network without Internet access, point this at a server of your own.
+        Until its clock is set the node still publishes, with the time since it started, and the server stamps what it receives with its own time. On a network without Internet access, point this at a server of your own.
 config ARMOR_HEARTBEAT_S
     int "Connection keep-alive base in seconds (the broker is told twice this)"
     range 2 300

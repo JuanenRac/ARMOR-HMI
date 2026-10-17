@@ -19,11 +19,11 @@ Disarming asks for a PIN on the screen. It is the PIN of the panel's own account
 | --- | --- | --- |
 | The settings (`core/hmi_config.hpp`) | the computer | `tests/test_config.cpp`: defaults, the link to the server, the screen, the voice, the stored document, passwords that never leave |
 | What the panel knows of the server (`core/server_view.hpp`) | the computer | `tests/test_view.cpp`: the summary, the state of the link, when data is stale, what is new, the colour of the screen, the night brightness |
-| The voice conversation (`core/voice_session.hpp`) | the computer | `tests/test_voice.cpp`: the order of the steps, the time limits, what a touch does |
+| The voice conversation (`core/voice_session.hpp`, `core/voice_answer.hpp`) | the computer | `tests/test_voice.cpp`: the order of the steps, the time limits, what a touch does, the answer of the service with its long audio |
 | The pins of the board (`core/board_s3.hpp`) | the computer | `tests/test_board.cpp` and a `static_assert`: no two functions share a GPIO and none is a pin the chip keeps |
-| The words of the screen (`core/screen_text.hpp`) | the computer | `tests/test_board.cpp`: every row in eight languages |
+| The words of the screen (`core/screen_text.hpp`) | the computer | `tests/test_board.cpp`: every row in eight languages; `tests/check_font_glyphs.py`: every character the screen can draw has its glyph in the font of its language |
 | The web page (`panel/`) | a real browser | `node tools/panel_browser_test.mjs` against `tools/panel_mock.mjs`: every page in eight languages |
-| The firmware (`main/`) | **nowhere yet** | it builds with ESP-IDF 5.4 and 5.5 (`tools/build_node.sh generic`, or `idf.py` on the machine) and has never been run on a board |
+| The firmware (`main/`) | **nowhere yet** | it has built with ESP-IDF 5.5.5 (`tools/build_node.sh generic`, or `idf.py` on the machine; the continuous integration does not build it) and has never been run on a board |
 
 ## The link to the server
 
@@ -39,7 +39,7 @@ panel                                     ARMOR-SERVER
 The panel never asks for the whole state: a 64 KB limit of its JSON reader would make a large installation impossible to read.
 
 The state of the link is a small machine (`LinkTracker`): *not set up*, *no network*, *connecting*, *online*, *stale* (four polls without an answer: what is on the screen is old, and
-the button to arm or disarm is disabled so that nobody acts on old news) and *denied* (the server refused the login twice in a row, or answered 403: someone has to fix the user in the
+the button to arm or disarm is disabled so that nobody acts on old news; the same goes when there is no network or the login was refused, which show what the panel knew, dimmed, and give no orders) and *denied* (the server refused the login twice in a row, or answered 403: someone has to fix the user in the
 settings). After a failure the panel waits longer each time (up to a minute), so that a server that is down is not asked every three seconds.
 
 The panel also publishes `armor/node/<id>/health` and, now and then, `armor/node/<id>/info` (its name, firmware and the address of its page) over MQTT, so that Studio lists it with a
@@ -54,5 +54,5 @@ tone. The words are in eight languages (`core/screen_text.hpp`); Japanese and Ch
 
 ## What is not here
 
-The wake word ("armor"), the speech service the assistant talks to, a view of the cameras on the screen, and a first compilation and first power-up of the firmware. See
+The wake word ("armor"), a view of the cameras on the screen, and a first power-up of the firmware. See
 [VOICE](VOICE.md) and [HARDWARE](HARDWARE.md).

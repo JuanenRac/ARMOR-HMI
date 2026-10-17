@@ -2,6 +2,23 @@
 
 All notable changes to this project are documented here.
 
+## [0.2.5] - A duress alarm that stays silent, old news that cannot be acted on and fonts that have every glyph
+
+- **The alarm of a duress PIN is never shown, sounded or counted by the panel.** A person forced to disarm types the duress PIN and the server raises a critical alarm in silence; the panel used to turn red and sound its siren in front of whoever forced them. The panel now leaves those alarms out of the screen and of the counts, whatever the server sends.
+- **Old news is not acted on:** with no network, with a refused login or with a summary that stopped coming, the screen shows what it knew dimmed, in grey, and the button to arm or disarm gives no order; before, only a stale link did, and with the Wi-Fi gone the screen stayed green *ARMED* for hours.
+- **An order that could not be sent is dropped after ten seconds** with its PIN, and the screen says it was not done; before, it waited for the link to come back and could disarm the house hours later. Two orders can no longer be given at once.
+- **The screen says why an order failed** (no answer from the server, refused, not possible) in the eight languages, as it already did for the PIN.
+- **The first touch on a sleeping screen only wakes it** (it used to press the button under the finger, in the dark).
+- **The fonts have every glyph the screen draws.** The text added after the fonts were made (the PIN messages, the energy, the French *œ*, the dash that shows before the first answer, the quotes of the Chinese voice text) was drawn as empty squares in Japanese and Chinese; the tool that makes the fonts had stopped finding the texts since Portuguese was added. It is fixed, the fonts are made again, and a test fails when a character of the screen has no glyph.
+- **The assistant can read a spoken answer.** The audio of the answer made the document longer than the 64 KB the JSON reader accepts, so almost every reply with sound failed; the audio is now taken out of the text before it is read, an answer that is too long is refused whole instead of cut, and the listening time stops at 15 seconds (what the service accepts). The idle line says *touch the microphone* (there is no wake word).
+- The setting for the speech service suggests port 18090, the one the service really uses.
+- The text and the documents recommend a user with the role *Panel* for this device (it can read the summary, arm, disarm and acknowledge and nothing else), not an operator.
+- The task list of the panel and the early warning of a task running out of stack work (the kernel's trace facility was not on), and a crash leaves its core dump in the partition.
+- A user change that could not be written is told as a storage error; HTTP answers 408 and 423 with their own status lines; the panel tells every error the node can answer with in the eight languages (a test fails when a new one has no text); the Bluetooth note no longer calls the pairing *just works*.
+- The documents say what the panel does today: how the firmware has been built, the Bluetooth pairing, the voice service and its limits, and how the stale state works. `secrets/node.conf.example` no longer carries a usable set-up code.
+- Tests: 1,759 checks in seven programs plus the panel texts and the glyphs of the fonts; new ones cover the duress alarm, old news without a network, the long answer of the speech service and the texts of failures.
+- Shared with the other nodes (from ARMOR-COMMON's firmware base): updates are signed for the project, the board, the version and the hash, the pairing of Bluetooth closes after repeated failures, the random generator keeps away from the converter, a user write is all-or-nothing, a repeated key in a JSON document is refused, four-number firmware versions are understood, Improv over USB also tells the node to use the Wi-Fi it was given, and the upload by hand is refused while an installation runs.
+
 ## [0.2.4] - The Bluetooth PIN in the panel
 
 - **Signed firmware:** a node installs from GitHub only a firmware whose signature verifies. Each release carries, next to the image and its SHA-256, an Ed25519 signature of that hash (`<image>.sig`); the node downloads the image, hashes it and installs it only when the hash is the published one and the signature verifies with the public key of the releases, which is in the firmware (the private key never leaves the maintainer's computer). A release without a signature, or with a wrong one, is refused and nothing changes.

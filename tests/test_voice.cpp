@@ -2,6 +2,7 @@
 // Copyright (C) 2026 JuanenRac (Electro Hobby 3D). GPL-3.0-or-later.
 #include <string>
 
+#include "../core/voice_answer.hpp"
 #include "../core/voice_session.hpp"
 #include "check.hpp"
 
@@ -73,7 +74,24 @@ static void test_wake_cooldown_and_disable() {
   CHECK(std::string(to_text(State::kThinking)) == "thinking" && std::string(to_text(State::kOff)) == "off");
 }
 
+// The answer of the service carries the audio in base64: a spoken reply is far longer than the 64 KB the JSON reader accepts, and is read all the same.
+static void test_answer_with_long_audio() {
+  Answer a;
+  CHECK(parse_answer(R"({"heard":"what time is it","reply":"It is noon.","audio":"QUJD"})", a) && a.heard == "what time is it" && a.reply == "It is noon." && a.audio_base64 == "QUJD");
+  std::string audio(250 * 1024, 'A');
+  CHECK(parse_answer("{\"heard\":\"hola\",\"reply\":\"Son las doce.\",\"audio\":\"" + audio + "\"}", a) && a.reply == "Son las doce." && a.audio_base64.size() == audio.size());
+  CHECK(parse_answer("{\"audio\":\"" + audio + "\",\"reply\":\"ok\"}", a) && a.reply == "ok" && a.audio_base64.size() == audio.size());   // the audio first
+  CHECK(parse_answer(R"({"heard":"x","reply":"y","audio":null})", a) && a.audio_base64.empty());
+  CHECK(parse_answer(R"({"heard":"x","reply":"y"})", a) && a.audio_base64.empty());
+  CHECK(parse_answer(R"({"reply":"a\/b","audio":"AB\/C"})", a) && a.audio_base64 == "AB/C");   // the escape of a slash in the audio is undone
+  // the key inside a sentence is a sentence
+  CHECK(parse_answer(R"({"heard":"say \"audio\": please","reply":"fine","audio":"QQ=="})", a) && a.audio_base64 == "QQ==" && a.heard == "say \"audio\": please");
+  // what is not an answer is refused
+  CHECK(!parse_answer("", a) && !parse_answer("[]", a) && !parse_answer(R"({"audio":5})", a) && !parse_answer(R"({"audio":"unfinished)", a) && !parse_answer(R"({"reply":"x",})", a));
+}
+
 int main() {
+  test_answer_with_long_audio();
   test_happy_path();
   test_order_is_enforced();
   test_time_limits();

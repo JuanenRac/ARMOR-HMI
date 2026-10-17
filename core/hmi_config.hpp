@@ -106,10 +106,10 @@ struct Audio {
   AlarmFloor min_severity = AlarmFloor::kWarning;   // below this severity an alarm makes no sound (the screen still shows it)
 };
 
-// The voice assistant: the microphone is listened to only after the wake word, and what is heard goes only to the speech service of the installation.
+// The voice assistant: the microphone is listened to only after a touch on the microphone button (there is no wake word yet), and what is heard goes only to the speech service of the installation.
 struct Voice {
   bool enabled = false;
-  std::string url;                   // ARMOR-VOICE-AI, for example http://192.168.0.180:8765
+  std::string url;                   // ARMOR-VOICE-AI, for example http://192.168.0.180:18090 (the service listens on the machine itself unless it was started to accept others, or sits behind a proxy)
   std::string wake_name = "armor";   // the name it answers to (shown on the screen)
   int listen_s = 8;                  // the longest it listens for one request
   std::string token;         // the service's token (X-Armor-Voice-Token): the service answers nobody without it
@@ -345,7 +345,7 @@ inline void read_settings(const json::Value& document, Settings& s, Problems& pr
     read_text(*voice, "url", s.voice.url, 160, "voice.url", problems);
     read_secret(*voice, "token", s.voice.token, "voice.token", problems);
     read_text(*voice, "wake_name", s.voice.wake_name, 24, "voice.wake_name", problems);
-    read_int(*voice, "listen_s", s.voice.listen_s, 2, 30, "voice.listen_s", problems);
+    read_int(*voice, "listen_s", s.voice.listen_s, 2, 15, "voice.listen_s", problems);   // the service takes 15 seconds of audio at most (480 KB)
   }
   if (const json::Value* web = document.get("web"); web != nullptr && web->is_object()) {
     if (!read_choice<WebMode>(*web, "mode", {{"http", WebMode::kHttp}, {"both", WebMode::kBoth}, {"https", WebMode::kHttps}}, s.web)) bad(problems, "web.mode", "invalid");

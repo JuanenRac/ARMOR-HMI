@@ -1,5 +1,5 @@
 /* ARMOR-HMI panel - the pages. Copyright (C) 2026 JuanenRac (Electro Hobby 3D). GPL-3.0-or-later.
-   text.js (the seven languages) is joined in front of this file when the panel is packed, so LANGS and L exist here.
+   text.js (the eight languages) is joined in front of this file when the panel is packed, so LANGS and L exist here.
    No framework and no inline style: the panel is served with a strict content-security policy. */
 "use strict";
 
@@ -54,7 +54,7 @@ async function api(method, path, body) {
   return { ok: response.ok, status: response.status, data };
 }
 
-const errorText = code => (L["e_" + code] ? t("e_" + code) : String(code || "?"));
+const errorText = code => (L["e_" + code] ? t("e_" + code) : /^http_\d{3}$/.test(String(code)) ? t("e_http") + " " + String(code).slice(5) : String(code || "?"));
 const problemText = code => (L["p_" + code] ? t("p_" + code) : String(code));
 
 function pickLanguage(preferred) {
@@ -446,9 +446,9 @@ function voicePage() {
   const v = S.cfg.voice;
   return el("div", { class: "grid wide" },
     card(t("voiceTitle"), field("voiceEnable", "voice.enabled", { type: "checkbox", rerender: true }),
-      v.enabled ? [field("voiceUrl", "voice.url", { max: 160, placeholder: "http://192.168.0.180:8765" }),
+      v.enabled ? [field("voiceUrl", "voice.url", { max: 160, placeholder: "http://192.168.0.180:18090" }),
         field("voiceToken", "voice.token", { type: "password" }),
-        el("div", { class: "row" }, field("voiceWake", "voice.wake_name", { max: 24 }), field("voiceListen", "voice.listen_s", { type: "number", min: 2, max: 30 }))] : null,
+        el("div", { class: "row" }, field("voiceWake", "voice.wake_name", { max: 24 }), field("voiceListen", "voice.listen_s", { type: "number", min: 2, max: 15 }))] : null,
       S.screen ? el("p", { class: "muted" }, t("vs_" + S.screen.voice.state)) : null,
       note(t("voiceNote"), "info")));
 }

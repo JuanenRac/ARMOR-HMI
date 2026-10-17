@@ -147,7 +147,7 @@ void hide_confirm() { g_screen.pin.clear(); show_pin(); lv_obj_add_flag(g_screen
 
 void on_arm(lv_event_t*) {
   const server_link::Snapshot snap = server_link::snapshot();
-  if (!snap.have_summary || snap.link == hmi::Link::kStale) return;   // never arm or disarm on what may be old news
+  if (!snap.have_summary || !snap.current || snap.action_pending) return;   // never arm or disarm on what may be old news (no network, a refused login and a stale summary are old news too)
   show_confirm(snap.summary.mode == hmi::Mode::kArmed ? hmi::Mode::kDisarmed : hmi::Mode::kArmed);
 }
 void on_yes(lv_event_t*) {
@@ -211,8 +211,8 @@ void refresh(lv_timer_t*) {
   const bool known = snap.have_summary;
   std::string mode_text = !known ? "—" : text_of(summary.mode == hmi::Mode::kArmed ? "armed" : "disarmed");
   lv_label_set_text(g_screen.mode, mode_text.c_str());
-  std::uint32_t mode_colour = !known || snap.link == hmi::Link::kStale ? kMuted : summary.mode == hmi::Mode::kArmed ? kGreen : kAmber;
-  if (known && hmi::tone_of(summary) == hmi::Tone::kAlert) mode_colour = kRed;
+  std::uint32_t mode_colour = !known || !snap.current ? kMuted : summary.mode == hmi::Mode::kArmed ? kGreen : kAmber;
+  if (known && snap.current && hmi::tone_of(summary) == hmi::Tone::kAlert) mode_colour = kRed;
   lv_obj_set_style_text_color(g_screen.mode, lv_color_hex(mode_colour), 0);
 
   // the link
@@ -225,7 +225,7 @@ void refresh(lv_timer_t*) {
   lv_label_set_text(g_screen.clock, clock_text);
 
   // the button
-  const bool can_act = known && snap.link != hmi::Link::kStale && !snap.action_pending;
+  const bool can_act = known && snap.current && !snap.action_pending;
   lv_label_set_text(g_screen.arm_label, text_of(!known || summary.mode == hmi::Mode::kDisarmed ? "arm" : "disarm").c_str());
   lv_obj_set_style_bg_color(g_screen.arm_button, lv_color_hex(can_act ? (summary.mode == hmi::Mode::kArmed ? kAmber : kGreen) : kBorder), 0);
 
@@ -281,7 +281,7 @@ void refresh(lv_timer_t*) {
       case voice::State::kSpeaking: say = voice.reply.empty() ? text_of("voice_speaking") : voice.reply; break;
       case voice::State::kFailed: say = text_of("voice_failed"); break;
       case voice::State::kOff: say = text_of("voice_off"); break;
-      case voice::State::kIdle: { char buffer[96]; std::snprintf(buffer, sizeof buffer, text_of("voice_idle").c_str(), context.wake_name.c_str()); say = buffer; break; }
+      case voice::State::kIdle: say = text_of("voice_idle"); break;
     }
     lv_label_set_text(g_screen.voice_label, say.c_str());
     lv_obj_set_style_bg_color(g_screen.mic_button, lv_color_hex(voice.state == voice::State::kListening ? kRed : voice.state == voice::State::kIdle ? kCyan : kAmber), 0);
@@ -296,7 +296,11 @@ void refresh(lv_timer_t*) {
   }
   // a refusal of the PIN stays in the footer for a few seconds, then goes
   if (snap.action_error != g_screen.error_seen) { g_screen.error_seen = snap.action_error; g_screen.error_since_ms = lv_tick_get(); }
-  if ((snap.action_error == "wrong_pin" || snap.action_error == "pin_locked" || snap.action_error == "pin_not_set") && lv_tick_elaps(g_screen.error_since_ms) < 8000) footer = text_of(snap.action_error == "wrong_pin" ? "pin_wrong" : snap.action_error);
+  // ... and so does every other reason an order did not go through: a person who gave an order and walked away must know it was not done
+  if (!snap.action_error.empty() && lv_tick_elaps(g_screen.error_since_ms) < 8000) {
+    const std::string& why = snap.action_error;
+    footer = text_of(why == "wrong_pin" ? "pin_wrong" : (why == "pin_locked" || why == "pin_not_set") ? why.c_str() : why == "no_answer" ? "action_no_answer" : (why == "forbidden" || why == "unauthorized") ? "action_forbidden" : "action_failed");
+  }
   lv_label_set_text(g_screen.footer, footer.c_str());
   lv_label_set_text(g_screen.version, context.version.c_str());
 }
