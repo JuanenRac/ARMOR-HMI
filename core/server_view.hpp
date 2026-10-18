@@ -237,6 +237,15 @@ inline std::vector<std::string> ids_of(const Summary& summary) {
   return ids;
 }
 
+// The ids the panel has already seen: the ones it knew plus those of `summary`, the newest last, at most `limit` of them. The summary carries only a few lines, so an alarm that
+// drops out of it and comes back (when others are acknowledged) is still known and does not ring again as if it were new.
+inline void remember_ids(std::vector<std::string>& known, const Summary& summary, std::size_t limit = 64) {
+  for (const AlarmLine& line : summary.alarms) {
+    if (std::find(known.begin(), known.end(), line.id) == known.end()) known.push_back(line.id);
+  }
+  if (known.size() > limit) known.erase(known.begin(), known.begin() + static_cast<std::ptrdiff_t>(known.size() - limit));
+}
+
 // The most severe unacknowledged alarm decides the colour of the screen.
 enum class Tone { kCalm, kReview, kAlert };
 // What the speaker does for the alarms that have just arrived: nothing, a notice (a warning), the rising pattern of an alarm (a high one) or a siren (a critical one), by the most serious of them.

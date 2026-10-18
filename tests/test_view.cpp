@@ -94,7 +94,7 @@ static void test_link_denied() {
   link.on_failure(3000, Failure::kUnauthorized);   // refused twice in a row: the login itself is wrong
   CHECK(link.link() == Link::kDenied);
   link.update(4000);
-  CHECK(link.link() == Link::kDenied);             // it stays denied until the settings change
+  CHECK(link.link() == Link::kDenied);             // a refused login is not retried by itself: it waits for the settings to change (or for a sign-in that works)
   link.configure(true, 3);
   LinkTracker forbidden(3);
   forbidden.configure(true, 3);

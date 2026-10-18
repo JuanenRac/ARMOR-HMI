@@ -22,13 +22,13 @@
   <img src="https://img.shields.io/badge/Language-C%2B%2B17-00599c.svg" alt="Language">
   <img src="https://img.shields.io/badge/Board-ESP32--S3--Touch--LCD--7C--BOX-e7352c.svg" alt="Board">
   <img src="https://img.shields.io/badge/Checks-1%2C759-2ea44f.svg" alt="Checks">
-  <img src="https://img.shields.io/badge/Version-0.3.1-0f6cbd.svg" alt="Version">
+  <img src="https://img.shields.io/badge/Version-0.3.2-0f6cbd.svg" alt="Version">
   <img src="https://img.shields.io/badge/Maturity-functional-00E5FF.svg" alt="Maturity">
 </p>
 
 ---
 
-**正直さのチェック - 今日動いているもの:** ボードに依存しない部分は実在し、コンピューター上でテストされています（設定、パネルがサーバーについて知っていることとそれが古くなる時点、決して表示されない強要警報、音声会話と音声サービスの長い応答、ボードのピン、8言語の画面テキストとフォントのグリフ、リリースと署名の検査：7つのテストプログラムで 1,836 項目）。Webページも同様です（実ブラウザで代替機に対して実行）。**ファームウェアは一度ビルドされましたが（ESP-IDF 5.5.5、継続的インテグレーションでは確認していません）、ボード上で動作したことはありません。**画面、タッチ、音、サーバーとの接続は、このボード系列向けの Waveshare のサンプルをもとに書かれており、初めての電源投入が必要です。音声サービス（ARMOR-VOICE-AI）はこのパネルの要求に応答します。ウェイクワードはなく、タッチして話します。
+**正直さのチェック - 今日動いているもの:** ボードに依存しない部分は実在し、コンピューター上でテストされています（設定、パネルがサーバーについて知っていることとそれが古くなる時点、決して表示されない強要警報、音声会話と音声サービスの長い応答、ボードのピン、8言語の画面テキストとフォントのグリフ、リリースと署名の検査：9つのテストプログラムで 26,325 項目）。Webページも同様です（実ブラウザで代替機に対して実行）。**ファームウェアは一度ビルドされましたが（ESP-IDF 5.5.5、継続的インテグレーションでは確認していません）、ボード上で動作したことはありません。**画面、タッチ、音、サーバーとの接続は、このボード系列向けの Waveshare のサンプルをもとに書かれており、初めての電源投入が必要です。音声サービス（ARMOR-VOICE-AI）はこのパネルの要求に応答します。ウェイクワードはなく、タッチして話します。
 
 ---
 
@@ -36,9 +36,9 @@
 
 | | |
 |---|---|
-| バージョン | `0.3.1` |
+| バージョン | `0.3.2` |
 | 成熟度 | 機能する |
-| テスト | 1,836 checks in 7 programs (`ctest`) |
+| テスト | 26,325 checks in 9 programs (`ctest`) |
 | 技術 | C++17 (host-tested core); ESP-IDF firmware for the ESP32-S3 with LVGL, with its web page |
 | 実機での確認 | まだありません：ファームウェアはビルドできます（ESP-IDF 5.5.5、CI では未確認）が、ボード上では動作していません |
 

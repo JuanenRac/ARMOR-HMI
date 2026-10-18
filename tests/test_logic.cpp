@@ -158,6 +158,17 @@ static void test_what_a_change_asks_of_the_screen() {
   CHECK(new_unacknowledged({}, true, now).empty());                                // the first summary only teaches
   CHECK(new_unacknowledged({}, false, now).size() == 2);                           // the acknowledged one is not news
   CHECK(new_unacknowledged({"a1"}, false, now).size() == 1 && new_unacknowledged({"a1"}, false, now)[0].id == "a2" && new_unacknowledged({"a1", "a2", "a3"}, false, now).empty());
+  {   // an alarm that leaves the short list of the summary and comes back is not news
+    std::vector<std::string> known;
+    remember_ids(known, now);
+    Summary shorter = now;
+    shorter.alarms.erase(shorter.alarms.begin());
+    remember_ids(known, shorter);
+    CHECK(known.size() == 3);                                                       // a1 is still remembered
+    CHECK(new_unacknowledged(known, false, now).empty());
+    for (int n = 0; n < 100; ++n) { Summary many; AlarmLine line; line.id = "x" + std::to_string(n); many.alarms.push_back(line); remember_ids(known, many); }
+    CHECK(known.size() == 64 && known.back() == "x99");                             // bounded, the newest kept
+  }
   AlarmLine low, high, critical;
   low.severity = Severity::kWarning; high.severity = Severity::kHigh; critical.severity = Severity::kCritical;
   AlarmLine info;

@@ -149,7 +149,7 @@ void poll_summary() {
     std::lock_guard<std::mutex> guard(g_lock);
     if (answer.status == 200 && hmi::parse_summary(answer.body, summary)) {
       fresh = hmi::new_unacknowledged(g_known_alarm_ids, g_first_summary, summary);
-      g_known_alarm_ids = hmi::ids_of(summary);
+      hmi::remember_ids(g_known_alarm_ids, summary);
       g_first_summary = false;
       g_tracker.on_summary(now_ms(), summary);
       callback = g_on_new_alarms;

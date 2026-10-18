@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented here.
 
+## [0.3.2] - Shared node base update
+
+- Shared base update: a wider login table, slot-sized download limit, stricter JSON text and a set-up code kept in capitals.
+- An alarm that drops out of the short list of the summary and comes back (when others are acknowledged) no longer rings again: the panel remembers the last sixty-four ids it has seen.
+- Saving the settings takes a lock, so two saves at once (HTTP and HTTPS) cannot undo each other; the comment of the restart rule says which settings need one; the launchers name this project.
+
 ## [0.3.1] - Stored passwords follow their host and a silent alarm after the sixth
 
 - A stored password is tied to its host: changing the broker address (or a backup slot), the server host or the voice service address without typing a new secret erases the stored password or token instead of sending it to the new host, and the panel says under the field that it has to be typed again. The same host keeps it.

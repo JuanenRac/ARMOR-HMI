@@ -2,6 +2,7 @@
 // Copyright (C) 2026 JuanenRac (Electro Hobby 3D). GPL-3.0-or-later.
 #include "api_shared.hpp"
 
+#include <mutex>
 #include <cstring>
 #include "esp_app_desc.h"
 #include "esp_chip_info.h"
@@ -190,8 +191,8 @@ std::string problems_json(const config::Problems& problems) {
 }
 
 namespace {
-// What changed in a way that needs a restart: everything but the panel's display name, the language, the screen's and the sound's settings (those apply at once at the next start
-// of the screen; a restart is the simple way to be sure).
+// What changed in a way that needs a restart: everything but the panel's display name and the language. (The screen's brightness and sleep are read again by the screen task
+// as they change; the rest of the screen's and the sound's settings are listed with the others, so a restart is the way to be sure they apply.)
 bool needs_restart(config::Settings before, config::Settings after) {
   before.node_name = after.node_name = "";
   before.language = after.language = "en";
@@ -200,6 +201,8 @@ bool needs_restart(config::Settings before, config::Settings after) {
 }  // namespace
 
 PutResult put_config(std::string_view document, config::Problems& problems, bool& restart_required) {
+  static std::mutex save_lock;   // the panel runs two servers (HTTP and HTTPS): two saves at once would each start from the same settings and the last would undo the first
+  std::lock_guard<std::mutex> guard(save_lock);
   const config::Settings before = store::settings();
   config::Settings after;
   problems.clear();
