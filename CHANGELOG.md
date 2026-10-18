@@ -2,6 +2,13 @@
 
 All notable changes to this project are documented here.
 
+## [0.3.1] - Stored passwords follow their host and a silent alarm after the sixth
+
+- A stored password is tied to its host: changing the broker address (or a backup slot), the server host or the voice service address without typing a new secret erases the stored password or token instead of sending it to the new host, and the panel says under the field that it has to be typed again. The same host keeps it.
+- A duress alarm that comes after the sixth line is still left out of the counts, so the screen no longer turns to *check* because of an alarm that must never be shown.
+- The revision and the time of the server summary are range-checked before they are converted to whole numbers.
+- The access point bandwidth accepts only 20 or 40 MHz (a value in between was accepted and run as 20); an address in the list of networks that may use the panel is refused when a part has a leading zero, as the address parser of the network settings already did.
+
 ## [0.3.0] - Sign-in form for password managers
 
 - The sign-in page is a real form with named fields (`username`, `current-password`), so the browser's or system's password manager offers to save and fill the credentials; the set-up page names its fields the same way for the new password.

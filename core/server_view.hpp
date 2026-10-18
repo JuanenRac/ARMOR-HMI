@@ -9,6 +9,7 @@
 // and the screen says so.
 #pragma once
 #include <algorithm>
+#include <cmath>
 #include <cstdint>
 #include <cstdio>
 #include <string>
@@ -62,6 +63,11 @@ inline bool is_silent_code(std::string_view code) { return code == "duress_disar
 
 inline const char* to_text(Mode mode) { return mode == Mode::kArmed ? "armed" : mode == Mode::kDisarmed ? "disarmed" : "unknown"; }
 
+// A number from the server as a whole number; one that is not finite or is beyond what a double holds exactly counts as 0 (checked before converting, as converting it would be undefined).
+inline long long whole_number(double value) {
+  return std::isfinite(value) && value > -9007199254740992.0 && value < 9007199254740992.0 ? static_cast<long long>(value) : 0;
+}
+
 // The answer of /api/v1/panel/summary. False when it is not what the server sends (the panel then keeps what it had).
 inline bool parse_summary(std::string_view text, Summary& out) {
   json::Value document;
@@ -73,15 +79,15 @@ inline bool parse_summary(std::string_view text, Summary& out) {
   if (nodes == nullptr || !nodes->is_object() || alarms == nullptr || !alarms->is_object()) return false;
   Summary summary;
   summary.mode = mode == "armed" ? Mode::kArmed : Mode::kDisarmed;
-  summary.revision = static_cast<long long>(document.number_or("revision", 0));
-  summary.server_time_ms = static_cast<long long>(document.number_or("time_ms", 0));
+  summary.revision = whole_number(document.number_or("revision", 0));
+  summary.server_time_ms = whole_number(document.number_or("time_ms", 0));
   summary.nodes_online = static_cast<int>(nodes->integer_or("online", 0, 0, 100000));
   summary.nodes_total = static_cast<int>(nodes->integer_or("total", 0, 0, 100000));
   summary.alarms_active = static_cast<int>(alarms->integer_or("active", 0, 0, 100000));
   summary.alarms_unacknowledged = static_cast<int>(alarms->integer_or("unacknowledged", 0, 0, 100000));
   if (const json::Value* items = alarms->get("items"); items != nullptr && items->is_array()) {
     for (const json::Value& item : items->items) {
-      if (!item.is_object() || summary.alarms.size() >= 6) continue;
+      if (!item.is_object()) continue;
       AlarmLine line;
       line.id = item.string_or("id", "");
       line.code = item.string_or("code", "");
@@ -96,6 +102,7 @@ inline bool parse_summary(std::string_view text, Summary& out) {
         if (!line.acknowledged && summary.alarms_unacknowledged > 0) --summary.alarms_unacknowledged;
         continue;
       }
+      if (summary.alarms.size() >= 6) continue;   // only six lines fit; the silent ones above are counted whatever their place
       summary.alarms.push_back(std::move(line));
     }
   }

@@ -16,22 +16,12 @@
 
 static int failures = 0;
 static int checks = 0;
-static int known_gaps = 0;
 #define CHECK(condition)                                                              \
   do {                                                                                \
     ++checks;                                                                         \
     if (!(condition)) {                                                               \
       ++failures;                                                                     \
       std::printf("FAIL %s:%d  %s\n", __FILE__, __LINE__, #condition);                \
-    }                                                                                 \
-  } while (0)
-// A behaviour that is wanted and not there yet: it is reported, and it does not fail the run; when the behaviour arrives the check passes and the report goes away.
-#define KNOWN_GAP(condition)                                                          \
-  do {                                                                                \
-    ++checks;                                                                         \
-    if (!(condition)) {                                                               \
-      ++known_gaps;                                                                   \
-      std::printf("KNOWN GAP %s:%d  %s\n", __FILE__, __LINE__, #condition);           \
     }                                                                                 \
   } while (0)
 
@@ -142,7 +132,7 @@ static void test_summary_edges() {
   for (int i = 0; i < 6; ++i) six += std::string(i ? "," : "") + alarm_item(i, "low_battery", "warning", true);
   CHECK(parse_summary(summary_with(six + "," + alarm_item(9, "duress_disarm", "critical"), "\"active\":7,\"unacknowledged\":1"), s));
   CHECK(s.alarms.size() == 6);
-  KNOWN_GAP(s.alarms_unacknowledged == 0 && tone_of(s) == Tone::kCalm);
+  CHECK(s.alarms_unacknowledged == 0 && tone_of(s) == Tone::kCalm);
   // the energy block
   CHECK(parse_summary(summary_with("") , s) && !s.energy.present);
   std::string with_energy = summary_with("");
@@ -365,17 +355,17 @@ static void test_passwords_follow_their_service() {
   CHECK(typed.mqtt.password == "typed-pass" && typed.server.password == "typed-server" && typed.voice.token == "typed-token");
   config::Settings moved = s;
   CHECK(read(moved, "{\"mqtt\":{\"uri\":\"mqtt://elsewhere.example:1883\"}}").empty());
-  KNOWN_GAP(moved.mqtt.password.empty());
+  CHECK(moved.mqtt.password.empty());
   config::Settings server = s;
   CHECK(read(server, "{\"server\":{\"host\":\"elsewhere.example\"}}").empty());
-  KNOWN_GAP(server.server.password.empty());
+  CHECK(server.server.password.empty());
   config::Settings voice = s;
   CHECK(read(voice, "{\"voice\":{\"url\":\"http://elsewhere.example:18090\"}}").empty());
-  KNOWN_GAP(voice.voice.token.empty());
+  CHECK(voice.voice.token.empty());
   s.mqtt.backup = {{"mqtt://b1.local", "u1", "p1"}};
   config::Settings slot = s;
   CHECK(read(slot, "{\"mqtt\":{\"backup\":[{\"uri\":\"mqtt://elsewhere.example\",\"username\":\"u1\"}]}}").empty());
-  KNOWN_GAP(slot.mqtt.backup.size() == 1 && slot.mqtt.backup[0].password.empty());
+  CHECK(slot.mqtt.backup.size() == 1 && slot.mqtt.backup[0].password.empty());
 }
 
 int main() {
@@ -388,6 +378,6 @@ int main() {
   test_server_link_and_screen();
   test_reading_the_screen_and_the_link();
   test_passwords_follow_their_service();
-  std::printf("%d checks, %d failures, %d known gaps\n", checks, failures, known_gaps);
+  std::printf("%d checks, %d failures\n", checks, failures);
   return failures == 0 ? 0 : 1;
 }

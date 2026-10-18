@@ -115,7 +115,11 @@ static void test_document() {
   CHECK(flash.find("secreto-secreto") != std::string::npos);
   // a section without a password keeps the stored one; "_clear" erases it
   problems.clear();
-  CHECK(config::load("{\"server\":{\"host\":\"10.0.0.9\"}}", with_secret, out, problems) && out.server.password == "secreto-secreto");
+  CHECK(config::load("{\"server\":{\"user\":\"other\"}}", with_secret, out, problems) && out.server.password == "secreto-secreto");
+  problems.clear();
+  CHECK(config::load("{\"server\":{\"host\":\"" + with_secret.server.host + "\"}}", with_secret, out, problems) && out.server.password == "secreto-secreto");   // the same host keeps it
+  problems.clear();
+  CHECK(config::load("{\"server\":{\"host\":\"10.0.0.9\"}}", with_secret, out, problems) && out.server.password.empty());   // another host does not receive it
   problems.clear();
   CHECK(config::load("{\"server\":{\"password_clear\":true}}", with_secret, out, problems) && out.server.password.empty());
   // what is stored is read back as it was
