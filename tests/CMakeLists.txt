@@ -15,6 +15,11 @@ add_executable(test_view test_view.cpp)
 add_executable(test_voice test_voice.cpp)
 add_executable(test_board test_board.cpp)
 
+add_executable(test_logic test_logic.cpp)
+
+# rules shared with the other nodes (ARMOR-COMMON/firmware_base/tests)
+add_executable(test_shared test_shared.cpp)
+
 enable_testing()
 add_test(NAME release COMMAND test_release)
 add_test(NAME mqtt_tls COMMAND test_mqtt_tls)
@@ -24,6 +29,8 @@ add_test(NAME config COMMAND test_config)
 add_test(NAME view COMMAND test_view)
 add_test(NAME voice COMMAND test_voice)
 add_test(NAME board COMMAND test_board)
+add_test(NAME shared COMMAND test_shared)
+add_test(NAME logic COMMAND test_logic)
 
 # the panel's texts, and the glyphs of the screen's fonts for every character the screen can draw
 find_package(Python3 COMPONENTS Interpreter)
