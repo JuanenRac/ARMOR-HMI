@@ -21,6 +21,7 @@
 #include "core/pin_entry.hpp"
 #include "core/server_pin.hpp"
 #include "network.hpp"
+#include "psram_mem.hpp"
 
 namespace armor::server_link {
 namespace {
@@ -318,7 +319,8 @@ void start(const config::Settings& settings) {
     g_settings = settings;
     g_tracker.configure(settings.server.enabled, settings.server.poll_s);
   }
-  if (g_task == nullptr) xTaskCreate(link_task, "server-link", 8192, nullptr, 4, &g_task);
+  // It reads from the server over HTTPS and writes nothing to the flash (the settings are saved from the panel, not from here): its 8 KB stack is in the external RAM.
+  if (g_task == nullptr) armor::memory::start_task(link_task, "server-link", 8192, nullptr, 4, &g_task);
 }
 
 Snapshot snapshot() {
