@@ -22,7 +22,7 @@ struct Row {
 };
 
 // clang-format off
-constexpr std::array<Row, 91> kRows{{
+constexpr std::array<Row, 96> kRows{{
     {"armed", {"ARMED", "ARMADO", "SCHARF", "ARMÉ", "ATTIVO", "警戒中", "已布防", "ARMADO"}},
     {"disarmed", {"DISARMED", "DESARMADO", "UNSCHARF", "DÉSARMÉ", "DISATTIVO", "解除中", "已撤防", "DESARMADO"}},
     {"arm", {"Arm", "Armar", "Scharf schalten", "Armer", "Attiva", "警戒する", "布防", "Armar"}},
@@ -113,6 +113,11 @@ constexpr std::array<Row, 91> kRows{{
     {"energy_charging", {"charging", "cargando", "lädt", "charge", "in carica", "充電中", "充电中", "a carregar"}},
     {"energy_discharging", {"discharging", "descargando", "entlädt", "décharge", "in scarica", "放電中", "放电中", "a descarregar"}},
     {"energy_none", {"No solar equipment reports", "Ningún equipo solar informa", "Keine Solaranlage meldet sich", "Aucun équipement solaire ne répond", "Nessun impianto solare risponde", "太陽光設備からの報告なし", "没有光伏设备上报", "Nenhum equipamento solar reporta"}},
+    {"node_paused", {"PAUSED", "EN PAUSA", "PAUSIERT", "EN PAUSE", "IN PAUSA", "一時停止中", "已暂停", "EM PAUSA"}},
+    {"node_standby", {"STANDBY", "EN ESPERA", "STANDBY", "EN VEILLE", "STANDBY", "待機中", "待机中", "EM ESPERA"}},
+    {"node_paused_hint", {"The server paused this panel. It resumes by itself.", "El servidor ha pausado este panel. Se reanuda solo.", "Der Server hat dieses Panel pausiert. Es läuft von selbst weiter.", "Le serveur a mis ce panneau en pause. Il reprend tout seul.", "Il server ha messo in pausa questo pannello. Riprende da solo.", "サーバーがこのパネルを一時停止しました。自動的に再開します。", "服务器已暂停此面板，将自动恢复。", "O servidor pôs este painel em pausa. Retoma sozinho."}},
+    {"node_standby_hint", {"This panel is in standby: it stays connected and shows nothing until it is resumed from Studio.", "Este panel está en espera: sigue conectado y no muestra nada hasta que se reanude desde Studio.", "Dieses Panel ist im Standby: Es bleibt verbunden und zeigt nichts an, bis es in Studio fortgesetzt wird.", "Ce panneau est en veille : il reste connecté et n'affiche rien jusqu'à sa reprise depuis Studio.", "Questo pannello è in standby: resta connesso e non mostra nulla finché non viene ripreso da Studio.", "このパネルは待機中です。接続したまま、Studio から再開するまで何も表示しません。", "此面板处于待机状态：保持连接，在 Studio 中恢复前不显示任何内容。", "Este painel está em espera: continua ligado e não mostra nada até ser retomado a partir do Studio."}},
+    {"node_identify", {"This panel is being identified from Studio", "Se está identificando este panel desde Studio", "Dieses Panel wird von Studio aus identifiziert", "Ce panneau est identifié depuis Studio", "Questo pannello viene identificato da Studio", "Studio からこのパネルを識別しています", "正在从 Studio 识别此面板", "Este painel está a ser identificado a partir do Studio"}},
     {"alarm_unknown", {"Alarm", "Alarma", "Alarm", "Alarme", "Allarme", "アラーム", "警报", "Alarme"}},
 }};
 // clang-format on

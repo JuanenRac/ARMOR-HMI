@@ -20,6 +20,7 @@ add_executable(test_logic test_logic.cpp)
 
 # rules shared with the other nodes (ARMOR-COMMON/firmware_base/tests)
 add_executable(test_shared test_shared.cpp)
+add_executable(test_control test_control.cpp)
 
 enable_testing()
 add_test(NAME release COMMAND test_release)
@@ -32,6 +33,7 @@ add_test(NAME view COMMAND test_view)
 add_test(NAME voice COMMAND test_voice)
 add_test(NAME board COMMAND test_board)
 add_test(NAME shared COMMAND test_shared)
+add_test(NAME control COMMAND test_control ${CMAKE_CURRENT_SOURCE_DIR}/../../ARMOR-COMMON/conformance)
 add_test(NAME logic COMMAND test_logic)
 
 # the panel's texts, and the glyphs of the screen's fonts for every character the screen can draw

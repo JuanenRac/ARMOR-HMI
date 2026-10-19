@@ -40,6 +40,7 @@
 #include "network.hpp"
 #include "server_link.hpp"
 #include "voice.hpp"
+#include "node_control.hpp"
 #include "node_store.hpp"
 #include "tls_cert.hpp"
 
@@ -658,6 +659,7 @@ struct OtaWriteLock {
 esp_err_t post_ota(httpd_req_t* r) {
   Who who;
   if (!require(r, who, true, true)) return ESP_OK;
+  const node_control::UploadGuard upload_guard;   // the node does not restart, pause or go to standby in the middle of an upload
   OtaWriteLock writing;
   if (!writing.held) return send_error(r, 409, "ota_busy");
   { const std::string installing = github_update::progress().state; if (installing == "downloading" || installing == "verifying") return send_error(r, 409, "ota_busy"); }
