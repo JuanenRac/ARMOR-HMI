@@ -28,6 +28,7 @@
 #include "core/screen_text.hpp"
 #include "core/server_view.hpp"
 #include "display.hpp"
+#include "node_control.hpp"
 #include "server_link.hpp"
 #include "voice.hpp"
 
@@ -70,6 +71,8 @@ struct Screen {
   hmi::PinEntry pin;
   lv_obj_t *pin_prompt = nullptr, *pin_dots = nullptr;
   std::vector<lv_obj_t*> keys;   // the keypad of the PIN, shown only to disarm
+  lv_obj_t *cover = nullptr, *cover_title = nullptr, *cover_hint = nullptr, *identify_bar = nullptr, *identify_text = nullptr;   // the screen of a panel that is paused or in standby, and the bar of "identify"
+  bool identify_blink = false;
   std::string error_seen;        // the last refusal shown in the footer, and since when
   std::uint32_t error_since_ms = 0;
 };
@@ -308,6 +311,26 @@ void refresh(lv_timer_t*) {
   }
   lv_label_set_text(g_screen.footer, footer.c_str());
   lv_label_set_text(g_screen.version, context.version.c_str());
+
+  // the server paused the panel or put it in standby: a screen of its own says so (the panel stays connected and answers the server; it shows nothing else and takes no touch), and the bar of
+  // "identify" blinks while the server asks the panel to show itself
+  const node_control::Status control = node_control::status();
+  if (control.state != control::State::kRunning) {
+    const bool paused = control.state == control::State::kPaused;
+    lv_label_set_text(g_screen.cover_title, text_of(paused ? "node_paused" : "node_standby").c_str());
+    lv_label_set_text(g_screen.cover_hint, text_of(paused ? "node_paused_hint" : "node_standby_hint").c_str());
+    lv_obj_set_style_text_color(g_screen.cover_title, lv_color_hex(paused ? kAmber : kCyan), 0);
+    lv_obj_clear_flag(g_screen.cover, LV_OBJ_FLAG_HIDDEN);
+  } else {
+    lv_obj_add_flag(g_screen.cover, LV_OBJ_FLAG_HIDDEN);
+  }
+  g_screen.identify_blink = !g_screen.identify_blink;
+  if (control.identifying && g_screen.identify_blink) {
+    lv_label_set_text(g_screen.identify_text, text_of("node_identify").c_str());
+    lv_obj_clear_flag(g_screen.identify_bar, LV_OBJ_FLAG_HIDDEN);
+  } else {
+    lv_obj_add_flag(g_screen.identify_bar, LV_OBJ_FLAG_HIDDEN);
+  }
 }
 
 void build(lv_obj_t* screen_object) {
@@ -418,6 +441,37 @@ void build(lv_obj_t* screen_object) {
     }
   }
   lv_obj_add_flag(g_screen.confirm, LV_OBJ_FLAG_HIDDEN);
+
+  // the screen of a paused panel or one in standby: it covers everything, including the question above
+  g_screen.cover = lv_obj_create(screen_object);
+  lv_obj_set_size(g_screen.cover, 800, 480);
+  lv_obj_set_pos(g_screen.cover, 0, 0);
+  lv_obj_set_style_bg_color(g_screen.cover, lv_color_hex(kBackground), 0);
+  lv_obj_set_style_bg_opa(g_screen.cover, LV_OPA_COVER, 0);
+  lv_obj_set_style_border_width(g_screen.cover, 0, 0);
+  lv_obj_set_style_radius(g_screen.cover, 0, 0);
+  lv_obj_clear_flag(g_screen.cover, LV_OBJ_FLAG_SCROLLABLE);
+  g_screen.cover_title = make_label(g_screen.cover, Size::kLarge, kAmber);
+  lv_obj_align(g_screen.cover_title, LV_ALIGN_CENTER, 0, -70);
+  g_screen.cover_hint = make_label(g_screen.cover, Size::kNormal, kMuted);
+  lv_obj_set_width(g_screen.cover_hint, 680);
+  lv_label_set_long_mode(g_screen.cover_hint, LV_LABEL_LONG_WRAP);
+  lv_obj_set_style_text_align(g_screen.cover_hint, LV_TEXT_ALIGN_CENTER, 0);
+  lv_obj_align(g_screen.cover_hint, LV_ALIGN_CENTER, 0, 30);
+  lv_obj_add_flag(g_screen.cover, LV_OBJ_FLAG_HIDDEN);
+
+  // the bar of "identify": blinks at the top of everything for the seconds the server asked (never a sound)
+  g_screen.identify_bar = lv_obj_create(screen_object);
+  lv_obj_set_size(g_screen.identify_bar, 800, 56);
+  lv_obj_set_pos(g_screen.identify_bar, 0, 0);
+  lv_obj_set_style_bg_color(g_screen.identify_bar, lv_color_hex(kAmber), 0);
+  lv_obj_set_style_bg_opa(g_screen.identify_bar, LV_OPA_COVER, 0);
+  lv_obj_set_style_border_width(g_screen.identify_bar, 0, 0);
+  lv_obj_set_style_radius(g_screen.identify_bar, 0, 0);
+  lv_obj_clear_flag(g_screen.identify_bar, LV_OBJ_FLAG_SCROLLABLE);
+  g_screen.identify_text = make_label(g_screen.identify_bar, Size::kNormal, 0x06121c);
+  lv_obj_center(g_screen.identify_text);
+  lv_obj_add_flag(g_screen.identify_bar, LV_OBJ_FLAG_HIDDEN);
 }
 }  // namespace
 
