@@ -44,6 +44,8 @@ static void test_pin_entry() {
   CHECK(pin.empty());
   pin.erase_last();                                                                // erasing from nothing is harmless
   CHECK(pin.empty() && pin.add('9') && pin.digits() == "9");
+  // a confirmation that is left is closed after thirty seconds, and at once when the screen sleeps
+  CHECK(!hmi::confirm_expired(1000, 30999, false) && hmi::confirm_expired(1000, 31000, false) && hmi::confirm_expired(1000, 1001, true));
   // only a refusal that is about the PIN has a code; the same words in another answer are nothing
   CHECK(hmi::pin_error_of(403, "{\"code\":\"wrong_pin\"}") == "wrong_pin" && hmi::pin_error_of(429, "{\"code\":\"pin_locked\",\"retry\":30}") == "pin_locked" &&
         hmi::pin_error_of(403, "{\"error\":\"x\",\"code\":\"pin_not_set\"}") == "pin_not_set");

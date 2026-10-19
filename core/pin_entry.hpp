@@ -2,11 +2,16 @@
 // Copyright (C) 2026 JuanenRac (Electro Hobby 3D). GPL-3.0-or-later.
 #pragma once
 #include <cstddef>
+#include <cstdint>
 #include <string>
 
 namespace armor::hmi {
 
 // Up to 10 digits; anything else is ignored. The screen shows only as many dots as digits typed, never the digits.
+// A confirmation left half-way (the dots and digits of a PIN on the screen) is closed after thirty seconds, and at once when the screen goes to sleep: nothing is left on a dark screen for the next person.
+constexpr std::int64_t kConfirmOpenMs = 30000;
+inline bool confirm_expired(std::int64_t opened_ms, std::int64_t now_ms, bool screen_asleep) { return screen_asleep || now_ms - opened_ms >= kConfirmOpenMs; }
+
 class PinEntry {
  public:
   static constexpr std::size_t kMaxDigits = 10;

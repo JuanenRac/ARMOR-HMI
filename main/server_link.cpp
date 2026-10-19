@@ -21,6 +21,7 @@
 #include "core/pin_entry.hpp"
 #include "core/server_pin.hpp"
 #include "network.hpp"
+#include "psram_mem.hpp"
 
 namespace armor::server_link {
 namespace {
@@ -237,11 +238,13 @@ void do_pending_actions() {
     w.begin_object().field("mode", mode == static_cast<int>(hmi::Mode::kArmed) ? "armed" : "disarmed");
     if (mode == static_cast<int>(hmi::Mode::kDisarmed) && !pin.empty()) w.field("pin", pin);
     w.end_object();
-    Answer answer = request(HTTP_METHOD_POST, "/api/v1/mode", w.str(), true);
+    std::string body = w.str();   // carries the PIN: overwritten below, with the PIN itself
+    Answer answer = request(HTTP_METHOD_POST, "/api/v1/mode", body, true);
     if (answer.status == 401) {   // the session ended: sign in again and ask once more, instead of making the person do it again
       { std::lock_guard<std::mutex> guard(g_lock); g_cookie.clear(); }
-      if (sign_in()) answer = request(HTTP_METHOD_POST, "/api/v1/mode", w.str(), true);
+      if (sign_in()) answer = request(HTTP_METHOD_POST, "/api/v1/mode", body, true);
     }
+    std::fill(body.begin(), body.end(), static_cast<char>(0));
     std::fill(pin.begin(), pin.end(), '\0');
     const std::string pin_error = hmi::pin_error_of(answer.status, answer.body);
     std::lock_guard<std::mutex> guard(g_lock);
@@ -318,7 +321,8 @@ void start(const config::Settings& settings) {
     g_settings = settings;
     g_tracker.configure(settings.server.enabled, settings.server.poll_s);
   }
-  if (g_task == nullptr) xTaskCreate(link_task, "server-link", 8192, nullptr, 4, &g_task);
+  // It reads from the server over HTTPS and writes nothing to the flash (the settings are saved from the panel, not from here): its 8 KB stack is in the external RAM.
+  if (g_task == nullptr) armor::memory::start_task(link_task, "server-link", 8192, nullptr, 4, &g_task);
 }
 
 Snapshot snapshot() {

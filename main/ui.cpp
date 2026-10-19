@@ -22,6 +22,7 @@
 #include <string_view>
 #include <vector>
 #include "esp_log.h"
+#include "esp_timer.h"
 #include "lvgl.h"
 #include "core/pin_entry.hpp"
 #include "core/screen_text.hpp"
@@ -126,7 +127,10 @@ void show_pin() {
   lv_label_set_text(g_screen.pin_dots, g_screen.pin.masked().c_str());
 }
 
+std::int64_t g_confirm_opened_ms = 0;   // when the confirmation was shown (hmi::confirm_expired closes it when it has been left)
+
 void show_confirm(hmi::Mode target) {
+  g_confirm_opened_ms = esp_timer_get_time() / 1000;
   g_screen.confirm_for = target;
   g_screen.pin.clear();
   const bool disarming = target == hmi::Mode::kDisarmed;
@@ -201,6 +205,7 @@ void apply_language(const std::string& language) {
 }
 
 void refresh(lv_timer_t*) {
+  if (!lv_obj_has_flag(g_screen.confirm, LV_OBJ_FLAG_HIDDEN) && hmi::confirm_expired(g_confirm_opened_ms, esp_timer_get_time() / 1000, display::asleep())) hide_confirm();   // the PIN does not wait on a screen nobody is using
   const Context context = g_screen.context ? g_screen.context() : Context{};
   apply_language(std::string(screen::effective_language(context.language, true)));
   const server_link::Snapshot snap = server_link::snapshot();
