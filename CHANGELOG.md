@@ -2,6 +2,19 @@
 
 All notable changes to this project are documented here.
 
+## [0.3.4] - Update from GitHub through long redirects, the server's certificate pinned by fingerprint and the green frames of the Summary
+
+- **The panel checks the server's certificate by its fingerprint:** the option to accept any certificate is gone; the SHA-256 fingerprint of the server's certificate is read from the server, compared by a person and saved, and the panel connects only to a server that shows that certificate (or one vouched for by a public authority).
+- **One lock for the update:** two web threads and a timer can no longer start two installations or two restarts; the PIN entry is overwritten when it is cleared; the access point is opened only when there is neither a station nor a cable, and a panel with no address after 90 seconds opens the set-up access point again.
+- **Update from GitHub works again when GitHub answers with a long redirect:** the checksum file is fetched through a redirect whose headers add up to more than 5 KB, and the 4 KB header buffer made the HTTP client give up. The buffer is now 20 KB, which the memory settings place in the external RAM (above 16 KB), so it costs no internal memory; a board with no external RAM falls back to 6 KB. The log says how much internal memory was free before and after the client was opened.
+- **The real reason is told:** when the checksum or the signature of a release cannot be read, the panel says it was the connection, the size or the HTTP status (new texts in the eight languages), and "the release carries no checksum" is only said for a release that really has none.
+- **The Summary draws every value inside a green frame,** like the green label of a port that reports, in every node panel (one shared style rule and one helper).
+- **The help of the panel is brought up to date in the eight languages:** the limit of 30 failed sign-ins per minute in total, the tolerant reading of the saved settings after an update, the update from GitHub and the notice that a release has no image for the board, Bluetooth set-up (the derived PIN and the answer only to the phone that asked), the web modes and the certificate fingerprint, and the clock and its time server.
+- **The node announces that it is gone:** the connection to the broker carries a last will that tells the server the node is offline, and the server never counts it as a report.
+- **No more aborts on a failed initialisation:** the network, the stored settings and the Ethernet start-up degrade with a log line instead of rebooting in a loop.
+- **Fewer data races:** the cached lengths of the firmware slots, the timer that restarts the node and the flag that the restart after an update was scheduled are guarded.
+- **Tests:** the header buffer against a simulated redirect of 5 KB, the reasons for a checksum or signature that cannot be read (and that "no checksum" is not one of them), the green frames in the Summary, and the words every help text must contain in the eight languages.
+
 ## [0.3.3] - Tolerant settings, global login limit, Bluetooth race, missing board image
 
 - Settings kept in flash are read as far as they can be after an update: unknown members are ignored and a value that cannot be accepted falls back alone, so the node never starts over because of one field.

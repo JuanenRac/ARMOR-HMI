@@ -12,10 +12,14 @@
 #include "esp_http_client.h"
 #include "esp_log.h"
 #include "esp_timer.h"
+#include "mbedtls/sha256.h"
+#include "mbedtls/ssl.h"
+#include "mbedtls/x509_crt.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "core/json.hpp"
 #include "core/pin_entry.hpp"
+#include "core/server_pin.hpp"
 #include "network.hpp"
 
 namespace armor::server_link {
@@ -71,6 +75,31 @@ esp_err_t on_http_event(esp_http_client_event_t* event) {
   return ESP_OK;
 }
 
+// ---- the fingerprint check ---------------------------------------------------------------------------------------------------------------
+// ESP-IDF's own attach function gives the connection a placeholder authority list (so the handshake looks at the certificate at all); ours then replaces its verify callback by one
+// that accepts the certificate of the server only when its SHA-256 fingerprint is the one fixed at set-up. Whatever the library says about the name or the signer is ignored: the
+// fingerprint is the whole decision, and a different certificate fails the handshake.
+std::mutex g_pin_mutex;
+std::string g_pin_want;            // under g_pin_mutex: the stored fingerprint
+bool g_pin_capture = false;        // under g_pin_mutex: only read the fingerprint (the person is setting the panel up and will compare it before saving)
+std::string g_pin_seen;            // under g_pin_mutex: the fingerprint of the certificate of the last handshake, "" when none arrived
+
+int pin_verify(void*, mbedtls_x509_crt* certificate, int depth, uint32_t* flags) {
+  if (depth != 0) { *flags = 0; return 0; }   // the certificate of the server is the one that is compared, whoever signed it
+  std::uint8_t digest[server_pin::kDigestBytes];
+  if (mbedtls_sha256(certificate->raw.p, certificate->raw.len, digest, 0) != 0) return MBEDTLS_ERR_X509_CERT_VERIFY_FAILED;
+  g_pin_seen = server_pin::to_hex(digest, sizeof digest);
+  if (g_pin_capture || server_pin::matches(digest, g_pin_want)) { *flags = 0; return 0; }
+  return MBEDTLS_ERR_X509_CERT_VERIFY_FAILED;
+}
+
+esp_err_t pin_attach(void* configuration) {
+  const esp_err_t attached = esp_crt_bundle_attach(configuration);
+  if (attached != ESP_OK) return attached;
+  mbedtls_ssl_conf_verify(static_cast<mbedtls_ssl_config*>(configuration), pin_verify, nullptr);
+  return ESP_OK;
+}
+
 std::string base_url(const config::Settings& s) {
   return std::string(s.server.tls ? "https://" : "http://") + s.server.host + ":" + std::to_string(s.server.port);
 }
@@ -93,11 +122,20 @@ Answer request(esp_http_client_method_t method, const std::string& path, const s
   config.event_handler = on_http_event;
   config.user_data = &answer;
   config.disable_auto_redirect = true;
-  if (s.server.tls && !s.server.insecure) {
-    // A server with its own certificate is trusted by pinning that certificate (the chain must end at it; the address of a server on the LAN is no name to check): a man in the middle of
-    // the LAN cannot take the password of the panel's user. Without a pinned certificate the usual certificate authorities are used.
-    if (!s.server.cert_pem.empty()) { config.cert_pem = s.server.cert_pem.c_str(); config.skip_cert_common_name_check = true; }
-    else config.crt_bundle_attach = esp_crt_bundle_attach;
+  // https is never accepted unchecked (core/server_pin.hpp): the certificate must be the one whose fingerprint was fixed at set-up, or end at the pinned PEM, or be vouched for by the
+  // usual certificate authorities. A panel that cannot meet any of those does not connect.
+  const server_pin::Trust trust = server_pin::trust_for(s.server.tls, s.server.cert_sha256, s.server.cert_pem);
+  std::unique_lock<std::mutex> pin_guard(g_pin_mutex, std::defer_lock);
+  if (trust == server_pin::Trust::kFingerprint) {
+    pin_guard.lock();   // the check reads a fingerprint kept in this file (the library gives the callback no pointer of ours): one such request at a time
+    g_pin_want = s.server.cert_sha256;
+    g_pin_capture = false;
+    config.crt_bundle_attach = pin_attach;
+  } else if (trust == server_pin::Trust::kChain) {
+    config.cert_pem = s.server.cert_pem.c_str();
+    config.skip_cert_common_name_check = true;   // the address of a server on the LAN is no name to check; the chain must end at the pinned certificate
+  } else if (trust == server_pin::Trust::kAuthorities) {
+    config.crt_bundle_attach = esp_crt_bundle_attach;
   }
   esp_http_client_handle_t client = esp_http_client_init(&config);
   if (client == nullptr) return answer;
@@ -110,6 +148,35 @@ Answer request(esp_http_client_method_t method, const std::string& path, const s
   esp_http_client_cleanup(client);
   return answer;
 }
+
+// Reads the fingerprint of the certificate a server presents, for the person who is setting the panel up: the handshake is completed with whatever certificate arrives and nothing is
+// sent that matters. The person compares the number with the one the server shows and only then saves it; from then on that number is required (see pin_verify).
+}  // namespace
+
+std::string probe_fingerprint(const std::string& host, int port, std::string& error) {
+  error.clear();
+  const std::string url = "https://" + host + ":" + std::to_string(port) + "/";
+  std::lock_guard<std::mutex> guard(g_pin_mutex);
+  g_pin_capture = true;
+  g_pin_seen.clear();
+  esp_http_client_config_t config{};
+  config.url = url.c_str();
+  config.method = HTTP_METHOD_GET;
+  config.timeout_ms = kRequestTimeoutMs;
+  config.disable_auto_redirect = true;
+  config.crt_bundle_attach = pin_attach;
+  esp_http_client_handle_t client = esp_http_client_init(&config);
+  if (client == nullptr) { g_pin_capture = false; error = "no_answer"; return ""; }
+  esp_http_client_perform(client);   // the answer does not matter: the handshake did what was needed
+  esp_http_client_cleanup(client);
+  g_pin_capture = false;
+  const std::string seen = g_pin_seen;
+  g_pin_seen.clear();
+  if (seen.empty()) error = "no_certificate";
+  return seen;
+}
+
+namespace {
 
 hmi::Failure failure_of(const Answer& answer) {
   if (answer.status == 0) return hmi::Failure::kNoReply;
@@ -202,7 +269,7 @@ void expire_pending_orders(std::int64_t now) {
   g_pending_acknowledge = false;
   {
     std::lock_guard<std::mutex> guard(g_lock);
-    std::fill(g_pending_pin.begin(), g_pending_pin.end(), ' ');
+    std::fill(g_pending_pin.begin(), g_pending_pin.end(), '\0');
     g_pending_pin.clear();
     g_action_error = "no_answer";
   }

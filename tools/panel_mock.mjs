@@ -35,7 +35,7 @@ const config = {
   ap: { enabled: true, ssid: "ARMOR-HMI-A1B2C3", security: "wpa2", password_set: true, channel: 0, hidden: false, max_clients: 8, tx_power_dbm: 15, bandwidth_mhz: 20, country: "ES" },
   sta: { enabled: true, ssid: "HomeRouter", password_set: true, backup: [] },
   mqtt: { enabled: true, uri: "mqtt://192.168.0.180:18883", username: "hmi-node-hmi-a1b2c3", password_set: true, heartbeat_s: 10, ntp: "pool.ntp.org", backup: [] },
-  server: { enabled: true, host: "192.168.0.180", port: 18080, tls: false, insecure: false, user: "panel-salon", password_set: true, poll_s: 3 },
+  server: { enabled: true, host: "192.168.0.180", port: 18080, tls: false, cert_sha256: "", user: "panel-salon", password_set: true, poll_s: 3 },
   display: { brightness: 80, sleep_s: 300, night_brightness: 15, night_from: 22, night_to: 7 },
   audio: { volume: 60, alarm_sound: true },
   voice: { enabled: false, url: "", wake_name: "armor", listen_s: 8 },
@@ -74,7 +74,8 @@ const problems = doc => {
   if (doc.ap?.enabled && doc.ap.security !== "open" && doc.ap.password !== undefined && doc.ap.password.length > 0 && doc.ap.password.length < 8) list.push({ path: "ap.password", code: "invalid_key" });
   if (doc.mqtt?.enabled && !/^mqtts?:\/\/.+/.test(doc.mqtt.uri ?? "")) list.push({ path: "mqtt.uri", code: "invalid" });
   if (doc.server?.enabled && !String(doc.server.host ?? config.server.host).trim()) list.push({ path: "server.host", code: "required" });
-  if (doc.server?.insecure && doc.server.tls === false) list.push({ path: "server.insecure", code: "needs_tls" });
+  if (doc.server?.cert_sha256 && doc.server.tls === false) list.push({ path: "server.cert_sha256", code: "needs_tls" });
+  if (doc.server?.cert_sha256 && !/^[0-9a-fA-F:\s-]{64,95}$/.test(doc.server.cert_sha256)) list.push({ path: "server.cert_sha256", code: "invalid" });
   if (doc.display?.brightness !== undefined && !(doc.display.brightness >= 5 && doc.display.brightness <= 100)) list.push({ path: "display.brightness", code: "range" });
   if (doc.audio?.volume !== undefined && !(doc.audio.volume >= 0 && doc.audio.volume <= 100)) list.push({ path: "audio.volume", code: "range" });
   if (doc.voice?.enabled && !/^https?:\/\/[^/@]+\/?$/.test(doc.voice.url ?? config.voice.url)) list.push({ path: "voice.url", code: doc.voice.url ? "invalid" : "required" });
@@ -96,6 +97,10 @@ const server = createServer(async (request, response) => {
   const setup = users.size === 0;
 
   if (method === "GET" && route === "session") return json(response, 200, { setup, authenticated: !!session, user: session?.user ?? "", role: session?.role ?? "", node_id: config.node.id, language: config.ui.language, version: "0.2.3", setup_ssid: setup ? "ARMOR-SETUP-A1B2C3" : "", mac: "34:85:18:a1:b2:c3", board, ethernet: wired });
+  if (method === "POST" && route === "server/fingerprint") {
+    if (!session) return json(response, 401, { error: "unauthorized" });
+    return json(response, 200, { ok: true, cert_sha256: "a3f1c07d9e2b4c58a7106f3de9b2c4815d6e7f80a1b2c3d4e5f60718293a4b5c" });
+  }
   if (method === "POST" && route === "setup") {
     if (!setup) return json(response, 403, { error: "forbidden" });
     if (body.code !== "TESTCODE") return json(response, 403, { error: "wrong_code" });

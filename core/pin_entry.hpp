@@ -16,7 +16,8 @@ class PinEntry {
     return true;
   }
   void erase_last() { if (!digits_.empty()) digits_.pop_back(); }
-  void clear() { digits_.clear(); }
+  // The digits are overwritten before they are dropped: a PIN is not left behind in memory that is freed and reused.
+  void clear() { for (char& c : digits_) c = '0'; digits_.clear(); }
   bool empty() const { return digits_.empty(); }
   const std::string& digits() const { return digits_; }
   std::string masked() const { return std::string(digits_.size(), '*'); }

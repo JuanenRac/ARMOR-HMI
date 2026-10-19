@@ -34,4 +34,8 @@ void request_acknowledge_all();
 // Called, from the link's task, with the alarms that are new and nobody has acknowledged (never for the ones that existed when the panel started).
 void on_new_alarms(std::function<void(const std::vector<hmi::AlarmLine>&)> callback);
 
+// The SHA-256 fingerprint (64 lowercase hex digits) of the certificate the server at host:port presents over HTTPS, read for the person who is setting the panel up; "" and a short
+// code in `error` when no certificate arrived. It trusts nothing by itself: the person compares the number and saves it, and only then does the link require it.
+std::string probe_fingerprint(const std::string& host, int port, std::string& error);
+
 }  // namespace armor::server_link

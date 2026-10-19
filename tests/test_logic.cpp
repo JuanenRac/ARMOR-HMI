@@ -292,10 +292,10 @@ static void test_server_link_and_screen() {
   s.server.host = "192.168.0.180"; s.server.user = "panel"; s.server.password = "panel-password";
   CHECK(config::validate(s).empty());
   s.server.host = "bad host!"; CHECK(has(config::validate(s), "server.host", "invalid")); s.server.host = "armor.local";
-  s.server.insecure = true; CHECK(has(config::validate(s), "server.insecure", "needs_tls")); s.server.tls = true; CHECK(config::validate(s).empty());
+  s.server.cert_sha256 = std::string(64, 'b'); CHECK(has(config::validate(s), "server.cert_sha256", "needs_tls")); s.server.tls = true; CHECK(config::validate(s).empty()); s.server.cert_sha256.clear();
   s.server.cert_pem = "not a certificate"; CHECK(has(config::validate(s), "server.cert_pem", "invalid"));
   s.server.cert_pem = "-----BEGIN CERTIFICATE-----\nAAAA\n-----END CERTIFICATE-----\n"; CHECK(config::validate(s).empty());
-  s.server.tls = false; s.server.insecure = false; CHECK(has(config::validate(s), "server.cert_pem", "needs_tls"));
+  s.server.tls = false; CHECK(has(config::validate(s), "server.cert_pem", "needs_tls"));
   s.server.cert_pem.clear();
   s.server.enabled = false; s.server.host.clear(); s.server.user.clear(); s.server.password.clear(); CHECK(config::validate(s).empty());   // off: not looked at
   // the night: equal hours make no night, which only suits a night as bright as the day
@@ -318,8 +318,8 @@ static void test_server_link_and_screen() {
 
 static void test_reading_the_screen_and_the_link() {
   config::Settings s = good();
-  config::Problems p = read(s, "{\"server\":{\"enabled\":1,\"host\":5,\"port\":0,\"tls\":\"yes\",\"insecure\":null,\"user\":\"" + std::string(49, 'u') + "\",\"password\":" + std::string("true") + ",\"poll_s\":61}}");
-  CHECK(has(p, "server.enabled", "invalid") && has(p, "server.host", "invalid") && has(p, "server.port", "range") && has(p, "server.tls", "invalid") && has(p, "server.insecure", "invalid") && has(p, "server.user", "too_long") &&
+  config::Problems p = read(s, "{\"server\":{\"enabled\":1,\"host\":5,\"port\":0,\"tls\":\"yes\",\"cert_sha256\":5,\"user\":\"" + std::string(49, 'u') + "\",\"password\":" + std::string("true") + ",\"poll_s\":61}}");
+  CHECK(has(p, "server.enabled", "invalid") && has(p, "server.host", "invalid") && has(p, "server.port", "range") && has(p, "server.tls", "invalid") && has(p, "server.cert_sha256", "invalid") && has(p, "server.user", "too_long") &&
         has(p, "server.password", "invalid") && has(p, "server.poll_s", "range"));
   CHECK(!s.server.enabled && s.server.port == 18080);
   p = read(s, "{\"server\":{\"port\":65535,\"poll_s\":1}}");

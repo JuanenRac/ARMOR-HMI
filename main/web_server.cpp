@@ -12,6 +12,7 @@
 #include <cstdio>
 #include <cstring>
 #include <mutex>
+#include <atomic>
 #include <string>
 #include "esp_app_desc.h"
 #include "esp_heap_caps.h"
@@ -295,7 +296,7 @@ esp_err_t post_setup(httpd_req_t* r) {
   const std::string wifi_ssid = in.string_or("wifi_ssid", ""), wifi_password = in.string_or("wifi_password", "");
   // A Wi-Fi network given here is how a node with no cable is set up on a bench: it is then the way in, whatever the board has.
   if (!wifi_ssid.empty()) { s.uplink = config::Uplink::kWifi; s.sta.enabled = true; s.sta.ssid = wifi_ssid; s.sta.password = wifi_password; }
-  if (!s.ap.enabled) {
+  if (config::needs_own_network_after_setup(s)) {
     s.ap.enabled = true;
     s.ap.ssid = "ARMOR-HMI-" + netplan::upper(store::mac_tail());
     s.ap.security = config::WifiSecurity::kWpa2;
@@ -643,9 +644,23 @@ esp_err_t post_time(httpd_req_t* r) {
   return send_ok(r);
 }
 
+// The panel is served on two ports (HTTP and HTTPS), each by a thread of its own, and a release can be installed from GitHub at the same time: only ONE write of a firmware image runs at
+// any moment (they would write the same partition, and the 2 KiB buffer below is shared), and a second one is told so.
+std::atomic<bool> g_ota_writing{false};
+struct OtaWriteLock {
+  bool held;
+  OtaWriteLock() : held(!g_ota_writing.exchange(true)) {}
+  ~OtaWriteLock() { if (held) g_ota_writing.store(false); }
+  OtaWriteLock(const OtaWriteLock&) = delete;
+  OtaWriteLock& operator=(const OtaWriteLock&) = delete;
+};
+
 esp_err_t post_ota(httpd_req_t* r) {
   Who who;
   if (!require(r, who, true, true)) return ESP_OK;
+  OtaWriteLock writing;
+  if (!writing.held) return send_error(r, 409, "ota_busy");
+  { const std::string installing = github_update::progress().state; if (installing == "downloading" || installing == "verifying") return send_error(r, 409, "ota_busy"); }
   const std::size_t total = r->content_len;
   if (total < 100 * 1024 || total > kMaxFirmware) return send_error(r, 413, "bad_size");
   const esp_partition_t* target = esp_ota_get_next_update_partition(nullptr);
@@ -687,15 +702,17 @@ esp_err_t post_ota(httpd_req_t* r) {
 }
 
 // The GitHub counterpart of post_ota(): checking for a release, and installing it, next to (never instead of) the manual upload above.
-bool g_ota_restart_scheduled = false;
+std::atomic<bool> g_ota_restart_scheduled{false};   // two web threads and a timer read and set it
 
 // The restart after an installation from GitHub used to be scheduled only when the panel asked how far it was: with the browser closed the new image was set to boot and the node went
 // on with the old one until the next restart of any kind (a power cut) switched it, unannounced. Now a timer of its own watches the installation and restarts the node when it is done.
 void watch_install(void*) {
   const github_update::Progress p = github_update::progress();
-  if (p.state == "done" && !g_ota_restart_scheduled) { g_ota_restart_scheduled = true; restart_after(2500); }
+  if (p.state == "done" && !g_ota_restart_scheduled.exchange(true)) restart_after(2500);
 }
 void start_install_watch() {
+  static std::mutex watch_lock;
+  std::lock_guard<std::mutex> guard(watch_lock);
   static esp_timer_handle_t timer = nullptr;
   if (timer == nullptr) {
     esp_timer_create_args_t args{};
@@ -734,6 +751,7 @@ esp_err_t post_ota_install(httpd_req_t* r) {
   Who who;
   if (!require(r, who, true, true)) return ESP_OK;
   // The task looks for the newest release and installs it: the request is answered at once.
+  if (g_ota_writing.load()) return send_error(r, 409, "ota_busy");
   if (!github_update::start_latest(board::kId)) return send_error(r, 409, "ota_busy");
   ESP_LOGW(kTag, "installing the newest firmware from GitHub, started by \"%s\"", who.user.c_str());
   g_ota_restart_scheduled = false;
@@ -748,12 +766,31 @@ esp_err_t get_ota_progress(httpd_req_t* r) {
   if (!require(r, who, true, false)) return ESP_OK;
   const github_update::Progress p = github_update::progress();
   // Once the new image is set to boot the node restarts, a moment after the panel has been told.
-  if (p.state == "done" && !g_ota_restart_scheduled) { g_ota_restart_scheduled = true; restart_after(2500); }
+  if (p.state == "done" && !g_ota_restart_scheduled.exchange(true)) restart_after(2500);
   json::Writer w;
   w.begin_object().field("state", p.state).field("got", static_cast<long long>(p.got)).field("total", static_cast<long long>(p.total));
   if (!p.error.empty()) w.field("error", p.error);
   if (!p.version.empty()) w.field("version", p.version);
   w.end_object();
+  return send_json(r, 200, w.str());
+}
+
+// The set-up reads the fingerprint of the certificate the server presents; the person compares it with the server's and saves it, and from then on the panel requires it.
+esp_err_t post_server_fingerprint(httpd_req_t* r) {
+  Who who;
+  if (!require(r, who, true, true)) return ESP_OK;
+  json::Value in;
+  if (!read_json(r, in)) return ESP_OK;
+  std::string host = store::settings().server.host;
+  long long port = store::settings().server.port;
+  if (const json::Value* typed = in.get("host"); typed != nullptr && typed->is_string()) host = typed->text;
+  port = in.integer_or("port", port, 1, 65535);
+  if (host.empty() || !net::valid_host(host)) return send_error(r, 422, "invalid_host");
+  std::string error;
+  const std::string fingerprint = server_link::probe_fingerprint(host, static_cast<int>(port), error);
+  if (fingerprint.empty()) return send_error(r, 502, error.empty() ? "no_certificate" : error.c_str());
+  json::Writer w;
+  w.begin_object().field("ok", true).field("cert_sha256", fingerprint).end_object();
   return send_json(r, 200, w.str());
 }
 
@@ -795,6 +832,7 @@ esp_err_t api_handler(httpd_req_t* r) {
     if (route == "ota/install") return post_ota_install(r);
     if (route == "ota/check") return post_ota_check(r);
     if (route == "time") return post_time(r);
+    if (route == "server/fingerprint") return post_server_fingerprint(r);
   } else if (method == HTTP_PUT) {
     if (route == "config") return put_config(r);
     if (route == "account") return put_account(r);
@@ -854,6 +892,8 @@ void restart_now(void*) { network::disconnect_before_restart(); esp_restart(); }
 }  // namespace
 
 void restart_after(unsigned delay_ms) {
+  static std::mutex timer_lock;   // two handlers may ask at once: the timer is made once and started by one of them at a time
+  std::lock_guard<std::mutex> guard(timer_lock);
   static esp_timer_handle_t timer = nullptr;
   if (timer == nullptr) {
     esp_timer_create_args_t args{};

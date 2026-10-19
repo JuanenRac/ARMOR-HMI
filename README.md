@@ -22,13 +22,13 @@
   <img src="https://img.shields.io/badge/Language-C%2B%2B17-00599c.svg" alt="Language">
   <img src="https://img.shields.io/badge/Board-ESP32--S3--Touch--LCD--7C--BOX-e7352c.svg" alt="Board">
   <img src="https://img.shields.io/badge/Checks-1%2C759-2ea44f.svg" alt="Checks">
-  <img src="https://img.shields.io/badge/Version-0.3.3-0f6cbd.svg" alt="Version">
+  <img src="https://img.shields.io/badge/Version-0.3.4-0f6cbd.svg" alt="Version">
   <img src="https://img.shields.io/badge/Maturity-functional-00E5FF.svg" alt="Maturity">
 </p>
 
 ---
 
-**Honesty check - what runs today:** What does not depend on the board is real and tested on a computer (the settings, what the panel knows of the server and when that is stale, the duress alarm that is never shown, the voice conversation and the long answer of the speech service, the board's pins, the words of the screen in eight languages and the glyphs of its fonts, the release and signature checks: 26,379 checks in 9 test programs) and so is the web page (run against a stand-in in a real browser). **The firmware has been built once (ESP-IDF 5.5.5, not checked by the continuous integration) and has never run on a board:** the screen, the touch, the sound and the link to the server are written from Waveshare's examples for this family of boards and need their first power-up. The speech service (ARMOR-VOICE-AI) answers this panel's requests, there is no wake word: it is push to talk.
+**Honesty check - what runs today:** What does not depend on the board is real and tested on a computer (the settings, what the panel knows of the server and when that is stale, the duress alarm that is never shown, the voice conversation and the long answer of the speech service, the board's pins, the words of the screen in eight languages and the glyphs of its fonts, the release and signature checks: 24,440 checks in 9 test programs) and so is the web page (run against a stand-in in a real browser). **The firmware has been built once (ESP-IDF 5.5.5, not checked by the continuous integration) and has never run on a board:** the screen, the touch, the sound and the link to the server are written from Waveshare's examples for this family of boards and need their first power-up. The speech service (ARMOR-VOICE-AI) answers this panel's requests, there is no wake word: it is push to talk.
 
 ---
 
@@ -36,9 +36,9 @@
 
 | | |
 |---|---|
-| Version | `0.3.3` |
+| Version | `0.3.4` |
 | Maturity | Functional |
-| Tests | 26,379 checks in 9 programs (`ctest`) |
+| Tests | 24,440 checks in 9 programs (`ctest`) |
 | Stack | C++17 (host-tested core); ESP-IDF firmware for the ESP32-S3 with LVGL, with its web page |
 | On real hardware | None yet: the firmware builds (ESP-IDF 5.5.5, not checked by CI) but has not run on the board |
 

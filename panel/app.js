@@ -236,7 +236,8 @@ const PAGES = [
 ];
 
 const card = (title, ...kids) => el("section", { class: "card" }, title ? el("h2", {}, title) : null, ...kids);
-const kv = rows => el("dl", { class: "kv" }, rows.filter(Boolean).flatMap(([k, v]) => [el("dt", {}, k), el("dd", {}, v)]));
+const kv = (rows, cls) => el("dl", { class: cls || "kv" }, rows.filter(Boolean).flatMap(([k, v]) => [el("dt", {}, k), el("dd", {}, v)]));
+const kvf = rows => kv(rows, "kv framed");
 const note = (text, kind) => el("p", { class: "note " + (kind || "") }, text);
 
 const fmtBytes = b => b >= 1048576 ? (Math.round(b / 104857.6) / 10) + " MB" : b >= 1024 ? Math.round(b / 1024) + " kB" : b + " B";
@@ -263,7 +264,7 @@ function flashCard(flash) {
       rows.push([label, p.used ? fmtBytes(p.used) + " / " + fmtBytes(p.size) + " (" + Math.round(p.used * 100 / p.size) + " %) · " + fmtBytes(p.size - p.used) + " " + t("flashFree") + " · v" + p.version + state : t("slotEmpty") + " · " + fmtBytes(p.size)]);
     } else rows.push([label, fmtBytes(p.size)]);
   });
-  return card(t("ovFlash"), kv(rows));
+  return card(t("ovFlash"), kvf(rows));
 }
 
 function formatUptime(seconds) {
@@ -284,22 +285,22 @@ function overviewPage() {
   const summary = scr && scr.summary, link = scr && scr.link;
   return el("div", { class: "grid" },
     card(t("ovScreen"), link ? [linkPill(link.state), link.action_pending ? el("p", { class: "muted" }, t("actionPending")) : null] : el("p", { class: "muted" }, t("loading")),
-      summary && link.have_summary ? kv([[t("mode"), t(summary.mode)], [t("nodesOnline"), summary.nodes_online + " / " + summary.nodes_total], [t("alarmsActive"), summary.alarms_active + " (" + summary.alarms_unacknowledged + " " + t("alarmsUnack") + ")"]]) : null),
+      summary && link.have_summary ? kvf([[t("mode"), t(summary.mode)], [t("nodesOnline"), summary.nodes_online + " / " + summary.nodes_total], [t("alarmsActive"), summary.alarms_active + " (" + summary.alarms_unacknowledged + " " + t("alarmsUnack") + ")"]]) : null),
     card(t("ovVoice"), scr ? el("p", {}, t("vs_" + scr.voice.state)) : null, el("p", { class: "muted" }, s.sound ? t("soundOk") + " ✓" : t("soundNo"))),
-    card(t("ovNode"), kv([[t("nodeId"), s.node_id], [t("nodeName"), s.name], [t("firmware"), s.version + " (" + s.partition + ")"], [t("uptime"), formatUptime(s.uptime_s)],
+    card(t("ovNode"), kvf([[t("nodeId"), s.node_id], [t("nodeName"), s.name], [t("firmware"), s.version + " (" + s.partition + ")"], [t("uptime"), formatUptime(s.uptime_s)],
       [t("resetReason"), reasonText(s.reset_reason)], [t("memory"), Math.round(s.heap_free / 1024) + " kB" + (s.psram_free ? " + " + Math.round(s.psram_free / 1048576 * 10) / 10 + " MB PSRAM" : "")], [t("board"), s.board]])),
-        s.time ? card(t("ovTime"), kv([[t("localTime"), s.time.set ? s.time.local + " (" + utcLabel(s.time.utc_offset_min) + ")" : t("clockNotSet")],
+        s.time ? card(t("ovTime"), kvf([[t("localTime"), s.time.set ? s.time.local + " (" + utcLabel(s.time.utc_offset_min) + ")" : t("clockNotSet")],
           [t("timeSource"), !s.time.set ? "—" : s.time.synced ? t("timeFromNtp") : s.time.ntp ? t("timeNtpWaiting") : t("timeManual")], [t("timeZone"), zoneName(s.time.zone)]])) : null,
         s.flash ? flashCard(s.flash) : null,
-        s.hardware ? card(t("ovHardware"), kv([[t("chip"), s.hardware.chip.toUpperCase() + " rev " + s.hardware.chip_revision + " · " + s.hardware.cores + " " + t("cores")],
+        s.hardware ? card(t("ovHardware"), kvf([[t("chip"), s.hardware.chip.toUpperCase() + " rev " + s.hardware.chip_revision + " · " + s.hardware.cores + " " + t("cores")],
       [t("flash"), s.hardware.flash_mb + " MB"], [t("psram"), s.hardware.psram_mb ? s.hardware.psram_mb + " MB" : t("none")],
       [t("appIdf"), s.hardware.app_idf], [t("bootloaderIdf"), s.hardware.bootloader_idf]])) : null,
-    card(t("ovNetwork"), kv([[t("layout"), n.layout], [t("link"), n.link_up ? t("linkUp") : t("linkDown")], [t("address"), n.has_ip ? n.ip : "—"], [t("netmask"), n.netmask || "—"], [t("gateway"), n.gateway || "—"],
+    card(t("ovNetwork"), kvf([[t("layout"), n.layout], [t("link"), n.link_up ? t("linkUp") : t("linkDown")], [t("address"), n.has_ip ? n.ip : "—"], [t("netmask"), n.netmask || "—"], [t("gateway"), n.gateway || "—"],
       [t("dns"), n.dns || "—"], [t("mac"), n.mac],
       n.ap_active ? [t("apActive"), "“" + n.ap_ssid + "” · " + t("channel") + " " + n.ap_channel + " · " + n.ap_clients + " " + t("apClients") + " · " + layoutNote] : null,
       n.sta_ssid ? [t("station"), n.sta_ssid + (n.sta_connected ? " · " + n.sta_rssi + " dBm" : " · " + t("notConnected"))] : null]),
       n.ap_active && n.sta_connected && !n.ap_setup ? note(t("apStaWarning")) : null),
-    card(t("ovBroker"), kv([[t("navBroker"), !m.enabled ? t("notConfigured") : m.connected ? t("connected") : t("notConnected")], [t("clock"), m.clock_set ? t("clockSet") : t("clockNotSet")], [t("messages"), m.published],
+    card(t("ovBroker"), kvf([[t("navBroker"), !m.enabled ? t("notConfigured") : m.connected ? t("connected") : t("notConnected")], [t("clock"), m.clock_set ? t("clockSet") : t("clockNotSet")], [t("messages"), m.published],
       m.dropped ? [t("mqDropped"), m.dropped] : null])));
 }
 
@@ -424,6 +425,19 @@ function brokerPage() {
 
 // ---- the link to the server, the screen, the sound and the voice -----------------------------------------------------------------------------
 
+// Reads the fingerprint of the certificate the server presents, so the person can compare it with the one the server shows and save it. Nothing is trusted until it is saved.
+async function readServerFingerprint() {
+  S.busy = true; S.message = { kind: "warn", text: t("working") }; refreshBar();
+  const sv = S.cfg.server;
+  const r = await api("POST", "server/fingerprint", { host: sv.host, port: sv.port });
+  S.busy = false;
+  if (r.ok && r.data.cert_sha256) {
+    setValue("server.cert_sha256", r.data.cert_sha256);
+    S.message = { kind: "warn", text: t("serverFingerprintCheck") };
+  } else S.message = { kind: "bad", text: errorText((r.data && r.data.error) || "network") };
+  render();
+}
+
 function serverPage() {
   const sv = S.cfg.server;
   return el("div", { class: "grid wide" },
@@ -431,8 +445,10 @@ function serverPage() {
       sv.enabled ? [
         el("div", { class: "row" }, field("serverHost", "server.host", { max: 64, placeholder: "192.168.0.180" }), field("serverPort", "server.port", { type: "number", min: 1, max: 65535 })),
         field("serverTls", "server.tls", { type: "checkbox", rerender: true }),
-        sv.tls ? field("serverInsecure", "server.insecure", { type: "checkbox" }) : null,
-        sv.tls && !sv.insecure ? field("serverCert", "server.cert_pem", { type: "textarea", max: 4000, placeholder: "-----BEGIN CERTIFICATE-----" }) : null,
+        sv.tls ? [field("serverFingerprint", "server.cert_sha256", { max: 95, placeholder: "ab:cd:ef:..." }),
+          isAdmin() ? el("div", { class: "actions" }, el("button", { class: "b", tip: "serverFingerprintRead", disabled: S.busy, onclick: readServerFingerprint }, t("serverFingerprintRead"))) : null,
+          !sv.cert_sha256 && !sv.cert_pem ? note(t("serverNoPin"), "warn") : null,
+          field("serverCert", "server.cert_pem", { type: "textarea", max: 4000, placeholder: "-----BEGIN CERTIFICATE-----" })] : null,
         el("div", { class: "row" }, field("serverUser", "server.user", { max: 48 }), field("serverPassword", "server.password", { type: "password", hint: t("passwordHostBound") })),
         field("serverPoll", "server.poll_s", { type: "number", min: 1, max: 60 })] : null,
       S.screen ? linkPill(S.screen.link.state) : null,

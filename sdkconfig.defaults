@@ -47,12 +47,12 @@ CONFIG_MBEDTLS_DYNAMIC_FREE_CA_CERT=y
 # this family (every boot ended in "A stack overflow in task main").
 CONFIG_ESP_MAIN_TASK_STACK_SIZE=16384
 
-# The link to ARMOR-SERVER and to the speech service: HTTPS checked against the usual certificate authorities, or (a deliberate choice in the settings) not checked, for a server
-# that only has its own certificate.
+# The link to ARMOR-SERVER and to the speech service: HTTPS is always checked - against the usual certificate authorities, or against the fingerprint of the server's own
+# certificate fixed in the settings (main/server_link.cpp). There is NO option to skip the check, so the two switches below stay off.
 CONFIG_MBEDTLS_CERTIFICATE_BUNDLE=y
 CONFIG_MBEDTLS_CERTIFICATE_BUNDLE_DEFAULT_FULL=y
-CONFIG_ESP_TLS_INSECURE=y
-CONFIG_ESP_TLS_SKIP_SERVER_CERT_VERIFY=y
+CONFIG_ESP_TLS_INSECURE=n
+CONFIG_ESP_TLS_SKIP_SERVER_CERT_VERIFY=n
 
 # LVGL: the fonts are the generated ones (main/fonts); the default font is only for the microphone symbol.
 CONFIG_LV_COLOR_DEPTH_16=y

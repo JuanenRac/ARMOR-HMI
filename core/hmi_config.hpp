@@ -23,6 +23,7 @@
 #include "mqtt_tls.hpp"
 #include "net_text.hpp"
 #include "node_id.hpp"
+#include "server_pin.hpp"
 #include "stored_load.hpp"
 
 namespace armor::config {
@@ -86,9 +87,9 @@ struct ServerLink {
   bool enabled = false;      // a panel that was never configured shows only its own setup
   std::string host;          // an IPv4 address or a name
   int port = 18080;
-  bool tls = false;          // https:// (the certificate is checked unless "insecure" is set)
-  bool insecure = false;     // accept any certificate: for a server that only has its own self-signed one
-  std::string cert_pem;      // the certificate of the server (PEM), pinned: the connection is accepted only if the server presents a chain that ends at it. Better than `insecure` for a self-signed server
+  bool tls = false;          // https:// (always checked: there is no way to accept any certificate; see server_pin.hpp)
+  std::string cert_sha256;   // the SHA-256 fingerprint (64 lowercase hex digits) of the server's certificate, fixed when the panel is set up: https is accepted only when the server presents that certificate
+  std::string cert_pem;      // alternative to the fingerprint: the certificate of the server (PEM); the connection is accepted only if the server presents a chain that ends at it
   std::string user;
   std::string password;
   int poll_s = 3;            // how often the screen asks for the state
@@ -242,6 +243,15 @@ inline void read_int(const json::Value& parent, const char* name, int& target, l
 }
 }  // namespace detail
 
+// After the set-up the node has its own Wi-Fi network (named after the board, keyed with the setup code) only when nothing else reaches it: with a station network to join, the node
+// is reached on that network and no permanent access point is left open with the setup code as its key. A person can still turn the access point on in the panel.
+inline bool needs_own_network_after_setup(const Settings& s) {
+  if (s.ap.enabled) return false;   // already set, keep it
+  const bool station = s.sta.enabled && !s.sta.ssid.empty();
+  const bool wired = board::kHasEthernet && s.uplink == Uplink::kEthernet;
+  return !station && !wired;
+}
+
 // Applies the members present in `document` on top of `settings`; whatever the document omits stays as it was. The result is checked
 // with validate(): read_settings() only reports a member of the wrong type or size.
 inline void read_settings(const json::Value& document, Settings& s, Problems& problems) {
@@ -355,7 +365,12 @@ inline void read_settings(const json::Value& document, Settings& s, Problems& pr
     if (broker_host(s.server.host) != stored_server_host) s.server.password.clear();
     read_int(*server, "port", s.server.port, 1, 65535, "server.port", problems);
     read_bool(*server, "tls", s.server.tls, "server.tls", problems);
-    read_bool(*server, "insecure", s.server.insecure, "server.insecure", problems);
+    {
+      std::string typed = s.server.cert_sha256;
+      read_text(*server, "cert_sha256", typed, 128, "server.cert_sha256", problems);
+      s.server.cert_sha256 = server_pin::normalize(typed);
+      if (!typed.empty() && s.server.cert_sha256.empty()) bad(problems, "server.cert_sha256", "invalid");
+    }
     read_text(*server, "cert_pem", s.server.cert_pem, 4000, "server.cert_pem", problems);
     read_text(*server, "user", s.server.user, 48, "server.user", problems);
     read_secret(*server, "password", s.server.password, "server.password", problems);
@@ -532,7 +547,8 @@ inline Problems validate(const Settings& s) {
     if (s.server.user.empty()) bad(problems, "server.user", "required");
     if (s.server.password.empty()) bad(problems, "server.password", "required");
   }
-  if (s.server.insecure && !s.server.tls) bad(problems, "server.insecure", "needs_tls");
+  if (!s.server.cert_sha256.empty() && !server_pin::is_valid(s.server.cert_sha256)) bad(problems, "server.cert_sha256", "invalid");
+  if (!s.server.cert_sha256.empty() && !s.server.tls) bad(problems, "server.cert_sha256", "needs_tls");
   if (!s.server.cert_pem.empty() && (s.server.cert_pem.find("-----BEGIN CERTIFICATE-----") == std::string::npos || s.server.cert_pem.find("-----END CERTIFICATE-----") == std::string::npos)) bad(problems, "server.cert_pem", "invalid");
   if (!s.server.cert_pem.empty() && !s.server.tls) bad(problems, "server.cert_pem", "needs_tls");
 
@@ -587,7 +603,7 @@ inline std::string to_json(const Settings& s, bool secrets) {
   w.end_array();
   w.end_object();
   w.key("server").begin_object().field("enabled", s.server.enabled).field("host", s.server.host).field("port", s.server.port).field("tls", s.server.tls)
-      .field("insecure", s.server.insecure).field("cert_pem", s.server.cert_pem).field("user", s.server.user);
+      .field("cert_sha256", s.server.cert_sha256).field("cert_pem", s.server.cert_pem).field("user", s.server.user);
   if (secrets) w.field("password", s.server.password); else w.field("password_set", !s.server.password.empty());
   w.field("poll_s", s.server.poll_s).end_object();
   w.key("display").begin_object().field("brightness", s.display.brightness).field("sleep_s", s.display.sleep_s).field("night_brightness", s.display.night_brightness)

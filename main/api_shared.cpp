@@ -104,6 +104,8 @@ std::uint32_t slot_used_bytes(const esp_partition_t* partition, SlotLength& cach
 }
 
 void write_flash(json::Writer& w) {
+  static std::mutex cache_lock;   // the lengths are kept between calls and two requests (the panel's pages and the Bluetooth set-up) may come at once
+  std::lock_guard<std::mutex> guard(cache_lock);
   // what each slot holds is measured once, and again whenever a slot was written (an update, or a copy of the other slot)
   static SlotLength lengths[2];
   static unsigned seen_generation = 0;
