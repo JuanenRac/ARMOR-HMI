@@ -1,5 +1,5 @@
 // ARMOR-HMI - the web page in a real browser (headless Microsoft Edge, its own temporary profile) against the stand-in panel of tools/panel_mock.mjs: sign in, every page in the
-// seven languages without a script error, the overview with what the screen shows, and a setting saved from the page. Development tool; it needs Edge, and `ws` from ARMOR-SERVER's
+// eight languages without a script error, the overview with what the screen shows, and a setting saved from the page. Development tool; it needs Edge, and `ws` from ARMOR-SERVER's
 // node_modules.
 //   node tools/panel_browser_test.mjs
 // Copyright (C) 2026 JuanenRac (Electro Hobby 3D). GPL-3.0-or-later.
