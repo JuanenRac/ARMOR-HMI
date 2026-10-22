@@ -38,7 +38,7 @@
 |---|---|
 | Versión | `0.3.6` |
 | Madurez | Funcional |
-| Tests | 24,440 checks in 9 programs (`ctest`) |
+| Tests | 24.440 comprobaciones en 9 programas (`ctest`) |
 | Tecnología | C++17 (host-tested core); ESP-IDF firmware for the ESP32-S3 with LVGL, with its web page |
 | En hardware real | Ninguno todavía: el firmware compila (ESP-IDF 5.5.5, sin comprobar en CI) pero no ha corrido en la placa |
 
@@ -87,7 +87,7 @@ ARMOR-HMI/
 
 ## 🛠️ Entorno de desarrollo
 
-**Requisitos:** a C++17 compiler for the host tests, the ESP-IDF 5.5 container to build the image, a Waveshare ESP32-S3-Touch-LCD-7C-BOX
+**Requisitos:** un compilador de C++17 para las pruebas en el PC, el contenedor de ESP-IDF 5.5 para compilar la imagen, un Waveshare ESP32-S3-Touch-LCD-7C-BOX
 
 ```bash
 cmake -S tests -B build/host && cmake --build build/host && ctest --test-dir build/host   # the settings, the server view, the voice conversation, the board's pins and the screen's words

@@ -38,7 +38,7 @@
 |---|---|
 | 版本 | `0.3.6` |
 | 成熟度 | 可用 |
-| 测试 | 24,440 checks in 9 programs (`ctest`) |
+| 测试 | 9 个程序中的 24,440 项检查（`ctest`） |
 | 技术栈 | C++17 (host-tested core); ESP-IDF firmware for the ESP32-S3 with LVGL, with its web page |
 | 真实硬件 | 暂无：固件可以构建（ESP-IDF 5.5.5，CI 未检查），但还没有在板上运行 |
 
@@ -87,7 +87,7 @@ ARMOR-HMI/
 
 ## 🛠️ 开发环境
 
-**环境要求:** a C++17 compiler for the host tests, the ESP-IDF 5.5 container to build the image, a Waveshare ESP32-S3-Touch-LCD-7C-BOX
+**环境要求:** 用于主机测试的 C++17 编译器, 用于构建镜像的 ESP-IDF 5.5 容器, Waveshare ESP32-S3-Touch-LCD-7C-BOX
 
 ```bash
 cmake -S tests -B build/host && cmake --build build/host && ctest --test-dir build/host   # the settings, the server view, the voice conversation, the board's pins and the screen's words
