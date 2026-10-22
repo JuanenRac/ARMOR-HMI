@@ -17,7 +17,7 @@ import { fileURLToPath } from "node:url";
 const here = path.dirname(fileURLToPath(import.meta.url));
 const panel = path.join(here, "..", "panel");
 const port = Number(process.argv.find(a => /^\d+$/.test(a)) ?? 8090);
-// --board s3-eth: the mock plays the Waveshare ESP32-S3-ETH (a cable, the W5500 pins reserved); the default is the s3-wifi board
+// The touch panel is one board, the Waveshare ESP32-S3-Touch-LCD-7C-BOX (profile lcd7box, Wi-Fi only): the mock plays it and has no cable
 const board = "lcd7box";
 const wired = false;
 const seeded = process.argv.includes("--user") ? process.argv[process.argv.indexOf("--user") + 1] : "";
@@ -35,12 +35,12 @@ const config = {
   ap: { enabled: true, ssid: "ARMOR-HMI-A1B2C3", security: "wpa2", password_set: true, channel: 0, hidden: false, max_clients: 8, tx_power_dbm: 15, bandwidth_mhz: 20, country: "ES" },
   sta: { enabled: true, ssid: "HomeRouter", password_set: true, backup: [] },
   mqtt: { enabled: true, uri: "mqtt://192.168.0.180:18883", username: "hmi-node-hmi-a1b2c3", password_set: true, heartbeat_s: 10, ntp: "pool.ntp.org", backup: [] },
-  server: { enabled: true, host: "192.168.0.180", port: 18080, tls: false, cert_sha256: "", user: "panel-salon", password_set: true, poll_s: 3 },
+  server: { enabled: true, host: "192.168.0.180", port: 18080, tls: false, cert_sha256: "", cert_pem: "", user: "panel-salon", password_set: true, poll_s: 3 },
   display: { brightness: 80, sleep_s: 300, night_brightness: 15, night_from: 22, night_to: 7 },
-  audio: { volume: 60, alarm_sound: true },
-  voice: { enabled: false, url: "", wake_name: "armor", listen_s: 8 },
+  audio: { volume: 60, alarm_sound: true, min_severity: "warning" },
+  voice: { enabled: false, url: "", wake_name: "armor", listen_s: 8, token_set: false },
   time: { ntp_enabled: true, ntp: "pool.ntp.org", zone: "CET-1CEST,M3.5.0,M10.5.0/3" },
-  system: { auto_restart_hours: 0 },
+  system: { auto_restart_hours: 0, login_limit_per_minute: 30 },
   web: { mode: "both" },
   ble: { mode: "setup" },
   ui: { language: "en" },
@@ -171,6 +171,15 @@ const server = createServer(async (request, response) => {
     return json(response, 200, { ok: true, restart_required: false });
   }
   if (method === "GET" && route === "log") return json(response, 200, { next: logText.length, text: logText.slice(Number(url.searchParams.get("from") ?? 0)) });
+  // the routes of the family that the panel calls and a stand-in must know too (tests/check_routes.py compares what the panel calls with this file and with the firmware)
+  if (method === "GET" && route === "ble-pin") { if (!needAdmin()) return; return json(response, 200, { pin: "123456" }); }
+  if (method === "GET" && route === "config/export") { if (!needAdmin()) return; return json(response, 200, { config }); }
+  if (method === "GET" && route === "coredump/info") { if (!needAdmin()) return; return json(response, 200, { present: false }); }
+  if (method === "POST" && route === "coredump/erase") { if (!needAdmin()) return; return json(response, 200, { ok: true }); }
+  if (method === "POST" && route === "ota/copy") { if (!needAdmin()) return; return json(response, 200, { ok: true, started: true }); }
+  if (method === "GET" && route === "ota/copy") { if (!needAdmin()) return; return json(response, 200, { state: "done", done: 1, total: 1, error: "", version: "0.0.3" }); }
+  if (method === "POST" && route === "time") { if (!needAdmin()) return; return json(response, 200, { ok: true }); }
+  if (method === "POST" && route === "ota/check") { if (!needAdmin()) return; return json(response, 200, { ok: true, started: true }); }   // the look for a release is started, then asked about
   if (method === "GET" && route === "ota/check") { if (!needAdmin()) return; return json(response, 200, { ok: true, current_version: "0.2.3", latest_version: "9.9.9", update_available: true }); }
   if (method === "POST" && route === "ota/install") { if (!needAdmin()) return; return json(response, 200, { ok: true, started: true }); }
   if (method === "GET" && route === "ota/progress") { if (!needAdmin()) return; return json(response, 200, { state: "downloading", got: 300000, total: 1200000 }); }

@@ -74,8 +74,8 @@ static void test_screen_audio_voice() {
   CHECK(config::validate(s).empty());
   s.voice.enabled = true;
   CHECK(has(config::validate(s), "voice.url", "required"));
-  for (const char* bad : {"192.168.0.180:8765", "ftp://x", "http://user@host", "http://host/path", "http://host:0", "http://host:99999", "http://"}) { s.voice.url = bad; CHECK(has(config::validate(s), "voice.url", "invalid")); }
-  for (const char* good : {"http://192.168.0.180:8765", "https://voice.local", "http://voice.local/"}) { s.voice.url = good; CHECK(config::validate(s).empty()); }
+  for (const char* bad : {"192.168.0.180:18090", "ftp://x", "http://user@host", "http://host/path", "http://host:0", "http://host:99999", "http://"}) { s.voice.url = bad; CHECK(has(config::validate(s), "voice.url", "invalid")); }
+  for (const char* good : {"http://192.168.0.180:18090", "https://voice.local", "http://voice.local/"}) { s.voice.url = good; CHECK(config::validate(s).empty()); }
   s.voice.wake_name = "";
   CHECK(has(config::validate(s), "voice.wake_name", "required"));
 }
@@ -109,6 +109,13 @@ static void test_document() {
   CHECK(config::load("{\"system\":{\"auto_restart_hours\":12}}", base, out, problems) && out.auto_restart_hours == 12);
   problems.clear();
   CHECK(!config::load("{\"system\":{\"auto_restart_hours\":5}}", base, out, problems) && has(problems, "system.auto_restart_hours", "invalid"));
+  problems.clear();
+  CHECK(base.login_limit_per_minute == 30);                                                                                    // as the node has always behaved
+  CHECK(config::load("{\"system\":{\"login_limit_per_minute\":0}}", base, out, problems) && out.login_limit_per_minute == 0);   // no global limit
+  problems.clear();
+  CHECK(!config::load("{\"system\":{\"login_limit_per_minute\":121}}", base, out, problems) && has(problems, "system.login_limit_per_minute", "range"));
+  problems.clear();
+  { config::Settings zero = base; zero.login_limit_per_minute = 0; config::Settings back; CHECK(config::load(config::to_json(zero, true), base, back, problems) && back.login_limit_per_minute == 0); }
   // a password never leaves: the panel's copy says only that there is one
   config::Settings with_secret = base;
   with_secret.server.password = "secreto-secreto";

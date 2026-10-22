@@ -1,7 +1,8 @@
 // ARMOR-HMI - the web page in a real browser (headless Microsoft Edge, its own temporary profile) against the stand-in panel of tools/panel_mock.mjs: sign in, every page in the
-// eight languages without a script error, the overview with what the screen shows, and a setting saved from the page. Development tool; it needs Edge, and `ws` from ARMOR-SERVER's
-// node_modules.
+// eight languages without a script error, the overview with what the screen shows, and a setting saved from the page. Development tool; it needs a Chromium-based browser (Edge, Chrome or
+// Chromium: found in the usual places of Windows, macOS and Linux, or named by ARMOR_BROWSER) and `ws` from ARMOR-SERVER's node_modules.
 //   node tools/panel_browser_test.mjs
+//   ARMOR_BROWSER=/usr/bin/chromium node tools/panel_browser_test.mjs
 // Copyright (C) 2026 JuanenRac (Electro Hobby 3D). GPL-3.0-or-later.
 import { spawn } from "node:child_process";
 import fs from "node:fs";
@@ -17,6 +18,22 @@ const WebSocket = require("ws");
 const OUT = path.join(os.tmpdir(), "armor-hmi-shots");
 fs.mkdirSync(OUT, { recursive: true });
 const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
+// The browser to drive: the one ARMOR_BROWSER names, or the first of the usual places that exists.
+function findBrowser() {
+  const named = process.env.ARMOR_BROWSER;
+  if (named) return fs.existsSync(named) ? named : null;
+  const candidates = [
+    "C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe", "C:/Program Files/Microsoft/Edge/Application/msedge.exe", "C:/Program Files/Google/Chrome/Application/chrome.exe",
+    "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome", "/Applications/Microsoft Edge.app/Contents/MacOS/Microsoft Edge",
+    "/usr/bin/google-chrome", "/usr/bin/google-chrome-stable", "/usr/bin/chromium", "/usr/bin/chromium-browser", "/usr/bin/microsoft-edge", "/snap/bin/chromium",
+  ];
+  return candidates.find(candidate => fs.existsSync(candidate)) ?? null;
+}
+const BROWSER = findBrowser();
+if (!BROWSER) {
+  console.log("SKIP no Chromium-based browser found: install one, or name it with ARMOR_BROWSER=/path/to/browser");
+  process.exit(process.env.ARMOR_BROWSER ? 1 : 0);   // asked for a browser that is not there is a failure; none installed is a skipped test
+}
 const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "armor-hmi-panel-"));
 const mock = spawn("node", ["tools/panel_mock.mjs", "18132", "--user", "admin:adminpass123"], { cwd: ROOT, stdio: "ignore" });
 let edge;
@@ -30,7 +47,7 @@ try {
   const login = await fetch("http://127.0.0.1:18132/api/v1/login", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ user: "admin", password: "adminpass123" }) });
   const cookie = login.headers.getSetCookie()[0].split(";")[0];
   const [cname, cvalue] = [cookie.slice(0, cookie.indexOf("=")), cookie.slice(cookie.indexOf("=") + 1)];
-  edge = spawn("C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe", ["--headless=new", "--remote-debugging-port=9367", "--user-data-dir=" + path.join(tmp, "edge"), "--no-first-run", "--disable-gpu", "about:blank"], { stdio: "ignore" });
+  edge = spawn(BROWSER, ["--headless=new", "--remote-debugging-port=9367", "--user-data-dir=" + path.join(tmp, "edge"), "--no-first-run", "--disable-gpu", "about:blank"], { stdio: "ignore" });
   let targets;
   for (let i = 0; i < 40; i += 1) { try { targets = await (await fetch("http://127.0.0.1:9367/json")).json(); if (targets.length) break; } catch { /* wait */ } await sleep(300); }
   const ws = new WebSocket(targets.find(target => target.type === "page").webSocketDebuggerUrl);
@@ -63,7 +80,9 @@ try {
 
   // every page, in every language, without a script error
   const pages = ["overview", "server", "screen", "voice", "network", "wifi", "broker", "users", "update"];
-  for (const [code] of [["en"], ["es"], ["de"], ["fr"], ["it"], ["ja"], ["zh"]]) {
+  const languages = await evaluate("LANGS.map(l => l[0])");   // the panel's own list: all eight, Portuguese included
+  check("the panel offers the eight languages", JSON.stringify(languages) === JSON.stringify(["en", "es", "de", "fr", "it", "ja", "zh", "pt"]), JSON.stringify(languages));
+  for (const code of languages) {
     await evaluate(`localStorage.setItem('armor_lang', '${code}')`);
     await send("Page.navigate", { url: "http://127.0.0.1:18132/" });
     await sleep(1200);
