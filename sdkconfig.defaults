@@ -66,7 +66,7 @@ CONFIG_ESP_TLS_SKIP_SERVER_CERT_VERIFY=n
 
 # LVGL: the fonts are the generated ones (main/fonts); the default font is only for the microphone symbol.
 CONFIG_LV_COLOR_DEPTH_16=y
-CONFIG_LV_MEM_CUSTOM=y
+# LVGL 9 has no LV_MEM_CUSTOM: its own 64 KB pool (LV_USE_BUILTIN_MALLOC, the default) is what runs. Moving the pool to the C allocator means CONFIG_LV_USE_CLIB_MALLOC=y and a test on the panel.
 CONFIG_LV_FONT_MONTSERRAT_14=y
 CONFIG_LV_USE_SYSMON=n
 CONFIG_LV_USE_PERF_MONITOR=n
