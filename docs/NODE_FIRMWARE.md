@@ -1,6 +1,6 @@
 # ARMOR-HMI - building, flashing and setting up the panel
 
-The firmware is ESP-IDF C++17 (built with 5.4.2 in the container and with 5.5.5 on a machine; the image is about 2.4 MB of its 6 MB partition). It has **never been run on a board**: the first power-up will probably need
+The firmware is ESP-IDF C++17 (built with 5.5.5, in the container and on a machine; the image is about 2.4 MB of its 6 MB partition). It has **never been run on a board**: the first power-up will probably need
 the adjustments listed at the end of [HARDWARE](HARDWARE.md).
 
 ## Building
@@ -10,7 +10,7 @@ tools/build_node.sh generic             # the UNIVERSAL image for the Waveshare 
 tools/build_node.sh salon               # reads secrets/salon.conf (copy secrets/node.conf.example), writes dist/salon-lcd7box.bin
 ```
 
-The script runs the official `espressif/idf:v5.4.2` container (Linux, or WSL on Windows with Docker); one image is for one board. The first build needs the Internet: ESP-IDF's
+The script runs the official `espressif/idf:v5.5.5` container (Linux, or WSL on Windows with Docker); one image is for one board. The first build needs the Internet: ESP-IDF's
 component manager fetches LVGL, `esp_lvgl_port`, the GT911 driver and `esp_codec_dev` (`main/idf_component.yml`). With ESP-IDF installed on the machine (for example by the Espressif
 extension of VS Code) the same project builds (it is how the first build was made, on Windows with ESP-IDF 5.5.5) with `idf.py -D "SDKCONFIG_DEFAULTS=sdkconfig.defaults;sdkconfig.board.lcd7box" set-target esp32s3 build`.
 

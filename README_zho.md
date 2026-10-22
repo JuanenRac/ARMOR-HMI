@@ -87,7 +87,7 @@ ARMOR-HMI/
 
 ## 🛠️ 开发环境
 
-**环境要求:** 用于主机测试的 C++17 编译器, 用于构建镜像的 ESP-IDF 5.5 容器, Waveshare ESP32-S3-Touch-LCD-7C-BOX
+**环境要求:** 用于主机测试的 C++17 编译器, 用于构建镜像的 ESP-IDF 5.5.5 容器, Waveshare ESP32-S3-Touch-LCD-7C-BOX
 
 ```bash
 cmake -S tests -B build/host && cmake --build build/host && ctest --test-dir build/host   # the settings, the server view, the voice conversation, the board's pins and the screen's words

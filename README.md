@@ -87,7 +87,7 @@ ARMOR-HMI/
 
 ## 🛠️ Development Environment
 
-**Requirements:** a C++17 compiler for the host tests, the ESP-IDF 5.5 container to build the image, a Waveshare ESP32-S3-Touch-LCD-7C-BOX
+**Requirements:** a C++17 compiler for the host tests, the ESP-IDF 5.5.5 container to build the image, a Waveshare ESP32-S3-Touch-LCD-7C-BOX
 
 ```bash
 cmake -S tests -B build/host && cmake --build build/host && ctest --test-dir build/host   # the settings, the server view, the voice conversation, the board's pins and the screen's words

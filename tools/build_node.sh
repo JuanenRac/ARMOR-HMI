@@ -18,7 +18,7 @@ BOARD="${2:-lcd7box}"
 [[ "$NODE" =~ ^[a-z0-9][a-z0-9_-]{0,63}$ ]] || { echo "usage: build_node.sh NODE_ID [lcd7box]   (lowercase letters, digits, - and _)" >&2; exit 2; }
 [[ "$BOARD" == "lcd7box" ]] || { echo "the board is lcd7box, not '$BOARD'" >&2; exit 2; }
 IMAGE="$NODE-$BOARD"
-IDF_IMAGE="${ARMOR_IDF_IMAGE:-espressif/idf:v5.4.2}"
+IDF_IMAGE="${ARMOR_IDF_IMAGE:-espressif/idf:v5.5.5}"
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 CONF="secrets/$NODE.conf"
 DEFAULTS="sdkconfig.defaults;sdkconfig.board.$BOARD;$CONF"
