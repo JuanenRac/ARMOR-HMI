@@ -6,6 +6,15 @@ All notable changes to this project are documented here.
 
 - The repository has a security policy, a code of conduct, a contributing guide and a support file.
 - The banner follows the animated style of the ecosystem banners, with the name, the kind and the technologies of the project.
+## [0.3.7] - Wrong passwords per minute as a setting, the broker certificate from a file and a browser test for any Chromium
+
+- **The limit on wrong passwords per minute is a setting of the node:** `system.login_limit_per_minute` (30 as always, 0 for none, at most 120) with its field and its explanation in the panel in the eight languages; the limit of each address and of each person is not touched by it.
+- **The certificate of the broker can be loaded from a file** on the Broker page (it is checked for the BEGIN and END lines, a private key is refused, and it must fit the 2048 characters the node keeps); nothing is sent to the node until the page is saved.
+- **New checks in the host tests:** the Bluetooth session stays under its lock and a request or an answer never crosses to another connection (`check_ble_session.py`); the routes every node serves, the routes the panel calls and the stand-in node the panel is tried against agree (`check_routes.py`); the guard on the paths of a save also keeps the tolerant read of the stored settings, the serial set-up that makes the Wi-Fi the way in, and the answer to a release without an image for the board.
+- **The universal image holds no fleet secret unless asked for:** `tools/build_node.sh generic` adds `secrets/generic.conf` only with `ARMOR_WITH_FLEET_SECRET=1`, names that image `*-local` and says it is never to be published, and a public build is refused when the configuration it ended with holds a secret or a set-up code; the option's help says the same.
+- **The panel test finds any Chromium-based browser** (`ARMOR_BROWSER`, or the usual places of Windows, macOS and Linux; with none installed it says it was skipped) and goes through the eight languages the panel offers; the stand-in panel has the fields it lacked (`audio.min_severity`, `voice.token_set`, `server.cert_pem`).
+- **The shared Kconfig and the stand-in panel name the touch panel's board correctly** (`lcd7box`); the speech service address suggested in the panel and the tests is the port 18090 where the service listens.
+
 ## [0.3.6] - Node diagnostics
 
 - **The graphics memory pool lives in the C allocator** (`CONFIG_LV_USE_CLIB_MALLOC`), so large blocks go to the external RAM; the line that asked for it before named a setting that LVGL 9 does not have, and the 64 KB pool inside the internal RAM was the one in use.
