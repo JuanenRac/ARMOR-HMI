@@ -17,8 +17,9 @@ int main() {
   config::Settings out;
   config::Problems problems;
   CHECK(base.time.ntp_enabled && base.time.zone == "UTC0" && base.time.ntp == "pool.ntp.org");
+  CHECK(base.time.rtc_enabled);   // the board's battery-backed clock is used unless the settings say otherwise
   config::Settings s = base;
-  s.time.zone = "CET-1CEST,M3.5.0,M10.5.0/3"; s.time.ntp = "time.example.org"; s.time.ntp_enabled = false;
+  s.time.zone = "CET-1CEST,M3.5.0,M10.5.0/3"; s.time.ntp = "time.example.org"; s.time.ntp_enabled = false; s.time.rtc_enabled = false;
   s.sta.backup = {{"guest", "guest-password"}};
   s.mqtt.backup = {{"mqtt://10.0.0.5:1883", "u", "p"}, {"mqtt://10.0.0.6:1883", "u2", "p2"}};
   const std::string text = config::to_json(s, true);
@@ -26,7 +27,7 @@ int main() {
   const bool loaded = config::load(text, base, back, problems);
   show("roundtrip", problems);
   CHECK(loaded);
-  CHECK(back.time.zone == s.time.zone && back.time.ntp == "time.example.org" && !back.time.ntp_enabled);
+  CHECK(back.time.zone == s.time.zone && back.time.ntp == "time.example.org" && !back.time.ntp_enabled && !back.time.rtc_enabled);
   CHECK(text.find("\"time\":{") != std::string::npos);
   CHECK(text.find("\"mqtt\":{") != std::string::npos);
   problems.clear();

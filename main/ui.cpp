@@ -27,6 +27,7 @@
 #include "core/pin_entry.hpp"
 #include "core/screen_text.hpp"
 #include "core/server_view.hpp"
+#include "core/view_model.hpp"
 #include "display.hpp"
 #include "node_control.hpp"
 #include "server_link.hpp"
@@ -75,6 +76,9 @@ struct Screen {
   bool identify_blink = false;
   std::string error_seen;        // the last refusal shown in the footer, and since when
   std::uint32_t error_since_ms = 0;
+  hmi::ViewModel view;           // what was last drawn of the server's news, and the generation it had (core/view_model.hpp)
+  std::uint32_t view_seen = 0;
+  bool drawn = false;            // the first draw has been done
 };
 Screen g_screen;
 
@@ -197,89 +201,104 @@ std::uint32_t severity_colour(hmi::Severity severity) {
   return kAmber;
 }
 
-void apply_language(const std::string& language) {
-  if (language == g_screen.language) return;
+// True when the words changed: the fonts and the fixed texts follow the language.
+bool apply_language(const std::string& language) {
+  if (language == g_screen.language) return false;
   g_screen.language = language;
   for (const Labelled& item : g_screen.labels) lv_obj_set_style_text_font(item.object, font_for(language, item.size), 0);
   lv_label_set_text(g_screen.ack_label, text_of("acknowledge_all").c_str());
   lv_label_set_text(g_screen.confirm_yes_label, text_of("yes").c_str());
   lv_label_set_text(g_screen.confirm_no_label, text_of("no").c_str());
   lv_label_set_text(g_screen.pin_prompt, text_of("pin_prompt").c_str());
+  return true;
 }
 
+// A label's text, set only when it is not the text it has: LVGL redraws a label every time its text is set, even to the same words.
+void set_text(lv_obj_t* label, const std::string& text) {
+  const char* now = lv_label_get_text(label);
+  if (now == nullptr || text != now) lv_label_set_text(label, text.c_str());
+}
+
+// Twice a second. What comes from the server is drawn from the block of core/view_model.hpp, and only when that block has changed since it was last drawn (or the language has): a
+// summary that did not change costs no copy of strings and no redraw. The clock, the voice assistant and the footer are looked at every time, and set only when their text changed.
 void refresh(lv_timer_t*) {
   if (!lv_obj_has_flag(g_screen.confirm, LV_OBJ_FLAG_HIDDEN) && hmi::confirm_expired(g_confirm_opened_ms, esp_timer_get_time() / 1000, display::asleep())) hide_confirm();   // the PIN does not wait on a screen nobody is using
   const Context context = g_screen.context ? g_screen.context() : Context{};
-  apply_language(std::string(screen::effective_language(context.language, true)));
-  const server_link::Snapshot snap = server_link::snapshot();
+  const bool words_changed = apply_language(std::string(screen::effective_language(context.language, true)));
+  const bool news = server_link::view_changed(g_screen.view_seen, g_screen.view);
+  const bool redraw = news || words_changed || !g_screen.drawn;
+  g_screen.drawn = true;
+  const hmi::ViewModel& view = g_screen.view;
   const voice_task::View voice = voice_task::view();
-  const hmi::Summary& summary = snap.summary;
 
-  // the mode, in the colour of the worst alarm nobody has seen
-  const bool known = snap.have_summary;
-  std::string mode_text = !known ? "—" : text_of(summary.mode == hmi::Mode::kArmed ? "armed" : "disarmed");
-  lv_label_set_text(g_screen.mode, mode_text.c_str());
-  std::uint32_t mode_colour = !known || !snap.current ? kMuted : summary.mode == hmi::Mode::kArmed ? kGreen : kAmber;
-  if (known && snap.current && hmi::tone_of(summary) == hmi::Tone::kAlert) mode_colour = kRed;
-  lv_obj_set_style_text_color(g_screen.mode, lv_color_hex(mode_colour), 0);
+  if (redraw) {
+    // the mode, in the colour of the worst alarm nobody has seen
+    const bool known = view.have_summary;
+    set_text(g_screen.mode, !known ? "—" : text_of(view.mode == hmi::Mode::kArmed ? "armed" : "disarmed"));
+    std::uint32_t mode_colour = !known || !view.current ? kMuted : view.mode == hmi::Mode::kArmed ? kGreen : kAmber;
+    if (known && view.current && view.tone == hmi::Tone::kAlert) mode_colour = kRed;
+    lv_obj_set_style_text_color(g_screen.mode, lv_color_hex(mode_colour), 0);
 
-  // the link
-  const char* key = link_key(snap.link);
-  lv_label_set_text(g_screen.link, *key ? text_of(key).c_str() : "");
-  lv_obj_set_style_text_color(g_screen.link, lv_color_hex(snap.link == hmi::Link::kDenied ? kRed : kAmber), 0);
+    // the link
+    const char* key = link_key(view.link);
+    set_text(g_screen.link, *key ? text_of(key) : std::string());
+    lv_obj_set_style_text_color(g_screen.link, lv_color_hex(view.link == hmi::Link::kDenied ? kRed : kAmber), 0);
+
+    // the button
+    const bool can_act = known && view.current && !view.action_pending;
+    set_text(g_screen.arm_label, text_of(!known || view.mode == hmi::Mode::kDisarmed ? "arm" : "disarm"));
+    lv_obj_set_style_bg_color(g_screen.arm_button, lv_color_hex(can_act ? (view.mode == hmi::Mode::kArmed ? kAmber : kGreen) : kBorder), 0);
+
+    // the nodes
+    char nodes_text[96];
+    std::snprintf(nodes_text, sizeof nodes_text, "%s  %d / %d", text_of("nodes").c_str(), view.nodes_online, view.nodes_total);
+    set_text(g_screen.nodes, known ? std::string(nodes_text) : std::string());
+
+    // the energy: what the panels make, what the house draws and the battery (nothing until the server sends the block, and a word when no solar equipment reports)
+    char energy_text[160] = "";
+    if (known && view.energy.reporting) {
+      const hmi::EnergyView& e = view.energy;
+      int n = std::snprintf(energy_text, sizeof energy_text, "%s %s   %s %s", text_of("energy_solar").c_str(), hmi::power_text(e.pv_w).c_str(), text_of("energy_house").c_str(), hmi::power_text(e.load_w).c_str());
+      if (e.has_battery && n > 0 && n < static_cast<int>(sizeof energy_text)) {
+        std::snprintf(energy_text + n, sizeof energy_text - static_cast<std::size_t>(n), "\n%s %d %%  %s %s", text_of("energy_battery").c_str(), e.soc_percent,
+                      text_of(e.battery_w >= 0 ? "energy_charging" : "energy_discharging").c_str(), hmi::power_text(e.battery_w < 0 ? -e.battery_w : e.battery_w).c_str());
+      }
+    } else if (known && view.energy.present && !view.energy.reporting && view.link != hmi::Link::kStale) {
+      std::snprintf(energy_text, sizeof energy_text, "%s", text_of("energy_none").c_str());
+    }
+    set_text(g_screen.energy, energy_text);
+    lv_obj_set_style_text_color(g_screen.energy, lv_color_hex(view.energy.reporting ? kText : kMuted), 0);
+
+    // the alarms
+    char title[96];
+    std::snprintf(title, sizeof title, "%s (%d)", text_of("alarms").c_str(), view.alarms_active);
+    set_text(g_screen.alarms_title, known ? std::string(title) : text_of("alarms"));
+    const bool quiet = known && view.alarm_count == 0;
+    if (quiet) lv_obj_clear_flag(g_screen.none, LV_OBJ_FLAG_HIDDEN); else lv_obj_add_flag(g_screen.none, LV_OBJ_FLAG_HIDDEN);
+    for (int i = 0; i < kAlarmRows; ++i) {
+      if (known && i < static_cast<int>(view.alarm_count)) {
+        const hmi::AlarmRowView& line = view.alarms[static_cast<std::size_t>(i)];
+        set_text(g_screen.alarm_text[i], std::string(screen::alarm_text(g_screen.language, line.code)));
+        lv_obj_set_style_text_color(g_screen.alarm_text[i], lv_color_hex(line.acknowledged ? kMuted : kText), 0);
+        lv_obj_set_style_bg_color(g_screen.alarm_dot[i], lv_color_hex(line.acknowledged ? kMuted : severity_colour(line.severity)), 0);
+        lv_obj_clear_flag(g_screen.alarm_row[i], LV_OBJ_FLAG_HIDDEN);
+      } else {
+        lv_obj_add_flag(g_screen.alarm_row[i], LV_OBJ_FLAG_HIDDEN);
+      }
+    }
+    if (known && view.alarms_unacknowledged > 0) lv_obj_clear_flag(g_screen.ack_button, LV_OBJ_FLAG_HIDDEN); else lv_obj_add_flag(g_screen.ack_button, LV_OBJ_FLAG_HIDDEN);
+    set_text(g_screen.version, context.version);
+  }
+
   std::time_t now = std::time(nullptr);
   char clock_text[16] = "";
   if (now > 1700000000) { std::tm local{}; localtime_r(&now, &local); std::snprintf(clock_text, sizeof clock_text, "%02d:%02d", local.tm_hour, local.tm_min); }
-  lv_label_set_text(g_screen.clock, clock_text);
-
-  // the button
-  const bool can_act = known && snap.current && !snap.action_pending;
-  lv_label_set_text(g_screen.arm_label, text_of(!known || summary.mode == hmi::Mode::kDisarmed ? "arm" : "disarm").c_str());
-  lv_obj_set_style_bg_color(g_screen.arm_button, lv_color_hex(can_act ? (summary.mode == hmi::Mode::kArmed ? kAmber : kGreen) : kBorder), 0);
-
-  // the nodes
-  char nodes_text[96];
-  std::snprintf(nodes_text, sizeof nodes_text, "%s  %d / %d", text_of("nodes").c_str(), summary.nodes_online, summary.nodes_total);
-  lv_label_set_text(g_screen.nodes, known ? nodes_text : "");
-
-  // the energy: what the panels make, what the house draws and the battery (nothing until the server sends the block, and a word when no solar equipment reports)
-  char energy_text[160] = "";
-  if (known && summary.energy.reporting) {
-    const hmi::Energy& e = summary.energy;
-    int n = std::snprintf(energy_text, sizeof energy_text, "%s %s   %s %s", text_of("energy_solar").c_str(), hmi::power_text(e.pv_w).c_str(), text_of("energy_house").c_str(), hmi::power_text(e.load_w).c_str());
-    if (e.has_battery && n > 0 && n < static_cast<int>(sizeof energy_text)) {
-      std::snprintf(energy_text + n, sizeof energy_text - static_cast<std::size_t>(n), "\n%s %d %%  %s %s", text_of("energy_battery").c_str(), e.soc_percent,
-                    text_of(e.battery_w >= 0 ? "energy_charging" : "energy_discharging").c_str(), hmi::power_text(e.battery_w < 0 ? -e.battery_w : e.battery_w).c_str());
-    }
-  } else if (known && summary.energy.present && !summary.energy.reporting && snap.link != hmi::Link::kStale) {
-    std::snprintf(energy_text, sizeof energy_text, "%s", text_of("energy_none").c_str());
-  }
-  lv_label_set_text(g_screen.energy, energy_text);
-  lv_obj_set_style_text_color(g_screen.energy, lv_color_hex(summary.energy.reporting ? kText : kMuted), 0);
-
-  // the alarms
-  char title[96];
-  std::snprintf(title, sizeof title, "%s (%d)", text_of("alarms").c_str(), summary.alarms_active);
-  lv_label_set_text(g_screen.alarms_title, known ? title : text_of("alarms").c_str());
-  const bool quiet = known && summary.alarms.empty();
-  if (quiet) lv_obj_clear_flag(g_screen.none, LV_OBJ_FLAG_HIDDEN); else lv_obj_add_flag(g_screen.none, LV_OBJ_FLAG_HIDDEN);
-  for (int i = 0; i < kAlarmRows; ++i) {
-    if (known && i < static_cast<int>(summary.alarms.size())) {
-      const hmi::AlarmLine& line = summary.alarms[static_cast<std::size_t>(i)];
-      lv_label_set_text(g_screen.alarm_text[i], std::string(screen::alarm_text(g_screen.language, line.code)).c_str());
-      lv_obj_set_style_text_color(g_screen.alarm_text[i], lv_color_hex(line.acknowledged ? kMuted : kText), 0);
-      lv_obj_set_style_bg_color(g_screen.alarm_dot[i], lv_color_hex(line.acknowledged ? kMuted : severity_colour(line.severity)), 0);
-      lv_obj_clear_flag(g_screen.alarm_row[i], LV_OBJ_FLAG_HIDDEN);
-    } else {
-      lv_obj_add_flag(g_screen.alarm_row[i], LV_OBJ_FLAG_HIDDEN);
-    }
-  }
-  if (known && summary.alarms_unacknowledged > 0) lv_obj_clear_flag(g_screen.ack_button, LV_OBJ_FLAG_HIDDEN); else lv_obj_add_flag(g_screen.ack_button, LV_OBJ_FLAG_HIDDEN);
+  set_text(g_screen.clock, clock_text);
 
   // the voice assistant
   if (!context.voice_enabled) {
     lv_obj_add_flag(g_screen.mic_button, LV_OBJ_FLAG_HIDDEN);
-    lv_label_set_text(g_screen.voice_label, "");
+    set_text(g_screen.voice_label, std::string());
   } else {
     lv_obj_clear_flag(g_screen.mic_button, LV_OBJ_FLAG_HIDDEN);
     std::string say;
@@ -291,26 +310,27 @@ void refresh(lv_timer_t*) {
       case voice::State::kOff: say = text_of("voice_off"); break;
       case voice::State::kIdle: say = text_of("voice_idle"); break;
     }
-    lv_label_set_text(g_screen.voice_label, say.c_str());
+    set_text(g_screen.voice_label, say);
     lv_obj_set_style_bg_color(g_screen.mic_button, lv_color_hex(voice.state == voice::State::kListening ? kRed : voice.state == voice::State::kIdle ? kCyan : kAmber), 0);
   }
 
   // the footer: how to set the panel up, or what is wrong
+  const std::string action_error(view.action_error);
   std::string footer;
-  if (context.setup || snap.link == hmi::Link::kNotConfigured) {
+  if (context.setup || view.link == hmi::Link::kNotConfigured) {
     footer = text_of("setup_hint") + " http://" + (context.ip.empty() ? std::string("192.168.4.1") : context.ip) + "/";
-  } else if (snap.link == hmi::Link::kStale || snap.link == hmi::Link::kDenied) {
-    footer = text_of(link_key(snap.link));
+  } else if (view.link == hmi::Link::kStale || view.link == hmi::Link::kDenied) {
+    footer = text_of(link_key(view.link));
   }
   // a refusal of the PIN stays in the footer for a few seconds, then goes
-  if (snap.action_error != g_screen.error_seen) { g_screen.error_seen = snap.action_error; g_screen.error_since_ms = lv_tick_get(); }
+  if (action_error != g_screen.error_seen) { g_screen.error_seen = action_error; g_screen.error_since_ms = lv_tick_get(); }
   // ... and so does every other reason an order did not go through: a person who gave an order and walked away must know it was not done
-  if (!snap.action_error.empty() && lv_tick_elaps(g_screen.error_since_ms) < 8000) {
-    const std::string& why = snap.action_error;
+  if (!action_error.empty() && lv_tick_elaps(g_screen.error_since_ms) < 8000) {
+    const std::string& why = action_error;
     footer = text_of(why == "wrong_pin" ? "pin_wrong" : (why == "pin_locked" || why == "pin_not_set") ? why.c_str() : why == "no_answer" ? "action_no_answer" : (why == "forbidden" || why == "unauthorized") ? "action_forbidden" : "action_failed");
   }
-  lv_label_set_text(g_screen.footer, footer.c_str());
-  lv_label_set_text(g_screen.version, context.version.c_str());
+  set_text(g_screen.footer, footer);
+
 
   // the server paused the panel or put it in standby: a screen of its own says so (the panel stays connected and answers the server; it shows nothing else and takes no touch), and the bar of
   // "identify" blinks while the server asks the panel to show itself

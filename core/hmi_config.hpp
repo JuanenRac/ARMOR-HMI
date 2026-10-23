@@ -19,6 +19,7 @@
 
 #include "board_s3.hpp"
 #include "admin_sources.hpp"
+#include "audio_queue.hpp"
 #include "json.hpp"
 #include "mqtt_tls.hpp"
 #include "net_text.hpp"
@@ -112,6 +113,9 @@ struct Audio {
   int volume = 60;            // percent
   bool alarm_sound = true;    // a tone when a new alarm arrives
   AlarmFloor min_severity = AlarmFloor::kWarning;   // below this severity an alarm makes no sound (the screen still shows it)
+  int critical_min_volume = 40;   // percent: a siren or an alarm tone is never played quieter than this, even when the volume is lower or 0 (0 here: the volume decides, always)
+  int siren_repeat_s = 30;        // seconds between the siren and its repeats while a critical alarm is unacknowledged (0: no repeats, 10 to 600)
+  int siren_max_repeats = 10;     // how many times it repeats (1 to 100)
 };
 
 // The voice assistant: the microphone is listened to only after a touch on the microphone button (there is no wake word yet), and what is heard goes only to the speech service of the installation.
@@ -128,6 +132,7 @@ struct Voice {
 // shown in. The zone is a POSIX TZ rule, so summer time changes by itself ("CET-1CEST,M3.5.0,M10.5.0/3" is Spain); "UTC0" is no offset.
 struct Clock {
   bool ntp_enabled = true;
+  bool rtc_enabled = true;   // use the board's battery-backed clock (PCF85063A): the node's clock starts from it and it follows the node's clock
   std::string ntp = "pool.ntp.org";
   std::string zone = "UTC0";
 };
@@ -392,6 +397,13 @@ inline void read_settings(const json::Value& document, Settings& s, Problems& pr
   if (const json::Value* audio = document.get("audio"); audio != nullptr && audio->is_object()) {
     read_int(*audio, "volume", s.audio.volume, 0, 100, "audio.volume", problems);
     read_bool(*audio, "alarm_sound", s.audio.alarm_sound, "audio.alarm_sound", problems);
+    read_int(*audio, "critical_min_volume", s.audio.critical_min_volume, 0, 100, "audio.critical_min_volume", problems);
+    if (audio->get("siren_repeat_s") != nullptr) {
+      int every = s.audio.siren_repeat_s;
+      read_int(*audio, "siren_repeat_s", every, 0, hmi::kRepeatEveryMax, "audio.siren_repeat_s", problems);
+      if (!hmi::repeat_every_is_valid(every)) bad(problems, "audio.siren_repeat_s", "range"); else s.audio.siren_repeat_s = every;
+    }
+    read_int(*audio, "siren_max_repeats", s.audio.siren_max_repeats, hmi::kRepeatsMin, hmi::kRepeatsMax, "audio.siren_max_repeats", problems);
     if (audio->get("min_severity") != nullptr && !read_choice<AlarmFloor>(*audio, "min_severity", {{"warning", AlarmFloor::kWarning}, {"high", AlarmFloor::kHigh}, {"critical", AlarmFloor::kCritical}}, s.audio.min_severity)) bad(problems, "audio.min_severity", "invalid");
   }
   if (const json::Value* voice = document.get("voice"); voice != nullptr && voice->is_object()) {
@@ -418,6 +430,7 @@ inline void read_settings(const json::Value& document, Settings& s, Problems& pr
   }
   if (const json::Value* time = document.get("time"); time != nullptr && time->is_object()) {
     read_bool(*time, "ntp_enabled", s.time.ntp_enabled, "time.ntp_enabled", problems);
+    read_bool(*time, "rtc_enabled", s.time.rtc_enabled, "time.rtc_enabled", problems);
     read_text(*time, "ntp", s.time.ntp, 64, "time.ntp", problems);
     read_text(*time, "zone", s.time.zone, 48, "time.zone", problems);
   }
@@ -501,6 +514,9 @@ inline Problems validate(const Settings& s) {
   if (!language_is_known(s.language)) bad(problems, "ui.language", "invalid");
   if (!auto_restart_hours_is_valid(s.auto_restart_hours)) bad(problems, "system.auto_restart_hours", "invalid");
   if (!s.hostname.empty() && !net::valid_hostname(s.hostname)) bad(problems, "node.hostname", "invalid");
+  if (s.audio.critical_min_volume < 0 || s.audio.critical_min_volume > 100) bad(problems, "audio.critical_min_volume", "range");
+  if (!hmi::repeat_every_is_valid(s.audio.siren_repeat_s)) bad(problems, "audio.siren_repeat_s", "range");
+  if (s.audio.siren_max_repeats < hmi::kRepeatsMin || s.audio.siren_max_repeats > hmi::kRepeatsMax) bad(problems, "audio.siren_max_repeats", "range");
 
   // the way in: the Ethernet cable (only the s3-eth board has one), with DHCP or a fixed address, or Wi-Fi
   if (s.uplink == Uplink::kEthernet && !board::kHasEthernet) bad(problems, "uplink", "not_available");
@@ -618,14 +634,15 @@ inline std::string to_json(const Settings& s, bool secrets) {
   w.field("poll_s", s.server.poll_s).field("live_events", s.server.live_events).end_object();
   w.key("display").begin_object().field("brightness", s.display.brightness).field("sleep_s", s.display.sleep_s).field("night_brightness", s.display.night_brightness)
       .field("night_from", s.display.night_from).field("night_to", s.display.night_to).end_object();
-  w.key("audio").begin_object().field("volume", s.audio.volume).field("alarm_sound", s.audio.alarm_sound).field("min_severity", s.audio.min_severity == AlarmFloor::kCritical ? "critical" : s.audio.min_severity == AlarmFloor::kHigh ? "high" : "warning").end_object();
+  w.key("audio").begin_object().field("volume", s.audio.volume).field("alarm_sound", s.audio.alarm_sound).field("min_severity", s.audio.min_severity == AlarmFloor::kCritical ? "critical" : s.audio.min_severity == AlarmFloor::kHigh ? "high" : "warning")
+      .field("critical_min_volume", s.audio.critical_min_volume).field("siren_repeat_s", s.audio.siren_repeat_s).field("siren_max_repeats", s.audio.siren_max_repeats).end_object();
   w.key("voice").begin_object().field("enabled", s.voice.enabled).field("url", s.voice.url).field("wake_name", s.voice.wake_name).field("listen_s", s.voice.listen_s).field("binary_turn", s.voice.binary_turn);
   if (secrets) w.field("token", s.voice.token); else w.field("token_set", !s.voice.token.empty());
   w.end_object();
   w.key("web").begin_object().field("mode", to_text(s.web)).field("admin_sources", s.admin_sources).end_object();
   w.key("ble").begin_object().field("mode", to_text(s.ble)).end_object();
   w.key("ui").begin_object().field("language", s.language).end_object();
-  w.key("time").begin_object().field("ntp_enabled", s.time.ntp_enabled).field("ntp", s.time.ntp).field("zone", s.time.zone).end_object();
+  w.key("time").begin_object().field("ntp_enabled", s.time.ntp_enabled).field("rtc_enabled", s.time.rtc_enabled).field("ntp", s.time.ntp).field("zone", s.time.zone).end_object();
   w.key("system").begin_object().field("auto_restart_hours", s.auto_restart_hours).field("login_limit_per_minute", s.login_limit_per_minute).end_object();
   w.end_object();
   return w.str();

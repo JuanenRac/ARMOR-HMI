@@ -341,6 +341,7 @@ function networkPage() {
     card(t("clockTitle"),
       field("timeZone", "time.zone", { type: "select", options: TIME_ZONES.some(z => z[0] === S.cfg.time.zone) ? TIME_ZONES.map(z => z) : [[S.cfg.time.zone, S.cfg.time.zone]].concat(TIME_ZONES) }),
       field("ntpEnabled", "time.ntp_enabled", { type: "checkbox", rerender: true }),
+      field("rtcEnabled", "time.rtc_enabled", { type: "checkbox" }),
       cfg.time.ntp_enabled ? field("ntp", "time.ntp") : el("div", { class: "actions" }, el("button", { class: "b", tip: "setTimeFromBrowser", disabled: !isAdmin(), onclick: setClockFromBrowser }, t("setTimeFromBrowser"))),
       S.status && S.status.time ? el("p", { class: "muted" }, t("localTime") + ": " + (S.status.time.set ? S.status.time.local : t("clockNotSet"))) : null,
       note(t("clockNote"), "info")),
@@ -481,7 +482,8 @@ function screenPage() {
     card(t("screenTitle"), el("div", { class: "row" }, field("brightness", "display.brightness", { type: "number", min: 5, max: 100 }), field("sleepAfter", "display.sleep_s", { type: "number", min: 0, max: 3600 })),
       el("div", { class: "row" }, field("nightBrightness", "display.night_brightness", { type: "number", min: 1, max: 100 }), field("nightFrom", "display.night_from", { type: "number", min: 0, max: 23 }), field("nightTo", "display.night_to", { type: "number", min: 0, max: 23 })),
       note(t("screenNote"), "info")),
-    card(t("soundTitle"), field("volume", "audio.volume", { type: "number", min: 0, max: 100 }), field("alarmSound", "audio.alarm_sound", { type: "checkbox" }), field("alarmFloor", "audio.min_severity", { type: "select", options: [["warning", t("floorWarning")], ["high", t("floorHigh")], ["critical", t("floorCritical")]] })));
+    card(t("soundTitle"), field("volume", "audio.volume", { type: "number", min: 0, max: 100 }), field("alarmSound", "audio.alarm_sound", { type: "checkbox" }), field("alarmFloor", "audio.min_severity", { type: "select", options: [["warning", t("floorWarning")], ["high", t("floorHigh")], ["critical", t("floorCritical")]] }),
+      field("criticalMinVolume", "audio.critical_min_volume", { type: "number", min: 0, max: 100 }), field("sirenRepeat", "audio.siren_repeat_s", { type: "number", min: 0, max: 600 }), field("sirenMaxRepeats", "audio.siren_max_repeats", { type: "number", min: 1, max: 100 })));
 }
 
 function voicePage() {

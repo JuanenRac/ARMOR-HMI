@@ -25,6 +25,7 @@ static void test_defaults() {
   CHECK(!s.server.enabled && s.server.port == 18080 && s.server.poll_s == 3);
   CHECK(s.display.brightness == 80 && s.display.sleep_s == 300);
   CHECK(s.audio.volume == 60 && !s.voice.enabled && s.voice.wake_name == "armor");
+  CHECK(s.audio.critical_min_volume == 40 && s.audio.siren_repeat_s == 30 && s.audio.siren_max_repeats == 10);   // an alarm is heard and repeated unless the owner says otherwise
   CHECK(s.uplink == config::Uplink::kWifi);   // this board has no cable
   CHECK(has(config::validate(s), "sta.enabled", "required"));   // no way in at all is not a valid panel
   CHECK(config::validate(valid_settings()).empty());
@@ -78,6 +79,17 @@ static void test_screen_audio_voice() {
   for (const char* good : {"http://192.168.0.180:18090", "https://voice.local", "http://voice.local/"}) { s.voice.url = good; CHECK(config::validate(s).empty()); }
   s.voice.wake_name = "";
   CHECK(has(config::validate(s), "voice.wake_name", "required"));
+  // the siren: its least volume and its repeats are kept and checked
+  config::Settings siren = valid_settings();
+  siren.audio.critical_min_volume = 55; siren.audio.siren_repeat_s = 90; siren.audio.siren_max_repeats = 4;
+  CHECK(config::validate(siren).empty());
+  config::Settings back;
+  config::Problems problems;
+  CHECK(config::load(config::to_json(siren, true), valid_settings(), back, problems) && back.audio.critical_min_volume == 55 && back.audio.siren_repeat_s == 90 && back.audio.siren_max_repeats == 4);
+  siren.audio.siren_repeat_s = 5;
+  CHECK(has(config::validate(siren), "audio.siren_repeat_s", "range"));
+  siren.audio.siren_repeat_s = 30; siren.audio.siren_max_repeats = 0; siren.audio.critical_min_volume = 101;
+  CHECK(has(config::validate(siren), "audio.siren_max_repeats", "range") && has(config::validate(siren), "audio.critical_min_volume", "range"));
 }
 
 static void test_document() {
@@ -93,6 +105,20 @@ static void test_document() {
   CHECK(!config::load("{\"audio\":{\"volume\":101}}", base, out, problems) && has(problems, "audio.volume", "range"));
   problems.clear();
   CHECK(config::load("{\"audio\":{\"min_severity\":\"critical\"}}", base, out, problems) && out.audio.min_severity == config::AlarmFloor::kCritical);
+  problems.clear();
+  CHECK(config::load("{\"audio\":{\"critical_min_volume\":0,\"siren_repeat_s\":0,\"siren_max_repeats\":3}}", base, out, problems) && out.audio.critical_min_volume == 0 && out.audio.siren_repeat_s == 0 && out.audio.siren_max_repeats == 3);
+  problems.clear();
+  CHECK(config::load("{\"audio\":{\"siren_repeat_s\":600,\"siren_max_repeats\":100}}", base, out, problems) && out.audio.siren_repeat_s == 600 && out.audio.siren_max_repeats == 100);
+  problems.clear();
+  CHECK(!config::load("{\"audio\":{\"critical_min_volume\":101}}", base, out, problems) && has(problems, "audio.critical_min_volume", "range"));
+  problems.clear();
+  CHECK(!config::load("{\"audio\":{\"siren_repeat_s\":9}}", base, out, problems) && has(problems, "audio.siren_repeat_s", "range"));   // neither none nor a period a siren can keep
+  problems.clear();
+  CHECK(!config::load("{\"audio\":{\"siren_repeat_s\":601}}", base, out, problems) && has(problems, "audio.siren_repeat_s", "range"));
+  problems.clear();
+  CHECK(!config::load("{\"audio\":{\"siren_max_repeats\":0}}", base, out, problems) && has(problems, "audio.siren_max_repeats", "range"));
+  problems.clear();
+  CHECK(!config::load("{\"audio\":{\"siren_max_repeats\":101}}", base, out, problems) && has(problems, "audio.siren_max_repeats", "range"));
   problems.clear();
   CHECK(config::load("{\"web\":{\"admin_sources\":\"192.168.1.0/24, 10.66.0.0/24\"}}", base, out, problems) && out.admin_sources == "192.168.1.0/24, 10.66.0.0/24");
   problems.clear();

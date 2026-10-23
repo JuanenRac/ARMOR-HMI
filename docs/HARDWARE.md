@@ -34,6 +34,12 @@ The porches and pulse widths are Waveshare's (4/8/8 on both axes).
 One I2S port (port 1) in full duplex at 16 kHz and 16 bits: the speaker on a standard stereo channel (the mono samples are copied to both), the microphones on a four-slot TDM channel
 (the first channel, the first microphone, is what the assistant records). The amplifier is switched on only while something plays.
 
+One task plays every sound, from a queue with priorities (`core/audio_queue.hpp`): a siren (a critical alarm) before an alarm tone, an alarm tone before the assistant's spoken answer, the answer before the notices. Asking for a sound never waits for it to end, so the link to the server is not held up by a siren; a spoken answer stops between two chunks when an alarm sound is waiting, and a notice that waited more than 15 seconds behind others is dropped. A siren or an alarm tone is never played quieter than `audio.critical_min_volume` (40 % by default, 0 lets the volume decide), and while a critical alarm nobody has acknowledged is in the summary the siren sounds again every `audio.siren_repeat_s` seconds (30 by default, 0 for no repeats) up to `audio.siren_max_repeats` times (10): acknowledging the alarm, on the panel or anywhere else, ends it. Nothing of this has been heard on a board.
+
+## Clock
+
+The board's battery-backed clock (PCF85063A, I2C address 0x51) keeps the date while the board has no power. At start, when the node has no real time yet and the chip holds a date it trusts (its oscillator never stopped, a date after 2023), the node's clock is set from it, so the night brightness and the clock on the screen are right even when no time server can be reached; whenever a time server answers or the time is set by hand the chip is corrected if it is off by two seconds or more. The chip keeps UTC, the zone is applied by the node. `time.rtc_enabled` turns the use of the chip off. The chip has not been tried on a board.
+
 ## Flash and memory
 
 32 MB flash, quad mode at 80 MHz as in Waveshare's example (the example is for the 16 MB sibling: if the module of a board reports an octal flash, change

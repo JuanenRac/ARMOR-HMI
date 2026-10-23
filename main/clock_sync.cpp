@@ -3,6 +3,7 @@
 #include "clock_sync.hpp"
 
 #include <cstdio>
+#include <functional>
 #include <mutex>
 #include <cstdlib>
 #include <ctime>
@@ -24,6 +25,22 @@ constexpr std::time_t kLastSaneDate = 4102444800;    // 2100
 
 std::string g_zone = "UTC0";
 std::mutex g_zone_lock;   // the panel can change the zone while another request reads it
+std::mutex g_callback_lock;
+std::function<void(std::int64_t)> g_on_time_set;
+
+void notify_time_set(std::int64_t epoch) {
+  std::function<void(std::int64_t)> callback;
+  {
+    std::lock_guard<std::mutex> guard(g_callback_lock);
+    callback = g_on_time_set;
+  }
+  if (callback) callback(epoch);
+}
+
+// The time server answered (the SNTP task calls this after it set the clock).
+void sntp_synced(struct timeval* tv) {
+  if (tv != nullptr) notify_time_set(static_cast<std::int64_t>(tv->tv_sec));
+}
 std::string g_server;
 bool g_ntp = false;
 
@@ -32,6 +49,7 @@ void sync_task(void*) {
   while (!network::has_ip()) vTaskDelay(pdMS_TO_TICKS(500));
   esp_sntp_setoperatingmode(ESP_SNTP_OPMODE_POLL);
   esp_sntp_setservername(0, g_server.c_str());
+  esp_sntp_set_time_sync_notification_cb(sntp_synced);
   esp_sntp_init();
   ESP_LOGI(kTag, "asking %s for the time", g_server.c_str());
   vTaskDelete(nullptr);
@@ -59,7 +77,14 @@ bool set_unix(std::int64_t seconds) {
   if (seconds < static_cast<std::int64_t>(kFirstRealDate) || seconds > static_cast<std::int64_t>(kLastSaneDate)) return false;
   timeval tv{};
   tv.tv_sec = static_cast<std::time_t>(seconds);
-  return settimeofday(&tv, nullptr) == 0;
+  if (settimeofday(&tv, nullptr) != 0) return false;
+  notify_time_set(seconds);
+  return true;
+}
+
+void on_time_set(std::function<void(std::int64_t)> callback) {
+  std::lock_guard<std::mutex> guard(g_callback_lock);
+  g_on_time_set = std::move(callback);
 }
 
 Info info() {

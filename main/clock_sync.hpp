@@ -5,6 +5,7 @@
 // at start, the time server starts as soon as the network has an address, and the broker link only waits for the result.
 #pragma once
 #include <cstdint>
+#include <functional>
 #include <string>
 
 #include "core/hmi_config.hpp"
@@ -21,6 +22,10 @@ bool is_set();   // the clock holds a real date (not the 1970 of a board that ha
 
 // Sets the clock to `seconds` since 1970, for a node with no time server. False for a date before the firmware existed or absurdly far.
 bool set_unix(std::int64_t seconds);
+
+// Called with the new time (seconds since 1970) each time the clock is set: when a time server answers, and when the time is set by hand. The battery-backed clock follows it (main/rtc.cpp).
+// The callback runs in the task that set the clock and must not wait long.
+void on_time_set(std::function<void(std::int64_t)> callback);
 
 struct Info {
   bool set = false;

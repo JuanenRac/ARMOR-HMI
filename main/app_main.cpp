@@ -34,6 +34,7 @@
 #include "display.hpp"
 #include "log_buffer.hpp"
 #include "psram_mem.hpp"
+#include "rtc.hpp"
 #include "mqtt_link.hpp"
 #include "node_health.hpp"
 #include "node_control.hpp"
@@ -157,6 +158,7 @@ extern "C" void app_main() {
   const bool sound_ok = armor::audio::start();
   if (!sound_ok) ESP_LOGW(kTag, "no sound: the voice assistant and the alarm tone are off");
   armor::audio::set_volume(settings.audio.volume);
+  armor::audio::set_alarm_options(settings.audio.critical_min_volume, armor::hmi::RepeatPolicy{settings.audio.siren_repeat_s, settings.audio.siren_max_repeats});
 
   const armor::netplan::Plan plan = armor::netplan::plan_network(settings, setup, armor::store::setup_code(), armor::store::mac_tail(), armor::store::mac_sum());
   const bool network_ok = armor::network::start(settings, plan);
@@ -165,6 +167,7 @@ extern "C" void app_main() {
     armor::network::arm_rescue(armor::netplan::plan_network(settings, true, armor::store::setup_code(), armor::store::mac_tail(), armor::store::mac_sum()), 90);
   }
   if (!network_ok) ESP_LOGE(kTag, "the network could not be started: the panel stays local");
+  armor::rtc::start(settings.time.rtc_enabled);   // the board's battery-backed clock gives the node a time before any time server answers
   armor::clocksync::start(settings);
   armor::improv_serial::start();   // Improv Wi-Fi over the USB cable (ESP Web Tools)
   const bool panel_ok = network_ok && armor::web::start(settings);
@@ -192,19 +195,32 @@ extern "C" void app_main() {
         case armor::hmi::Cue::kNone: break;
       }
     });
+    // While a critical alarm nobody has acknowledged is in the summary, the siren repeats as the settings say (never when the sound is off); acknowledging it, wherever that is done, ends it.
+    armor::server_link::on_summary([](const armor::hmi::Summary& summary) {
+      int critical = 0;
+      for (const armor::hmi::AlarmLine& line : summary.alarms) if (line.severity == armor::hmi::Severity::kCritical && !line.acknowledged) ++critical;
+      armor::audio::set_critical_unacknowledged(armor::store::settings().audio.alarm_sound ? critical : 0);
+    });
     armor::server_link::start(settings);
     armor::voice_task::start(settings);
   }
   if (screen_ok) {
     armor::ui::start([]() {
-      const armor::config::Settings s = armor::store::settings();
-      armor::ui::Context context;
-      context.language = s.language;
-      context.voice_enabled = s.voice.enabled && armor::audio::ready();
-      context.wake_name = s.voice.wake_name;
-      context.ip = armor::network::status().ip;
-      context.version = esp_app_get_description()->version;
-      context.setup = armor::store::users_empty();
+      // The screen asks twice a second; what it takes from the settings (the language, the voice, the address) changes rarely, so it is read again every few seconds only and the settings are
+      // not copied at every turn.
+      static armor::ui::Context context;
+      static std::int64_t read_at_ms = -1000000;
+      const std::int64_t now_ms = esp_timer_get_time() / 1000;
+      if (now_ms - read_at_ms >= 3000) {
+        read_at_ms = now_ms;
+        const armor::config::Settings s = armor::store::settings();
+        context.language = s.language;
+        context.voice_enabled = s.voice.enabled && armor::audio::ready();
+        context.wake_name = s.voice.wake_name;
+        context.ip = armor::network::status().ip;
+        context.version = esp_app_get_description()->version;
+        context.setup = armor::store::users_empty();
+      }
       return context;
     });
     xTaskCreate(screen_task, "screen", 4096, nullptr, 2, nullptr);

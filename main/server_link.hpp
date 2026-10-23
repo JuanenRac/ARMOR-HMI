@@ -9,6 +9,7 @@
 
 #include "core/hmi_config.hpp"
 #include "core/server_view.hpp"
+#include "core/view_model.hpp"
 
 namespace armor::server_link {
 
@@ -26,6 +27,10 @@ void start(const config::Settings& settings);
 
 Snapshot snapshot();
 
+// For the screen: true, with the block to draw, when what the screen shows has changed since the generation in `seen` (which is then updated). It builds the block from the link's state without
+// copying the summary, so asking twice a second costs nothing when nothing changed (core/view_model.hpp).
+bool view_changed(std::uint32_t& seen, hmi::ViewModel& out);
+
 // What the person asked for at the screen. The server decides: its answer (the new mode) shows at the next summary.
 // Disarming carries the PIN typed at the screen (the server checks it); arming never does.
 void request_mode(hmi::Mode mode, const std::string& pin = "");
@@ -33,6 +38,9 @@ void request_acknowledge_all();
 
 // Called, from the link's task, with the alarms that are new and nobody has acknowledged (never for the ones that existed when the panel started).
 void on_new_alarms(std::function<void(const std::vector<hmi::AlarmLine>&)> callback);
+
+// Called, from the link's task, with every summary that arrives (asked for or by the live channel), after the alarms that are new have been told.
+void on_summary(std::function<void(const hmi::Summary&)> callback);
 
 // The SHA-256 fingerprint (64 lowercase hex digits) of the certificate the server at host:port presents over HTTPS, read for the person who is setting the panel up; "" and a short
 // code in `error` when no certificate arrived. It trusts nothing by itself: the person compares the number and saves it, and only then does the link require it.

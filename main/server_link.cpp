@@ -45,6 +45,8 @@ std::atomic<bool> g_pending_acknowledge{false};
 std::atomic<std::int64_t> g_pending_since_ms{0};       // when the person gave the pending order
 constexpr std::int64_t kOrderValidMs = 10000;         // an order that has not reached the server in this time is dropped: it was given to a screen, not to a link that comes back hours later
 std::function<void(const std::vector<hmi::AlarmLine>&)> g_on_new_alarms;
+std::function<void(const hmi::Summary&)> g_on_summary;   // under g_lock
+hmi::ViewBoard g_board;                                   // under g_lock: what the screen draws and the number of times it changed
 std::vector<std::string> g_known_alarm_ids;
 bool g_first_summary = true;
 TaskHandle_t g_task = nullptr;
@@ -239,6 +241,7 @@ bool sign_in() {
 void apply_summary(const hmi::Summary& summary) {
   std::vector<hmi::AlarmLine> fresh;
   std::function<void(const std::vector<hmi::AlarmLine>&)> callback;
+  std::function<void(const hmi::Summary&)> summary_callback;
   {
     std::lock_guard<std::mutex> guard(g_lock);
     fresh = hmi::new_unacknowledged(g_known_alarm_ids, g_first_summary, summary);
@@ -246,8 +249,10 @@ void apply_summary(const hmi::Summary& summary) {
     g_first_summary = false;
     g_tracker.on_summary(now_ms(), summary);
     callback = g_on_new_alarms;
+    summary_callback = g_on_summary;
   }
   if (!fresh.empty() && callback) callback(fresh);
+  if (summary_callback) summary_callback(summary);
 }
 
 void poll_summary() {
@@ -494,6 +499,12 @@ Snapshot snapshot() {
   return snap;
 }
 
+bool view_changed(std::uint32_t& seen, hmi::ViewModel& out) {
+  std::lock_guard<std::mutex> guard(g_lock);
+  g_board.publish(hmi::make_view(g_tracker.summary(), g_tracker.link(), g_tracker.has_summary(), g_tracker.current(), g_action_pending, g_action_error));
+  return g_board.changed_since(seen, out);
+}
+
 void request_mode(hmi::Mode mode, const std::string& pin) {
   if (mode == hmi::Mode::kUnknown) return;
   { std::lock_guard<std::mutex> guard(g_lock); g_pending_pin = pin; }
@@ -513,6 +524,11 @@ void request_acknowledge_all() {
 void on_new_alarms(std::function<void(const std::vector<hmi::AlarmLine>&)> callback) {
   std::lock_guard<std::mutex> guard(g_lock);
   g_on_new_alarms = std::move(callback);
+}
+
+void on_summary(std::function<void(const hmi::Summary&)> callback) {
+  std::lock_guard<std::mutex> guard(g_lock);
+  g_on_summary = std::move(callback);
 }
 
 }  // namespace armor::server_link
