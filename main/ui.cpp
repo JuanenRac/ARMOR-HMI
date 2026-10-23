@@ -48,6 +48,7 @@ namespace armor::ui {
 namespace {
 constexpr char kTag[] = "armor-ui";
 constexpr int kAlarmRows = 6;
+constexpr std::uint32_t kOrderDoneShowMs = 4000;   // how long the footer says an order went through
 
 enum class Size { kSmall, kNormal, kLarge };
 
@@ -81,6 +82,8 @@ struct Screen {
   std::uint32_t view_seen = 0;
   bool drawn = false;            // the first draw has been done
   bool was_pending = false;      // an order of the person was on its way at the last look
+  bool done_shown = false;       // an order was answered and went through: the footer says so for a few seconds
+  std::uint32_t done_since_ms = 0;
 };
 Screen g_screen;
 
@@ -318,6 +321,7 @@ void refresh(lv_timer_t*) {
 
   // an order that was on its way has been answered: two short notes when it went through, one note when it did not (the footer says why); the volume of the sound settings applies
   if (g_screen.was_pending && !view.action_pending && audio::ready()) audio::beep(view.action_error[0] == ' ' ? audio::Tone::kConfirm : audio::Tone::kNotice);
+  if (g_screen.was_pending && !view.action_pending && view.action_error[0] == ' ') { g_screen.done_shown = true; g_screen.done_since_ms = lv_tick_get(); }
   g_screen.was_pending = view.action_pending;
 
   // the footer: how to set the panel up, or what is wrong
@@ -335,6 +339,9 @@ void refresh(lv_timer_t*) {
     const std::string& why = action_error;
     footer = text_of(why == "wrong_pin" ? "pin_wrong" : (why == "pin_locked" || why == "pin_not_set") ? why.c_str() : why == "no_answer" ? "action_no_answer" : (why == "forbidden" || why == "unauthorized") ? "action_forbidden" : "action_failed");
   }
+  // the state of the order the person just gave: on its way, then confirmed for a few seconds (a refusal is the footer above)
+  if (view.action_pending) footer = text_of("action_sending");
+  else if (g_screen.done_shown && action_error.empty() && lv_tick_elaps(g_screen.done_since_ms) < kOrderDoneShowMs) footer = text_of("action_done");
   set_text(g_screen.footer, footer);
 
 

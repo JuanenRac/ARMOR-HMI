@@ -22,7 +22,7 @@ struct Row {
 };
 
 // clang-format off
-constexpr std::array<Row, 96> kRows{{
+constexpr std::array<Row, 98> kRows{{
     {"armed", {"ARMED", "ARMADO", "SCHARF", "ARMÉ", "ATTIVO", "警戒中", "已布防", "ARMADO"}},
     {"disarmed", {"DISARMED", "DESARMADO", "UNSCHARF", "DÉSARMÉ", "DISATTIVO", "解除中", "已撤防", "DESARMADO"}},
     {"arm", {"Arm", "Armar", "Scharf schalten", "Armer", "Attiva", "警戒する", "布防", "Armar"}},
@@ -33,6 +33,8 @@ constexpr std::array<Row, 96> kRows{{
     {"pin_wrong", {"The PIN is not right", "El PIN no es correcto", "Die PIN ist falsch", "Le code n'est pas bon", "Il PIN non è corretto", "PIN が違います", "PIN 不正确", "O PIN não está certo"}},
     {"pin_locked", {"Too many wrong PINs: wait", "Demasiados PIN erróneos: espera", "Zu viele falsche PINs: warten", "Trop d'erreurs : patientez", "Troppi PIN errati: attendi", "PIN の誤りが多すぎます。お待ちください", "错误太多：请稍等", "Demasiados PIN errados: espere"}},
     {"pin_not_set", {"This panel's user has no PIN", "El usuario de este panel no tiene PIN", "Der Benutzer dieses Panels hat keine PIN", "L'utilisateur de ce panneau n'a pas de code", "L'utente di questo pannello non ha un PIN", "このパネルのユーザーには PIN がありません", "此面板的用户没有 PIN", "O utilizador deste painel não tem PIN"}},
+    {"action_sending", {"Sending the order...", "Enviando la orden...", "Befehl wird gesendet ...", "Envoi de l'ordre ...", "Invio del comando...", "操作を実行中...", "执行该操作中...", "A enviar a ordem..."}},
+    {"action_done", {"Order confirmed", "Orden confirmada", "Befehl bestätigt", "Ordre confirmé", "Comando confermato", "操作を実行しました", "已执行该操作", "Ordem confirmada"}},
     {"action_no_answer", {"No answer from the server: nothing was done", "El servidor no responde: no se hizo nada", "Server antwortet nicht: nichts ausgeführt", "Le serveur ne répond pas : rien n'a été fait", "Il server non risponde: nulla è stato fatto", "サーバーが応答しません。何も実行されていません", "服务器无响应：未执行任何操作", "O servidor não responde: nada foi feito"}},
     {"action_forbidden", {"The server refused this order", "El servidor rechazó la orden", "Der Server hat den Befehl abgelehnt", "Le serveur a refusé l'ordre", "Il server ha rifiutato il comando", "サーバーがこの操作を拒否しました", "服务器拒绝了该操作", "O servidor recusou a ordem"}},
     {"action_failed", {"The order could not be done", "No se pudo hacer la orden", "Der Befehl ließ sich nicht ausführen", "L'ordre n'a pas pu être exécuté", "Non è stato possibile eseguire il comando", "操作を実行できませんでした", "无法执行该操作", "Não foi possível fazer a ordem"}},

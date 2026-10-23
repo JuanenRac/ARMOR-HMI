@@ -142,6 +142,13 @@ static void test_document() {
   CHECK(!config::load("{\"system\":{\"login_limit_per_minute\":121}}", base, out, problems) && has(problems, "system.login_limit_per_minute", "range"));
   problems.clear();
   { config::Settings zero = base; zero.login_limit_per_minute = 0; config::Settings back; CHECK(config::load(config::to_json(zero, true), base, back, problems) && back.login_limit_per_minute == 0); }
+  // sealing the stored secrets is a setting: off until it says otherwise, read from "security", refused when it is not a flag, and written back
+  problems.clear();
+  CHECK(!base.seal_secrets);
+  CHECK(!config::load("{\"security\":{\"seal_secrets\":\"yes\"}}", base, out, problems) && has(problems, "security.seal_secrets", "invalid"));
+  problems.clear();
+  CHECK(config::load("{\"security\":{\"seal_secrets\":true}}", base, out, problems) && out.seal_secrets);
+  { config::Settings on = out; config::Settings back; problems.clear(); CHECK(config::to_json(on, true).find("\"security\":{\"seal_secrets\":true}") != std::string::npos && config::load(config::to_json(on, true), base, back, problems) && back.seal_secrets); }
   // a password never leaves: the panel's copy says only that there is one
   config::Settings with_secret = base;
   with_secret.server.password = "secreto-secreto";
