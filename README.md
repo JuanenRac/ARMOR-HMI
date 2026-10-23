@@ -28,7 +28,7 @@
 
 ---
 
-**Honesty check - what runs today:** What does not depend on the board is real and tested on a computer (the settings, what the panel knows of the server and when that is stale, the duress alarm that is never shown, the voice conversation and the long answer of the speech service, the board's pins, the words of the screen in eight languages and the glyphs of its fonts, the release and signature checks: 28,227 checks in 8 test programs) and so is the web page (run against a stand-in in a real browser). **The firmware has been built once (ESP-IDF 5.5.5, not checked by the continuous integration) and has never run on a board:** the screen, the touch, the sound and the link to the server are written from Waveshare's examples for this family of boards and need their first power-up. The speech service (ARMOR-VOICE-AI) answers this panel's requests, there is no wake word: it is push to talk.
+**Honesty check - what runs today:** What does not depend on the board is real and tested on a computer (the settings, what the panel knows of the server and when that is stale, the duress alarm that is never shown, the voice conversation and the long answer of the speech service, the board's pins, the words of the screen in eight languages and the glyphs of its fonts, the release and signature checks: 30,783 checks in 14 test programs) and so is the web page (run against a stand-in in a real browser). **The firmware has been built once (ESP-IDF 5.5.5, not checked by the continuous integration) and has never run on a board:** the screen, the touch, the sound and the link to the server are written from Waveshare's examples for this family of boards and need their first power-up. The speech service (ARMOR-VOICE-AI) answers this panel's requests, there is no wake word: it is push to talk.
 
 ---
 
@@ -38,16 +38,16 @@
 |---|---|
 | Version | `0.3.7` |
 | Maturity | Functional |
-| Tests | 28,227 checks in 8 programs (`ctest`) |
+| Tests | 30,783 checks in 14 programs (`ctest`) |
 | Stack | C++17 (host-tested core); ESP-IDF firmware for the ESP32-S3 with LVGL, with its web page |
 | On real hardware | None yet: the firmware builds (ESP-IDF 5.5.5, not checked by CI) but has not run on the board |
 
 ## 🎯 Overview
 
-* **A client of ARMOR-SERVER, like the Android app:** it signs in with a user an administrator made for it, asks `GET /api/v1/panel/summary` (a few hundred bytes: the mode, the nodes online and the alarms that need a person) every few seconds and, when the person touches the button and confirms, arms, disarms or acknowledges. If the server stops answering the screen says that what it shows is old and the button is disabled.
+* **A client of ARMOR-SERVER, like the Android app:** it signs in with a user an administrator made for it, asks `GET /api/v1/panel/summary` (a few hundred bytes: the mode, the nodes online and the alarms that need a person) every few seconds and, when the person touches the button and confirms, arms, disarms or acknowledges. If the server stops answering the screen says that what it shows is old and the button is disabled. It listens to the server's live channel (a WebSocket) so a change shows at once, and asks as before when the channel is missing, silent or turned off.
 * **The screen (800x480, LVGL):** the mode in the colour of the worst alarm nobody has seen, a large arm/disarm button with a question first, the nodes online, the alarms (the unseen first), a night that dims it, a sleep after a time without touches, a tone and a wake-up when a new alarm arrives, and eight languages with accents, Japanese and Chinese drawn with fonts generated for exactly the characters used.
 * **A node like the others:** the same settings store, Wi-Fi, web page in eight languages, Bluetooth set-up from the phone, firmware update with roll-back and HTTPS as ARMOR-RADAR, ARMOR-SOLAR and ARMOR-ELECTRICAL (they share `ARMOR-COMMON/firmware_base`), plus pages for the server, the screen, the sound and the voice; it tells Studio it exists over MQTT so Studio lists it with its page.
-* **The voice assistant, push to talk:** a touch opens the microphone, the audio goes only to the speech service whose address is in the settings (off by default), the reply is shown and spoken; the order of the steps, the time limits and what a touch does are a tested state machine, and the panel carries out no command by itself ([the contract](docs/VOICE.md)).
+* **The voice assistant, push to talk:** a touch opens the microphone, the audio goes only to the speech service whose address is in the settings (off by default), the reply is shown and spoken; the order of the steps, the time limits and what a touch does are a tested state machine, and the panel carries out no command by itself ([the contract](docs/VOICE.md)). The recording goes as raw bytes in a binary request and the spoken answer comes back as bytes; a server that does not accept it is sent the older request.
 * **The board:** Waveshare ESP32-S3-Touch-LCD-7C-BOX (32 MB flash, 16 MB PSRAM, a 7-inch RGB screen with a GT911 touch, four microphones, a speaker); the pins come from Waveshare's examples and a test proves that no two functions share a GPIO ([the board](docs/HARDWARE.md)).
 * **Signed over-the-air updates:** the node installs from GitHub only an image whose SHA-256 matches and that carries a valid Ed25519 signature of the maintainer (the public key is in the firmware, the private one never leaves the maintainer); a file uploaded by hand by an administrator in the panel is still accepted. The pages and messages of the panel are in eight languages.
 * **Bluetooth pairing with a PIN:** the six-digit PIN is derived from the set-up code, printed on the USB console and shown to an administrator in the panel; the phone has to enter it before it may write the node's settings.
@@ -79,7 +79,7 @@ ARMOR-HMI/
 │            network, web_server, api_shared, mqtt_link, node_store, tls_cert, ble_provision (the shared node firmware), fonts/ (generated)
 ├── core/    hmi_config (the settings), server_view (the summary, the link, what is new), voice_session (the conversation), screen_text (eight languages), board_s3 (the pins), auth, netplan, json...
 ├── panel/   the web page: index.html, app.js, text.js (8 languages), style.css
-├── tests/   test_config, test_mqtt_tls, test_view, test_voice, test_board
+├── tests/   test_config, test_mqtt_tls, test_view, test_voice, test_voice_binary, test_live, test_board
 ├── tools/   build_node.sh, make_fonts.py, pack_panel.py, panel_mock.mjs, panel_browser_test.mjs
 ├── docs/    DESIGN, HARDWARE, VOICE, NODE_FIRMWARE, FONTS, BLE_PROVISIONING, FIRMWARE_BUILD_ACTIONS
 └── images/  brand assets

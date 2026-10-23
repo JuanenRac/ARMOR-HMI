@@ -92,7 +92,8 @@ struct ServerLink {
   std::string cert_pem;      // alternative to the fingerprint: the certificate of the server (PEM); the connection is accepted only if the server presents a chain that ends at it
   std::string user;
   std::string password;
-  int poll_s = 3;            // how often the screen asks for the state
+  int poll_s = 3;            // how often the screen asks for the state (and how often it asks when the live channel is not there)
+  bool live_events = true;   // listen to the server's live channel for the panel (a WebSocket) and ask for the summary only as a fallback; off: only ask, every poll_s seconds
 };
 
 // The screen: how bright, and when it goes to sleep (a touch or an alarm wakes it).
@@ -120,6 +121,7 @@ struct Voice {
   std::string wake_name = "armor";   // the name it answers to (shown on the screen)
   int listen_s = 8;                  // the longest it listens for one request
   std::string token;         // the service's token (X-Armor-Voice-Token): the service answers nobody without it
+  bool binary_turn = true;   // send the recording as raw bytes in a multipart request and ask for the spoken answer as raw bytes; off: the older request only (base64 in the answer)
 };
 
 // What time the node believes it is: a time server on the Internet (or the browser's clock when that is off) and the zone the local time is
@@ -378,6 +380,7 @@ inline void read_settings(const json::Value& document, Settings& s, Problems& pr
     read_text(*server, "user", s.server.user, 48, "server.user", problems);
     read_secret(*server, "password", s.server.password, "server.password", problems);
     read_int(*server, "poll_s", s.server.poll_s, 1, 60, "server.poll_s", problems);
+    read_bool(*server, "live_events", s.server.live_events, "server.live_events", problems);
   }
   if (const json::Value* display = document.get("display"); display != nullptr && display->is_object()) {
     read_int(*display, "brightness", s.display.brightness, 5, 100, "display.brightness", problems);
@@ -399,6 +402,7 @@ inline void read_settings(const json::Value& document, Settings& s, Problems& pr
     if (broker_host(s.voice.url) != stored_voice_host) s.voice.token.clear();
     read_secret(*voice, "token", s.voice.token, "voice.token", problems);
     read_text(*voice, "wake_name", s.voice.wake_name, 24, "voice.wake_name", problems);
+    read_bool(*voice, "binary_turn", s.voice.binary_turn, "voice.binary_turn", problems);
     read_int(*voice, "listen_s", s.voice.listen_s, 2, 15, "voice.listen_s", problems);   // the service takes 15 seconds of audio at most (480 KB)
   }
   if (const json::Value* web = document.get("web"); web != nullptr && web->is_object()) {
@@ -611,11 +615,11 @@ inline std::string to_json(const Settings& s, bool secrets) {
   w.key("server").begin_object().field("enabled", s.server.enabled).field("host", s.server.host).field("port", s.server.port).field("tls", s.server.tls)
       .field("cert_sha256", s.server.cert_sha256).field("cert_pem", s.server.cert_pem).field("user", s.server.user);
   if (secrets) w.field("password", s.server.password); else w.field("password_set", !s.server.password.empty());
-  w.field("poll_s", s.server.poll_s).end_object();
+  w.field("poll_s", s.server.poll_s).field("live_events", s.server.live_events).end_object();
   w.key("display").begin_object().field("brightness", s.display.brightness).field("sleep_s", s.display.sleep_s).field("night_brightness", s.display.night_brightness)
       .field("night_from", s.display.night_from).field("night_to", s.display.night_to).end_object();
   w.key("audio").begin_object().field("volume", s.audio.volume).field("alarm_sound", s.audio.alarm_sound).field("min_severity", s.audio.min_severity == AlarmFloor::kCritical ? "critical" : s.audio.min_severity == AlarmFloor::kHigh ? "high" : "warning").end_object();
-  w.key("voice").begin_object().field("enabled", s.voice.enabled).field("url", s.voice.url).field("wake_name", s.voice.wake_name).field("listen_s", s.voice.listen_s);
+  w.key("voice").begin_object().field("enabled", s.voice.enabled).field("url", s.voice.url).field("wake_name", s.voice.wake_name).field("listen_s", s.voice.listen_s).field("binary_turn", s.voice.binary_turn);
   if (secrets) w.field("token", s.voice.token); else w.field("token_set", !s.voice.token.empty());
   w.end_object();
   w.key("web").begin_object().field("mode", to_text(s.web)).field("admin_sources", s.admin_sources).end_object();

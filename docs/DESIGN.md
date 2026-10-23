@@ -31,11 +31,14 @@ Disarming asks for a PIN on the screen. It is the PIN of the panel's own account
 panel                                     ARMOR-SERVER
   | POST /api/v1/studio/session {user, password}        -> 201 + cookie
   | GET  /api/v1/panel/summary  (every poll_s seconds)  -> {mode, nodes{online,total}, alarms{active, unacknowledged, items[<=6]}}
+  | WS   /api/v1/panel/events   (the same summary when it changes, and at least every heartbeat_ms)  -> {type:"summary", heartbeat_ms, summary:{...}}
   | POST /api/v1/mode {"mode":"armed"|"disarmed","pin":"..."}  (after the person confirms on the screen; a disarm carries the PIN typed on the keypad, which the server checks)
   | POST /api/v1/alarms/acknowledge                      (the button "Acknowledge all")
 ```
 
 `GET /api/v1/panel/summary` was added for small screens (ARMOR-SERVER 0.3.7): a few hundred bytes whatever the installation holds, with the alarms nobody has acknowledged first.
+**The live channel.** With `server.live_events` on (the default) the panel opens a WebSocket at `/api/v1/panel/events` with the same session cookie and the same trust as its requests (the fingerprint, the pinned certificate or the usual authorities for `wss://`). The server sends the summary when the socket opens, whenever something in it changes, and again every few seconds (`heartbeat_ms` in the frame says how often), and nothing else: the channel is read-only and carries no more than the panel could ask for. While frames arrive the panel does not ask; when they do not (the channel has not connected yet, the server is older and has none, the connection dropped, the frames stopped for three heartbeats) it asks every `poll_s` seconds as always, and tries the socket again after a wait that grows from five seconds to five minutes. The summary counts as stale after three heartbeats without news while listening, and after four polls while asking. An administrator turns the channel off on the server (`panel.live_events`): the socket is closed with the code 4403 and the panel does not try it again for ten minutes; a close with 4401 means the login ended and the panel signs in again. The decisions are in `core/panel_feed.hpp`; `main/server_link.cpp` only opens the socket and passes on what happens to it.
+
 The panel never asks for the whole state: a 64 KB limit of its JSON reader would make a large installation impossible to read.
 
 The state of the link is a small machine (`LinkTracker`): *not set up*, *no network*, *connecting*, *online*, *stale* (four polls without an answer: what is on the screen is old, and

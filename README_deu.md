@@ -28,7 +28,7 @@
 
 ---
 
-**Ehrlichkeitsprüfung - was heute läuft:** Was nicht von der Platine abhängt, ist real und auf einem Computer getestet (die Einstellungen, was das Panel vom Server weiß und wann das veraltet ist, der Zwangsalarm, der nie angezeigt wird, das Sprachgespräch und die lange Antwort des Sprachdienstes, die Pins der Platine, die Texte des Bildschirms in acht Sprachen und die Glyphen seiner Schriften, die Release- und Signaturprüfungen: 28,227 Prüfungen in 8 Testprogrammen), ebenso die Webseite (gegen einen Ersatz in einem echten Browser ausgeführt). **Die Firmware wurde einmal gebaut (ESP-IDF 5.5.5, von der kontinuierlichen Integration nicht geprüft) und lief nie auf einer Platine:** Bildschirm, Touch, Ton und die Verbindung zum Server sind nach Waveshares Beispielen für diese Platinenfamilie geschrieben und brauchen ihr erstes Einschalten. Der Sprachdienst (ARMOR-VOICE-AI) beantwortet die Anfragen dieses Panels; es gibt kein Aktivierungswort: Man tippt zum Sprechen.
+**Ehrlichkeitsprüfung - was heute läuft:** Was nicht von der Platine abhängt, ist real und auf einem Computer getestet (die Einstellungen, was das Panel vom Server weiß und wann das veraltet ist, der Zwangsalarm, der nie angezeigt wird, das Sprachgespräch und die lange Antwort des Sprachdienstes, die Pins der Platine, die Texte des Bildschirms in acht Sprachen und die Glyphen seiner Schriften, die Release- und Signaturprüfungen: 30,783 Prüfungen in 14 Testprogrammen), ebenso die Webseite (gegen einen Ersatz in einem echten Browser ausgeführt). **Die Firmware wurde einmal gebaut (ESP-IDF 5.5.5, von der kontinuierlichen Integration nicht geprüft) und lief nie auf einer Platine:** Bildschirm, Touch, Ton und die Verbindung zum Server sind nach Waveshares Beispielen für diese Platinenfamilie geschrieben und brauchen ihr erstes Einschalten. Der Sprachdienst (ARMOR-VOICE-AI) beantwortet die Anfragen dieses Panels; es gibt kein Aktivierungswort: Man tippt zum Sprechen.
 
 ---
 
@@ -38,16 +38,16 @@
 |---|---|
 | Version | `0.3.7` |
 | Reifegrad | Funktionsfähig |
-| Tests | 28.227 Prüfungen in 8 Programmen (`ctest`) |
+| Tests | 30.783 Prüfungen in 14 Programmen (`ctest`) |
 | Technik | C++17 (host-tested core); ESP-IDF firmware for the ESP32-S3 with LVGL, with its web page |
 | Auf echter Hardware | Noch keiner: die Firmware baut (ESP-IDF 5.5.5, von der CI nicht geprüft), lief aber nicht auf der Platine |
 
 ## 🎯 Überblick
 
-* **Ein Client von ARMOR-SERVER wie die Android-App:** Es meldet sich mit einem Benutzer an, den ein Administrator dafür angelegt hat, fragt alle paar Sekunden `GET /api/v1/panel/summary` ab (wenige hundert Byte: Modus, Knoten online und die Alarme, die einen Menschen brauchen) und schaltet scharf, unscharf oder quittiert, wenn die Person die Taste berührt und bestätigt. Antwortet der Server nicht mehr, sagt der Bildschirm, dass das Gezeigte alt ist, und die Taste ist gesperrt.
+* **Ein Client von ARMOR-SERVER wie die Android-App:** Es meldet sich mit einem Benutzer an, den ein Administrator dafür angelegt hat, fragt alle paar Sekunden `GET /api/v1/panel/summary` ab (wenige hundert Byte: Modus, Knoten online und die Alarme, die einen Menschen brauchen) und schaltet scharf, unscharf oder quittiert, wenn die Person die Taste berührt und bestätigt. Antwortet der Server nicht mehr, sagt der Bildschirm, dass das Gezeigte alt ist, und die Taste ist gesperrt. Er hört den Live-Kanal des Servers ab (ein WebSocket), damit eine Änderung sofort erscheint, und fragt wie bisher, wenn der Kanal fehlt, schweigt oder abgeschaltet ist.
 * **Der Bildschirm (800x480, LVGL):** der Modus in der Farbe des schlimmsten ungesehenen Alarms, eine große Scharf/Unscharf-Taste mit vorheriger Rückfrage, die Knoten online, die Alarme (die ungesehenen zuerst), eine Nacht, die ihn dimmt, Ruhezustand nach einer Zeit ohne Berührung, ein Ton und Aufwecken bei neuem Alarm sowie acht Sprachen mit Akzenten, Japanisch und Chinesisch mit genau für die verwendeten Zeichen erzeugten Schriften.
 * **Ein Knoten wie die anderen:** derselbe Einstellungsspeicher, WLAN, Webseite in acht Sprachen, Bluetooth-Einrichtung vom Handy, Firmware-Update mit Rückfall und HTTPS wie ARMOR-RADAR, ARMOR-SOLAR und ARMOR-ELECTRICAL (sie teilen `ARMOR-COMMON/firmware_base`), dazu Seiten für Server, Bildschirm, Ton und Sprache; es meldet sich per MQTT bei Studio an, damit Studio es mit seiner Seite auflistet.
-* **Der Sprachassistent, Push-to-talk:** Eine Berührung öffnet das Mikrofon, das Audio geht nur an den Sprachdienst, dessen Adresse in den Einstellungen steht (standardmäßig aus), die Antwort wird angezeigt und gesprochen; Reihenfolge der Schritte, Zeitlimits und die Wirkung einer Berührung sind ein getesteter Zustandsautomat, und das Panel führt keinen Befehl von selbst aus ([der Vertrag](docs/VOICE.md)).
+* **Der Sprachassistent, Push-to-talk:** Eine Berührung öffnet das Mikrofon, das Audio geht nur an den Sprachdienst, dessen Adresse in den Einstellungen steht (standardmäßig aus), die Antwort wird angezeigt und gesprochen; Reihenfolge der Schritte, Zeitlimits und die Wirkung einer Berührung sind ein getesteter Zustandsautomat, und das Panel führt keinen Befehl von selbst aus ([der Vertrag](docs/VOICE.md)). Die Aufnahme geht als Rohbytes in einer Binäranfrage hinaus und die gesprochene Antwort kommt als Bytes zurück; einem Server, der das nicht annimmt, wird die ältere Anfrage geschickt.
 * **Das Board:** Waveshare ESP32-S3-Touch-LCD-7C-BOX (32 MB Flash, 16 MB PSRAM, 7-Zoll-RGB-Bildschirm mit GT911-Touch, vier Mikrofone, ein Lautsprecher); die Pins stammen aus Waveshares Beispielen, und ein Test beweist, dass keine zwei Funktionen einen GPIO teilen ([das Board](docs/HARDWARE.md)).
 * **Signierte Over-the-Air-Updates:** der Knoten installiert von GitHub nur ein Abbild, dessen SHA-256 stimmt und das eine gültige Ed25519-Signatur des Betreuers trägt (der öffentliche Schlüssel steckt in der Firmware, der private verlässt den Betreuer nie); eine von einem Administrator im Panel von Hand hochgeladene Datei wird weiterhin akzeptiert. Seiten und Meldungen des Panels sind in acht Sprachen.
 * **Bluetooth-Kopplung mit PIN:** die sechsstellige PIN wird aus dem Einrichtungscode abgeleitet, auf der USB-Konsole ausgegeben und einem Administrator im Panel angezeigt; das Telefon muss sie eingeben, bevor es die Einstellungen des Knotens schreiben darf.
@@ -79,7 +79,7 @@ ARMOR-HMI/
 │            network, web_server, api_shared, mqtt_link, node_store, tls_cert, ble_provision (the shared node firmware), fonts/ (generated)
 ├── core/    hmi_config (the settings), server_view (the summary, the link, what is new), voice_session (the conversation), screen_text (eight languages), board_s3 (the pins), auth, netplan, json...
 ├── panel/   the web page: index.html, app.js, text.js (8 languages), style.css
-├── tests/   test_config, test_mqtt_tls, test_view, test_voice, test_board
+├── tests/   test_config, test_mqtt_tls, test_view, test_voice, test_voice_binary, test_live, test_board
 ├── tools/   build_node.sh, make_fonts.py, pack_panel.py, panel_mock.mjs, panel_browser_test.mjs
 ├── docs/    DESIGN, HARDWARE, VOICE, NODE_FIRMWARE, FONTS, BLE_PROVISIONING, FIRMWARE_BUILD_ACTIONS
 └── images/  brand assets

@@ -28,7 +28,7 @@
 
 ---
 
-**Comprobación de honestidad - qué funciona hoy:** Lo que no depende de la placa es real y está probado en un ordenador (los ajustes, lo que el panel sabe del servidor y cuándo está desfasado, la alarma de coacción que nunca se muestra, la conversación de voz y la respuesta larga del servicio de voz, los pines de la placa, los textos de la pantalla en ocho idiomas y los glifos de sus fuentes, las comprobaciones de versión y firma: 28,227 comprobaciones en 8 programas de test) y también lo está la página web (ejecutada contra un sustituto en un navegador real). **El firmware se ha compilado una vez (ESP-IDF 5.5.5, que la integración continua no comprueba) y nunca ha corrido en una placa:** la pantalla, el táctil, el sonido y el enlace con el servidor están escritos a partir de los ejemplos de Waveshare para esta familia de placas y necesitan su primer encendido. El servicio de voz (ARMOR-VOICE-AI) atiende las peticiones de este panel; no hay palabra de activación: es pulsar para hablar.
+**Comprobación de honestidad - qué funciona hoy:** Lo que no depende de la placa es real y está probado en un ordenador (los ajustes, lo que el panel sabe del servidor y cuándo está desfasado, la alarma de coacción que nunca se muestra, la conversación de voz y la respuesta larga del servicio de voz, los pines de la placa, los textos de la pantalla en ocho idiomas y los glifos de sus fuentes, las comprobaciones de versión y firma: 30,783 comprobaciones en 14 programas de test) y también lo está la página web (ejecutada contra un sustituto en un navegador real). **El firmware se ha compilado una vez (ESP-IDF 5.5.5, que la integración continua no comprueba) y nunca ha corrido en una placa:** la pantalla, el táctil, el sonido y el enlace con el servidor están escritos a partir de los ejemplos de Waveshare para esta familia de placas y necesitan su primer encendido. El servicio de voz (ARMOR-VOICE-AI) atiende las peticiones de este panel; no hay palabra de activación: es pulsar para hablar.
 
 ---
 
@@ -38,16 +38,16 @@
 |---|---|
 | Versión | `0.3.7` |
 | Madurez | Funcional |
-| Tests | 28.227 comprobaciones en 8 programas (`ctest`) |
+| Tests | 30.783 comprobaciones en 14 programas (`ctest`) |
 | Tecnología | C++17 (host-tested core); ESP-IDF firmware for the ESP32-S3 with LVGL, with its web page |
 | En hardware real | Ninguno todavía: el firmware compila (ESP-IDF 5.5.5, sin comprobar en CI) pero no ha corrido en la placa |
 
 ## 🎯 Descripción general
 
-* **Cliente de ARMOR-SERVER, como la app de Android:** entra con un usuario que un administrador creó para él, pide `GET /api/v1/panel/summary` (unos cientos de bytes: el modo, los nodos conectados y las alarmas que necesitan a una persona) cada pocos segundos y, cuando la persona toca el botón y confirma, arma, desarma o reconoce. Si el servidor deja de responder, la pantalla avisa de que lo que muestra es antiguo y el botón se desactiva.
+* **Cliente de ARMOR-SERVER, como la app de Android:** entra con un usuario que un administrador creó para él, pide `GET /api/v1/panel/summary` (unos cientos de bytes: el modo, los nodos conectados y las alarmas que necesitan a una persona) cada pocos segundos y, cuando la persona toca el botón y confirma, arma, desarma o reconoce. Si el servidor deja de responder, la pantalla avisa de que lo que muestra es antiguo y el botón se desactiva. Escucha el canal en directo del servidor (un WebSocket) para que un cambio se vea al instante, y pregunta como antes cuando el canal falta, calla o está desactivado.
 * **La pantalla (800x480, LVGL):** el modo en el color de la peor alarma que nadie ha visto, un botón grande de armar/desarmar con pregunta previa, los nodos conectados, las alarmas (las no vistas primero), una noche que la atenúa, un reposo tras un tiempo sin toques, un aviso sonoro y que se despierte cuando llega una alarma nueva, y ocho idiomas con acentos, japonés y chino dibujados con fuentes generadas justo para los caracteres usados.
 * **Un nodo como los demás:** el mismo almacén de ajustes, Wi-Fi, página web en ocho idiomas, configuración por Bluetooth desde el móvil, actualización de firmware con vuelta atrás y HTTPS que ARMOR-RADAR, ARMOR-SOLAR y ARMOR-ELECTRICAL (comparten `ARMOR-COMMON/firmware_base`), más páginas para el servidor, la pantalla, el sonido y la voz; avisa a Studio de que existe por MQTT para que lo liste con su página.
-* **El asistente de voz, pulsar para hablar:** un toque abre el micrófono, el audio va solo al servicio de voz cuya dirección está en los ajustes (apagado por defecto), la respuesta se muestra y se dice; el orden de los pasos, los límites de tiempo y lo que hace un toque son una máquina de estados probada, y el panel no ejecuta ninguna orden por sí mismo ([el contrato](docs/VOICE.md)).
+* **El asistente de voz, pulsar para hablar:** un toque abre el micrófono, el audio va solo al servicio de voz cuya dirección está en los ajustes (apagado por defecto), la respuesta se muestra y se dice; el orden de los pasos, los límites de tiempo y lo que hace un toque son una máquina de estados probada, y el panel no ejecuta ninguna orden por sí mismo ([el contrato](docs/VOICE.md)). La grabación va como bytes en una petición binaria y la respuesta hablada vuelve como bytes; a un servidor que no la acepta se le envía la petición antigua.
 * **La placa:** Waveshare ESP32-S3-Touch-LCD-7C-BOX (32 MB de flash, 16 MB de PSRAM, pantalla RGB de 7 pulgadas con tacto GT911, cuatro micrófonos, un altavoz); los pines vienen de los ejemplos de Waveshare y una prueba demuestra que dos funciones no comparten un GPIO ([la placa](docs/HARDWARE.md)).
 * **Actualizaciones por aire firmadas:** el nodo solo instala desde GitHub una imagen cuyo SHA-256 coincide y que lleva una firma Ed25519 válida del responsable (la clave pública está en el firmware, la privada nunca sale del responsable); un archivo subido a mano por un administrador en el panel se sigue aceptando. Las páginas y mensajes del panel están en ocho idiomas.
 * **Emparejamiento Bluetooth con PIN:** el PIN de seis cifras se deriva del código de configuración, se imprime en la consola USB y se muestra a un administrador en el panel; el móvil tiene que escribirlo antes de poder cambiar los ajustes del nodo.
@@ -79,7 +79,7 @@ ARMOR-HMI/
 │            network, web_server, api_shared, mqtt_link, node_store, tls_cert, ble_provision (the shared node firmware), fonts/ (generated)
 ├── core/    hmi_config (the settings), server_view (the summary, the link, what is new), voice_session (the conversation), screen_text (eight languages), board_s3 (the pins), auth, netplan, json...
 ├── panel/   the web page: index.html, app.js, text.js (8 languages), style.css
-├── tests/   test_config, test_mqtt_tls, test_view, test_voice, test_board
+├── tests/   test_config, test_mqtt_tls, test_view, test_voice, test_voice_binary, test_live, test_board
 ├── tools/   build_node.sh, make_fonts.py, pack_panel.py, panel_mock.mjs, panel_browser_test.mjs
 ├── docs/    DESIGN, HARDWARE, VOICE, NODE_FIRMWARE, FONTS, BLE_PROVISIONING, FIRMWARE_BUILD_ACTIONS
 └── images/  brand assets

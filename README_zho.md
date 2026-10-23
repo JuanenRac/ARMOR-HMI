@@ -28,7 +28,7 @@
 
 ---
 
-**诚实性检查 - 今天真正能运行的部分:** 不依赖板子的部分是真实的，并已在计算机上测试（设置、面板对服务器的了解及其何时过期、永不显示的胁迫告警、语音对话和语音服务的长回复、板子的引脚、八种语言的屏幕文字及其字体字形、发布与签名检查：8 个测试程序共 28,227 项检查），网页也是如此（在真实浏览器中对替身运行）。**固件已构建过一次（ESP-IDF 5.5.5，持续集成不检查），但从未在板上运行：**屏幕、触摸、声音和与服务器的连接是根据 Waveshare 对这一系列板子的示例编写的，等待首次上电。语音服务（ARMOR-VOICE-AI）会应答此面板的请求；没有唤醒词，需点按说话。
+**诚实性检查 - 今天真正能运行的部分:** 不依赖板子的部分是真实的，并已在计算机上测试（设置、面板对服务器的了解及其何时过期、永不显示的胁迫告警、语音对话和语音服务的长回复、板子的引脚、八种语言的屏幕文字及其字体字形、发布与签名检查：14 个测试程序共 30,783 项检查），网页也是如此（在真实浏览器中对替身运行）。**固件已构建过一次（ESP-IDF 5.5.5，持续集成不检查），但从未在板上运行：**屏幕、触摸、声音和与服务器的连接是根据 Waveshare 对这一系列板子的示例编写的，等待首次上电。语音服务（ARMOR-VOICE-AI）会应答此面板的请求；没有唤醒词，需点按说话。
 
 ---
 
@@ -38,16 +38,16 @@
 |---|---|
 | 版本 | `0.3.7` |
 | 成熟度 | 可用 |
-| 测试 | 8 个程序中的 28,227 项检查（`ctest`） |
+| 测试 | 14 个程序中的 30,783 项检查（`ctest`） |
 | 技术栈 | C++17 (host-tested core); ESP-IDF firmware for the ESP32-S3 with LVGL, with its web page |
 | 真实硬件 | 暂无：固件可以构建（ESP-IDF 5.5.5，CI 未检查），但还没有在板上运行 |
 
 ## 🎯 概述
 
-* **像 Android 应用一样是 ARMOR-SERVER 的客户端：** 使用管理员为它创建的用户登录，每隔几秒请求 `GET /api/v1/panel/summary`（几百字节：模式、在线节点和需要人处理的警报），当人触摸按钮并确认后进行布防、撤防或确认。如果服务器不再响应，屏幕会提示所显示内容已过期，并禁用按钮。
+* **像 Android 应用一样是 ARMOR-SERVER 的客户端：** 使用管理员为它创建的用户登录，每隔几秒请求 `GET /api/v1/panel/summary`（几百字节：模式、在线节点和需要人处理的警报），当人触摸按钮并确认后进行布防、撤防或确认。如果服务器不再响应，屏幕会提示所显示内容已过期，并禁用按钮。它监听服务器的实时通道（WebSocket），使变化立即显示；通道缺失、无响应或被关闭时，仍像以前一样查询。
 * **屏幕（800x480，LVGL）：** 以无人查看的最严重警报的颜色显示模式，带先行确认的大号布防/撤防按钮、在线节点、警报（未查看的优先）、夜间调暗、一段时间无触摸后休眠、新警报到来时发声并唤醒，支持八种语言（含重音字符，日文和中文使用专为所用字符生成的字体绘制）。
 * **与其他节点相同的节点：** 与 ARMOR-RADAR、ARMOR-SOLAR、ARMOR-ELECTRICAL 相同的设置存储、Wi-Fi、八种语言的网页、手机蓝牙设置、可回滚的固件更新和 HTTPS（共享 `ARMOR-COMMON/firmware_base`），另有服务器、屏幕、声音和语音页面；它通过 MQTT 告知 Studio 自己的存在，使 Studio 带着其页面列出它。
-* **语音助手，按键说话：** 触摸打开麦克风，音频只会发送到设置中填写地址的语音服务（默认关闭），回答会显示并朗读；步骤顺序、时间限制以及触摸的作用是一个经过测试的状态机，面板自己不执行任何命令（[契约](docs/VOICE.md)）。
+* **语音助手，按键说话：** 触摸打开麦克风，音频只会发送到设置中填写地址的语音服务（默认关闭），回答会显示并朗读；步骤顺序、时间限制以及触摸的作用是一个经过测试的状态机，面板自己不执行任何命令（[契约](docs/VOICE.md)）。录音以二进制请求中的原始字节发送，语音回复也以字节返回；对不接受的服务器则发送旧式请求。
 * **开发板：** Waveshare ESP32-S3-Touch-LCD-7C-BOX（32 MB 闪存、16 MB PSRAM、带 GT911 触摸的7英寸RGB屏幕、四个麦克风、一个扬声器）；引脚来自 Waveshare 的示例，并有测试证明没有两个功能共用同一个 GPIO（[开发板](docs/HARDWARE.md)）。
 * **签名的无线更新：**节点只会从 GitHub 安装 SHA-256 匹配且带有维护者有效 Ed25519 签名的镜像（公钥在固件中，私钥从不离开维护者）；管理员在面板中手动上传的文件仍然被接受。面板的页面和消息有八种语言。
 * **带 PIN 的蓝牙配对：**六位 PIN 由设置码派生，打印在 USB 控制台上并向管理员显示在面板中；手机必须输入它才能写入节点的设置。
@@ -79,7 +79,7 @@ ARMOR-HMI/
 │            network, web_server, api_shared, mqtt_link, node_store, tls_cert, ble_provision (the shared node firmware), fonts/ (generated)
 ├── core/    hmi_config (the settings), server_view (the summary, the link, what is new), voice_session (the conversation), screen_text (eight languages), board_s3 (the pins), auth, netplan, json...
 ├── panel/   the web page: index.html, app.js, text.js (8 languages), style.css
-├── tests/   test_config, test_mqtt_tls, test_view, test_voice, test_board
+├── tests/   test_config, test_mqtt_tls, test_view, test_voice, test_voice_binary, test_live, test_board
 ├── tools/   build_node.sh, make_fonts.py, pack_panel.py, panel_mock.mjs, panel_browser_test.mjs
 ├── docs/    DESIGN, HARDWARE, VOICE, NODE_FIRMWARE, FONTS, BLE_PROVISIONING, FIRMWARE_BUILD_ACTIONS
 └── images/  brand assets

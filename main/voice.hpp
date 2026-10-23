@@ -3,7 +3,8 @@
 //
 // The contract with the speech service (docs/VOICE.md): POST <url>/v1/turn with the audio as 16 kHz mono 16-bit little-endian PCM (Content-Type: audio/L16;rate=16000) and the
 // header X-Armor-Language; the answer is JSON {"heard":"...","reply":"...","audio":"<base64 of 16 kHz mono 16-bit PCM>"} (heard and audio are optional). The service does
-// not exist yet in this ecosystem; nothing is sent anywhere until the settings turn the voice on and give its address.
+// not exist yet in this ecosystem; nothing is sent anywhere until the settings turn the voice on and give its address. The panel first sends the turn as a binary multipart request
+// (core/voice_multipart.hpp, the raw audio and a spoken answer as raw bytes) and falls back to the request above when the server answers 415.
 // Copyright (C) 2026 JuanenRac (Electro Hobby 3D). GPL-3.0-or-later.
 #pragma once
 #include <string>

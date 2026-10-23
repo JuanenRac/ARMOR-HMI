@@ -470,7 +470,8 @@ function serverPage() {
           !sv.cert_sha256 && !sv.cert_pem ? note(t("serverNoPin"), "warn") : null,
           field("serverCert", "server.cert_pem", { type: "textarea", max: 4000, placeholder: "-----BEGIN CERTIFICATE-----" })] : null,
         el("div", { class: "row" }, field("serverUser", "server.user", { max: 48 }), field("serverPassword", "server.password", { type: "password", hint: t("passwordHostBound") })),
-        field("serverPoll", "server.poll_s", { type: "number", min: 1, max: 60 })] : null,
+        field("serverPoll", "server.poll_s", { type: "number", min: 1, max: 60 }),
+        field("serverLive", "server.live_events", { type: "checkbox" })] : null,
       S.screen ? linkPill(S.screen.link.state) : null,
       note(t("serverNote"), "info")));
 }
@@ -489,7 +490,8 @@ function voicePage() {
     card(t("voiceTitle"), field("voiceEnable", "voice.enabled", { type: "checkbox", rerender: true }),
       v.enabled ? [field("voiceUrl", "voice.url", { max: 160, placeholder: "http://192.168.0.180:18090" }),
         field("voiceToken", "voice.token", { type: "password", hint: t("passwordHostBound") }),
-        el("div", { class: "row" }, field("voiceWake", "voice.wake_name", { max: 24 }), field("voiceListen", "voice.listen_s", { type: "number", min: 2, max: 15 }))] : null,
+        el("div", { class: "row" }, field("voiceWake", "voice.wake_name", { max: 24 }), field("voiceListen", "voice.listen_s", { type: "number", min: 2, max: 15 })),
+        field("voiceBinary", "voice.binary_turn", { type: "checkbox" })] : null,
       S.screen ? el("p", { class: "muted" }, t("vs_" + S.screen.voice.state)) : null,
       note(t("voiceNote"), "info")));
 }

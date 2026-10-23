@@ -11,13 +11,16 @@
 #include "esp_crt_bundle.h"
 #include "esp_http_client.h"
 #include "esp_log.h"
+#include "esp_random.h"
 #include "esp_timer.h"
+#include "esp_websocket_client.h"
 #include "mbedtls/sha256.h"
 #include "mbedtls/ssl.h"
 #include "mbedtls/x509_crt.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "core/json.hpp"
+#include "core/panel_feed.hpp"
 #include "core/pin_entry.hpp"
 #include "core/server_pin.hpp"
 #include "network.hpp"
@@ -45,6 +48,12 @@ std::function<void(const std::vector<hmi::AlarmLine>&)> g_on_new_alarms;
 std::vector<std::string> g_known_alarm_ids;
 bool g_first_summary = true;
 TaskHandle_t g_task = nullptr;
+hmi::LiveChannel g_live;                      // under g_lock: whether the panel listens to the live channel and when it tries again
+hmi::FrameAssembler g_frame_parts;            // only the socket's task touches it
+esp_websocket_client_handle_t g_ws = nullptr; // only the link task touches it
+std::string g_ws_inbox;                       // under g_lock: the newest complete frame of the live channel that the link task has not read yet
+std::atomic<int> g_ws_close_code{0};          // the code of the last close frame, from the socket's task
+constexpr std::int64_t kLiveRoundMs = 1000;   // while listening, the link task still looks at the clock this often (a frame also wakes it)
 
 std::int64_t now_ms() { return esp_timer_get_time() / 1000; }
 
@@ -98,6 +107,24 @@ esp_err_t pin_attach(void* configuration) {
   const esp_err_t attached = esp_crt_bundle_attach(configuration);
   if (attached != ESP_OK) return attached;
   mbedtls_ssl_conf_verify(static_cast<mbedtls_ssl_config*>(configuration), pin_verify, nullptr);
+  return ESP_OK;
+}
+
+// The live channel checks the certificate by the same fingerprint, with a callback of its own: it never has the "only read it" mode of the set-up probe above, and the number it requires is
+// set before its socket starts and not changed while that socket lives.
+std::string g_live_pin_want;
+int live_pin_verify(void*, mbedtls_x509_crt* certificate, int depth, uint32_t* flags) {
+  if (depth != 0) { *flags = 0; return 0; }
+  std::uint8_t digest[server_pin::kDigestBytes];
+  if (mbedtls_sha256(certificate->raw.p, certificate->raw.len, digest, 0) != 0) return MBEDTLS_ERR_X509_CERT_VERIFY_FAILED;
+  if (server_pin::matches(digest, g_live_pin_want)) { *flags = 0; return 0; }
+  return MBEDTLS_ERR_X509_CERT_VERIFY_FAILED;
+}
+
+esp_err_t live_pin_attach(void* configuration) {
+  const esp_err_t attached = esp_crt_bundle_attach(configuration);
+  if (attached != ESP_OK) return attached;
+  mbedtls_ssl_conf_verify(static_cast<mbedtls_ssl_config*>(configuration), live_pin_verify, nullptr);
   return ESP_OK;
 }
 
@@ -208,25 +235,152 @@ bool sign_in() {
   return false;
 }
 
-void poll_summary() {
-  const Answer answer = request(HTTP_METHOD_GET, "/api/v1/panel/summary", "", true);
-  hmi::Summary summary;
+// A summary that arrived, by asking or by the live channel: the screen learns of it, and of the alarms in it that are new.
+void apply_summary(const hmi::Summary& summary) {
   std::vector<hmi::AlarmLine> fresh;
   std::function<void(const std::vector<hmi::AlarmLine>&)> callback;
   {
     std::lock_guard<std::mutex> guard(g_lock);
-    if (answer.status == 200 && hmi::parse_summary(answer.body, summary)) {
-      fresh = hmi::new_unacknowledged(g_known_alarm_ids, g_first_summary, summary);
-      hmi::remember_ids(g_known_alarm_ids, summary);
-      g_first_summary = false;
-      g_tracker.on_summary(now_ms(), summary);
-      callback = g_on_new_alarms;
-    } else {
-      g_tracker.on_failure(now_ms(), answer.status == 200 ? hmi::Failure::kBadAnswer : failure_of(answer));
-      if (answer.status == 401) g_cookie.clear();
-    }
+    fresh = hmi::new_unacknowledged(g_known_alarm_ids, g_first_summary, summary);
+    hmi::remember_ids(g_known_alarm_ids, summary);
+    g_first_summary = false;
+    g_tracker.on_summary(now_ms(), summary);
+    callback = g_on_new_alarms;
   }
   if (!fresh.empty() && callback) callback(fresh);
+}
+
+void poll_summary() {
+  const Answer answer = request(HTTP_METHOD_GET, "/api/v1/panel/summary", "", true);
+  hmi::Summary summary;
+  if (answer.status == 200 && hmi::parse_summary(answer.body, summary)) {
+    apply_summary(summary);
+    return;
+  }
+  std::lock_guard<std::mutex> guard(g_lock);
+  g_tracker.on_failure(now_ms(), answer.status == 200 ? hmi::Failure::kBadAnswer : failure_of(answer));
+  if (answer.status == 401) g_cookie.clear();
+}
+
+// ---- the live channel ----------------------------------------------------------------------------------------------------------------------
+// A WebSocket at /api/v1/panel/events carries the same summary the panel would ask for, when it changes (core/panel_feed.hpp decides when to listen and when to ask). The socket's own task only
+// puts the frames together and leaves the newest in `g_ws_inbox`; everything that touches the screen's state is done by the link task, as for the answers of a request.
+void ws_event(void*, esp_event_base_t, int32_t event_id, void* event_data) {
+  const esp_websocket_event_data_t* data = static_cast<const esp_websocket_event_data_t*>(event_data);
+  switch (event_id) {
+    case WEBSOCKET_EVENT_CONNECTED: {
+      g_frame_parts.reset();
+      std::lock_guard<std::mutex> guard(g_lock);
+      g_live.on_connected(now_ms());
+      break;
+    }
+    case WEBSOCKET_EVENT_DATA:
+      if (data == nullptr) break;
+      if (data->op_code == 0x08 && data->data_len >= 2 && data->data_ptr != nullptr) {   // a close frame starts with its code
+        g_ws_close_code = (static_cast<unsigned char>(data->data_ptr[0]) << 8) | static_cast<unsigned char>(data->data_ptr[1]);
+      } else if ((data->op_code == 0x01 || data->op_code == 0x00) && data->data_ptr != nullptr) {   // text, or the rest of it
+        if (g_frame_parts.add(static_cast<std::size_t>(data->payload_offset), static_cast<std::size_t>(data->payload_len), data->data_ptr, static_cast<std::size_t>(data->data_len))) {
+          { std::lock_guard<std::mutex> guard(g_lock); g_ws_inbox = g_frame_parts.frame(); }
+          if (g_task != nullptr) xTaskNotifyGive(g_task);
+        }
+      }
+      break;
+    case WEBSOCKET_EVENT_DISCONNECTED:
+    case WEBSOCKET_EVENT_CLOSED: {
+      std::lock_guard<std::mutex> guard(g_lock);
+      g_live.on_disconnected(now_ms(), esp_random(), g_ws_close_code.exchange(0));
+      break;
+    }
+    default: break;
+  }
+}
+
+void ws_stop() {
+  if (g_ws == nullptr) return;
+  if (esp_websocket_client_is_connected(g_ws)) esp_websocket_client_close(g_ws, pdMS_TO_TICKS(500));
+  esp_websocket_client_destroy(g_ws);   // not under g_lock: the socket's task may be waiting for it
+  g_ws = nullptr;
+  g_frame_parts.reset();
+}
+
+bool ws_start() {
+  config::Settings s;
+  std::string cookie;
+  {
+    std::lock_guard<std::mutex> guard(g_lock);
+    s = g_settings;
+    cookie = g_cookie;
+  }
+  if (cookie.empty()) return false;   // no session yet: the next round, after the sign-in
+  const std::string uri = std::string(s.server.tls ? "wss://" : "ws://") + s.server.host + ":" + std::to_string(s.server.port) + "/api/v1/panel/events";
+  const std::string headers = "Cookie: " + cookie + "\r\n";
+  esp_websocket_client_config_t config{};
+  config.uri = uri.c_str();
+  config.headers = headers.c_str();
+  config.disable_auto_reconnect = true;   // core/panel_feed.hpp decides when to try again
+  config.network_timeout_ms = kRequestTimeoutMs;
+  config.buffer_size = 2048;
+  config.task_stack = s.server.tls ? 8192 : 5120;
+  // Same trust as the requests (core/server_pin.hpp): a wss:// connection is never accepted unchecked.
+  const server_pin::Trust trust = server_pin::trust_for(s.server.tls, s.server.cert_sha256, s.server.cert_pem);
+  if (trust == server_pin::Trust::kFingerprint) {
+    g_live_pin_want = s.server.cert_sha256;   // set before the socket's task exists, read only by it
+    config.crt_bundle_attach = live_pin_attach;
+  } else if (trust == server_pin::Trust::kChain) {
+    config.cert_pem = s.server.cert_pem.c_str();
+    config.skip_cert_common_name_check = true;
+  } else if (trust == server_pin::Trust::kAuthorities) {
+    config.crt_bundle_attach = esp_crt_bundle_attach;
+  }
+  g_ws = esp_websocket_client_init(&config);
+  if (g_ws == nullptr) return false;
+  esp_websocket_register_events(g_ws, WEBSOCKET_EVENT_ANY, ws_event, nullptr);
+  if (esp_websocket_client_start(g_ws) != ESP_OK) { esp_websocket_client_destroy(g_ws); g_ws = nullptr; return false; }
+  return true;
+}
+
+// One look at the live channel, at every round of the link task: the frame that came, the socket that has to be closed or opened. True when the summary is arriving by it and is recent, so the
+// panel does not ask.
+bool live_step() {
+  const std::int64_t now = now_ms();
+  std::string frame;
+  bool wanted;
+  {
+    std::lock_guard<std::mutex> guard(g_lock);
+    frame.swap(g_ws_inbox);
+    wanted = g_live.wanted();
+  }
+  if (!wanted) { ws_stop(); return false; }
+  if (!frame.empty()) {
+    hmi::LiveFrame parsed;
+    if (hmi::parse_live_frame(frame, parsed)) {
+      { std::lock_guard<std::mutex> guard(g_lock); g_live.on_frame(now, parsed.heartbeat_ms); }
+      apply_summary(parsed.summary);
+    } else {
+      ESP_LOGW(kTag, "a frame of the live channel was not understood and was ignored");
+    }
+  }
+  bool reset = false;
+  int close_code = 0;
+  {
+    std::lock_guard<std::mutex> guard(g_lock);
+    if (g_live.needs_reset(now)) { g_live.on_disconnected(now, esp_random()); reset = true; }
+    close_code = g_live.take_close_code();
+  }
+  if (reset) ESP_LOGW(kTag, "the live channel is silent: back to asking for a while");
+  if (reset || close_code != 0) ws_stop();
+  if (close_code == hmi::kCloseSessionEnded) { std::lock_guard<std::mutex> guard(g_lock); g_cookie.clear(); }   // sign in again
+  bool connect;
+  { std::lock_guard<std::mutex> guard(g_lock); connect = g_live.should_connect(now); }
+  if (connect) {
+    ws_stop();   // the one of the last try, if it is still there
+    const bool started = ws_start();
+    std::lock_guard<std::mutex> guard(g_lock);
+    g_live.on_connect_started(now);
+    if (!started) g_live.on_disconnected(now, esp_random());
+  }
+  std::lock_guard<std::mutex> guard(g_lock);
+  return g_live.healthy(now_ms());
 }
 
 void do_pending_actions() {
@@ -302,10 +456,12 @@ void link_task(void*) {
         delay_ms = g_tracker.next_delay_ms();
       } else {
         do_pending_actions();
-        poll_summary();
+        const bool listening = live_step();   // the summary arrives by the live channel: nothing to ask
+        if (!listening) poll_summary();
         std::lock_guard<std::mutex> guard(g_lock);
+        g_tracker.set_live_heartbeat_ms(listening ? g_live.heartbeat_ms() : 0);
         g_tracker.update(now_ms());
-        delay_ms = g_tracker.next_delay_ms();
+        delay_ms = listening ? kLiveRoundMs : g_tracker.next_delay_ms();
       }
     }
     if (g_action_pending) delay_ms = std::min<std::int64_t>(delay_ms, 2000);   // an order that waits is looked at soon, to be sent or dropped
@@ -320,6 +476,7 @@ void start(const config::Settings& settings) {
     std::lock_guard<std::mutex> guard(g_lock);
     g_settings = settings;
     g_tracker.configure(settings.server.enabled, settings.server.poll_s);
+    g_live.configure(settings.server.enabled && settings.server.live_events);
   }
   // It reads from the server over HTTPS and writes nothing to the flash (the settings are saved from the panel, not from here): its 8 KB stack is in the external RAM.
   if (g_task == nullptr) armor::memory::start_task(link_task, "server-link", 8192, nullptr, 4, &g_task);

@@ -68,10 +68,9 @@ inline long long whole_number(double value) {
   return std::isfinite(value) && value > -9007199254740992.0 && value < 9007199254740992.0 ? static_cast<long long>(value) : 0;
 }
 
-// The answer of /api/v1/panel/summary. False when it is not what the server sends (the panel then keeps what it had).
-inline bool parse_summary(std::string_view text, Summary& out) {
-  json::Value document;
-  if (!json::parse(text, document) || !document.is_object()) return false;
+// The summary as a JSON value already read: the answer of /api/v1/panel/summary, or the `summary` of a frame of the live channel. False when it is not what the server sends.
+inline bool summary_from_value(const json::Value& document, Summary& out) {
+  if (!document.is_object()) return false;
   const std::string mode = document.string_or("mode", "");
   if (mode != "armed" && mode != "disarmed") return false;
   const json::Value* nodes = document.get("nodes");
@@ -123,6 +122,13 @@ inline bool parse_summary(std::string_view text, Summary& out) {
   return true;
 }
 
+// The answer of /api/v1/panel/summary. False when it is not what the server sends (the panel then keeps what it had).
+inline bool parse_summary(std::string_view text, Summary& out) {
+  json::Value document;
+  if (!json::parse(text, document)) return false;
+  return summary_from_value(document, out);
+}
+
 // A power in the words of a wall: "850 W" under a kilowatt, "1.2 kW" up to ten, "12 kW" above.
 inline std::string power_text(int watts) {
   const bool negative = watts < 0;
@@ -156,6 +162,7 @@ class LinkTracker {
   void configure(bool server_enabled, int poll_s) {
     configured_ = server_enabled;
     poll_ms_ = std::max(1, poll_s) * 1000LL;
+    live_heartbeat_ms_ = 0;
     if (!configured_) link_ = Link::kNotConfigured;
     else if (link_ == Link::kNotConfigured) link_ = Link::kConnecting;
   }
@@ -180,12 +187,12 @@ class LinkTracker {
   // Call now and then (the HTTP task does it at every poll): decides between online, stale and the rest from the clock.
   void update(std::int64_t now_ms) {
     // How old what is on the screen is does not depend on why the answers stopped (no address, a refused login, a server that is down): it is old after a few missed polls.
-    old_ = have_summary_ && now_ms - last_ok_ms_ > kStaleAfterPolls * poll_ms_;
+    old_ = have_summary_ && now_ms - last_ok_ms_ > stale_after_ms();
     if (!configured_) { link_ = Link::kNotConfigured; return; }
     if (!has_network_) { link_ = Link::kNoNetwork; return; }
     if (link_ == Link::kDenied) return;
     if (!have_summary_ && !signed_in_) { link_ = Link::kConnecting; return; }
-    link_ = (have_summary_ && now_ms - last_ok_ms_ > kStaleAfterPolls * poll_ms_) ? Link::kStale : (have_summary_ || signed_in_ ? Link::kOnline : Link::kConnecting);
+    link_ = (have_summary_ && now_ms - last_ok_ms_ > stale_after_ms()) ? Link::kStale : (have_summary_ || signed_in_ ? Link::kOnline : Link::kConnecting);
   }
 
   // How long to wait before the next try: the poll interval while things work, then longer after each failure (never more than a minute), so a server that is down is
@@ -209,10 +216,16 @@ class LinkTracker {
 
   static constexpr int kStaleAfterPolls = 4;
 
+  // While the live channel is the way the summary arrives, news comes when something changes and, at least, at the heartbeat the server announced: the summary is stale only after a few
+  // heartbeats have not come (and never sooner than the polls would have taken). 0 when the panel asks (the channel is off or not connected).
+  void set_live_heartbeat_ms(std::int64_t heartbeat_ms) { live_heartbeat_ms_ = heartbeat_ms > 0 ? heartbeat_ms : 0; }
+  std::int64_t stale_after_ms() const { return std::max<std::int64_t>(kStaleAfterPolls * poll_ms_, live_heartbeat_ms_ > 0 ? kStaleAfterHeartbeats * live_heartbeat_ms_ : 0); }
+  static constexpr int kStaleAfterHeartbeats = 3;
+
  private:
   bool configured_ = false, has_network_ = false, signed_in_ = false, have_summary_ = false, old_ = false;
   Link link_ = Link::kNotConfigured;
-  std::int64_t poll_ms_ = 3000, last_ok_ms_ = 0;
+  std::int64_t poll_ms_ = 3000, last_ok_ms_ = 0, live_heartbeat_ms_ = 0;
   int failures_ = 0, refusals_ = 0;
   Summary summary_;
 };

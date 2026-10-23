@@ -28,7 +28,7 @@
 
 ---
 
-**Vérification d'honnêteté - ce qui fonctionne aujourd'hui:** Ce qui ne dépend pas de la carte est réel et testé sur un ordinateur (les réglages, ce que le panneau sait du serveur et quand cela est périmé, l'alarme de contrainte qui n'est jamais affichée, la conversation vocale et la longue réponse du service vocal, les broches de la carte, les textes de l'écran en huit langues et les glyphes de ses polices, les contrôles de version et de signature : 28,227 vérifications en 8 programmes de test), de même que la page web (exécutée contre un substitut dans un vrai navigateur). **Le firmware a été compilé une fois (ESP-IDF 5.5.5, non vérifié par l'intégration continue) et n'a jamais tourné sur une carte :** l'écran, le tactile, le son et la liaison avec le serveur sont écrits d'après les exemples de Waveshare pour cette famille de cartes et attendent leur première mise sous tension. Le service vocal (ARMOR-VOICE-AI) répond aux requêtes de ce panneau ; il n'y a pas de mot d'activation : c'est appuyer pour parler.
+**Vérification d'honnêteté - ce qui fonctionne aujourd'hui:** Ce qui ne dépend pas de la carte est réel et testé sur un ordinateur (les réglages, ce que le panneau sait du serveur et quand cela est périmé, l'alarme de contrainte qui n'est jamais affichée, la conversation vocale et la longue réponse du service vocal, les broches de la carte, les textes de l'écran en huit langues et les glyphes de ses polices, les contrôles de version et de signature : 30,783 vérifications en 14 programmes de test), de même que la page web (exécutée contre un substitut dans un vrai navigateur). **Le firmware a été compilé une fois (ESP-IDF 5.5.5, non vérifié par l'intégration continue) et n'a jamais tourné sur une carte :** l'écran, le tactile, le son et la liaison avec le serveur sont écrits d'après les exemples de Waveshare pour cette famille de cartes et attendent leur première mise sous tension. Le service vocal (ARMOR-VOICE-AI) répond aux requêtes de ce panneau ; il n'y a pas de mot d'activation : c'est appuyer pour parler.
 
 ---
 
@@ -38,16 +38,16 @@
 |---|---|
 | Version | `0.3.7` |
 | Maturité | Fonctionnel |
-| Tests | 28 227 vérifications dans 8 programmes (`ctest`) |
+| Tests | 30 783 vérifications dans 14 programmes (`ctest`) |
 | Technologie | C++17 (host-tested core); ESP-IDF firmware for the ESP32-S3 with LVGL, with its web page |
 | Sur matériel réel | Aucun pour l'instant : le firmware se compile (ESP-IDF 5.5.5, non vérifié par la CI) mais n'a pas tourné sur la carte |
 
 ## 🎯 Présentation
 
-* **Un client d'ARMOR-SERVER, comme l'application Android :** il se connecte avec un utilisateur qu'un administrateur a créé pour lui, demande `GET /api/v1/panel/summary` (quelques centaines d'octets : le mode, les nœuds en ligne et les alarmes qui demandent une personne) toutes les quelques secondes et, quand la personne touche le bouton et confirme, arme, désarme ou acquitte. Si le serveur ne répond plus, l'écran dit que ce qu'il montre est ancien et le bouton est désactivé.
+* **Un client d'ARMOR-SERVER, comme l'application Android :** il se connecte avec un utilisateur qu'un administrateur a créé pour lui, demande `GET /api/v1/panel/summary` (quelques centaines d'octets : le mode, les nœuds en ligne et les alarmes qui demandent une personne) toutes les quelques secondes et, quand la personne touche le bouton et confirme, arme, désarme ou acquitte. Si le serveur ne répond plus, l'écran dit que ce qu'il montre est ancien et le bouton est désactivé. Il écoute le canal en direct du serveur (un WebSocket) pour qu'un changement s'affiche aussitôt, et interroge comme avant quand le canal est absent, silencieux ou désactivé.
 * **L'écran (800x480, LVGL) :** le mode dans la couleur de la pire alarme que personne n'a vue, un grand bouton armer/désarmer avec une question d'abord, les nœuds en ligne, les alarmes (les non vues d'abord), une nuit qui l'atténue, une veille après un temps sans toucher, un son et un réveil à l'arrivée d'une nouvelle alarme, et huit langues avec accents, japonais et chinois dessinés avec des polices générées pour exactement les caractères utilisés.
 * **Un nœud comme les autres :** le même stockage de réglages, Wi-Fi, page web en huit langues, configuration Bluetooth depuis le téléphone, mise à jour du firmware avec retour arrière et HTTPS comme ARMOR-RADAR, ARMOR-SOLAR et ARMOR-ELECTRICAL (ils partagent `ARMOR-COMMON/firmware_base`), plus des pages pour le serveur, l'écran, le son et la voix ; il signale son existence à Studio par MQTT pour que Studio le liste avec sa page.
-* **L'assistant vocal, appuyer pour parler :** un toucher ouvre le micro, le son part seulement vers le service vocal dont l'adresse est dans les réglages (désactivé par défaut), la réponse est affichée et dite ; l'ordre des étapes, les limites de temps et ce que fait un toucher sont une machine à états testée, et le panneau n'exécute aucune commande de lui-même ([le contrat](docs/VOICE.md)).
+* **L'assistant vocal, appuyer pour parler :** un toucher ouvre le micro, le son part seulement vers le service vocal dont l'adresse est dans les réglages (désactivé par défaut), la réponse est affichée et dite ; l'ordre des étapes, les limites de temps et ce que fait un toucher sont une machine à états testée, et le panneau n'exécute aucune commande de lui-même ([le contrat](docs/VOICE.md)). L'enregistrement part en octets dans une requête binaire et la réponse parlée revient en octets ; à un serveur qui ne l'accepte pas, on envoie l'ancienne requête.
 * **La carte :** Waveshare ESP32-S3-Touch-LCD-7C-BOX (32 Mo de flash, 16 Mo de PSRAM, écran RGB de 7 pouces avec tactile GT911, quatre micros, un haut-parleur) ; les broches viennent des exemples de Waveshare et un test prouve que deux fonctions ne partagent pas un GPIO ([la carte](docs/HARDWARE.md)).
 * **Mises à jour par radio signées :** le nœud n'installe depuis GitHub qu'une image dont le SHA-256 correspond et qui porte une signature Ed25519 valide du responsable (la clé publique est dans le firmware, la privée ne quitte jamais le responsable) ; un fichier envoyé à la main par un administrateur dans le panneau reste accepté. Les pages et messages du panneau sont en huit langues.
 * **Appairage Bluetooth avec un PIN :** le PIN à six chiffres est dérivé du code de configuration, imprimé sur la console USB et montré à un administrateur dans le panneau ; le téléphone doit le saisir avant de pouvoir écrire les réglages du nœud.
@@ -79,7 +79,7 @@ ARMOR-HMI/
 │            network, web_server, api_shared, mqtt_link, node_store, tls_cert, ble_provision (the shared node firmware), fonts/ (generated)
 ├── core/    hmi_config (the settings), server_view (the summary, the link, what is new), voice_session (the conversation), screen_text (eight languages), board_s3 (the pins), auth, netplan, json...
 ├── panel/   the web page: index.html, app.js, text.js (8 languages), style.css
-├── tests/   test_config, test_mqtt_tls, test_view, test_voice, test_board
+├── tests/   test_config, test_mqtt_tls, test_view, test_voice, test_voice_binary, test_live, test_board
 ├── tools/   build_node.sh, make_fonts.py, pack_panel.py, panel_mock.mjs, panel_browser_test.mjs
 ├── docs/    DESIGN, HARDWARE, VOICE, NODE_FIRMWARE, FONTS, BLE_PROVISIONING, FIRMWARE_BUILD_ACTIONS
 └── images/  brand assets

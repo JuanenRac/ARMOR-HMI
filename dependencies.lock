@@ -47,6 +47,16 @@ dependencies:
       registry_url: https://components.espressif.com/
       type: service
     version: 2.6.3
+  espressif/esp_websocket_client:
+    component_hash: ac62982fcf9b266409c2299d2b6b1844122105b35163a3b7f8d0adaa9f7eb989
+    dependencies:
+    - name: idf
+      require: private
+      version: '>=5.0'
+    source:
+      registry_url: https://components.espressif.com/
+      type: service
+    version: 1.5.0
   idf:
     source:
       type: idf
@@ -62,6 +72,7 @@ direct_dependencies:
 - espressif/esp_codec_dev
 - espressif/esp_lcd_touch_gt911
 - espressif/esp_lvgl_port
+- espressif/esp_websocket_client
 - idf
 - lvgl/lvgl
 manifest_hash: 94fb82de1604adc79009bf883825e8391e23739783c6a27c3d570a656dc5c097
