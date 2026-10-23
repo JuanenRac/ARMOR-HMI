@@ -1,4 +1,4 @@
-// ARMOR-HMI - what the screen shows: the mode of the system and the button to arm or disarm it, the alarms, the nodes, the voice assistant and the state of the link.
+// ARMOR-NODE-HMI - what the screen shows: the mode of the system and the button to arm or disarm it, the alarms, the nodes, the voice assistant and the state of the link.
 // Copyright (C) 2026 JuanenRac (Electro Hobby 3D). GPL-3.0-or-later.
 #pragma once
 #include <functional>

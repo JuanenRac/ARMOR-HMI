@@ -1,6 +1,6 @@
-"""ARMOR-HMI - generate the LVGL fonts of the screen (see docs/FONTS.md). Copyright (C) 2026 JuanenRac (Electro Hobby 3D). GPL-3.0-or-later.
+"""ARMOR-NODE-HMI - generate the LVGL fonts of the screen (see docs/FONTS.md). Copyright (C) 2026 JuanenRac (Electro Hobby 3D). GPL-3.0-or-later.
 
-Generate the LVGL fonts of ARMOR-HMI: Inter (Latin-1 and punctuation) at three sizes, and for Japanese and Chinese only the glyphs the screen's texts use."""
+Generate the LVGL fonts of ARMOR-NODE-HMI: Inter (Latin-1 and punctuation) at three sizes, and for Japanese and Chinese only the glyphs the screen's texts use."""
 import glob
 import os
 import re

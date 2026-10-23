@@ -1,4 +1,4 @@
-# ARMOR-HMI - the fonts of the screen
+# ARMOR-NODE-HMI - the fonts of the screen
 
 LVGL's built-in fonts hold only the basic Latin letters, so the screen would draw Spanish, French, German and Italian without their accents and Japanese and Chinese not at all. The
 firmware therefore carries its own fonts, generated once and kept as C files in `main/fonts/`:

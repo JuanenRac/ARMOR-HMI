@@ -1,4 +1,4 @@
-// ARMOR-HMI - host tests of what the panel knows of the server: the summary, the state of the link, what is new and the colour of the screen.
+// ARMOR-NODE-HMI - host tests of what the panel knows of the server: the summary, the state of the link, what is new and the colour of the screen.
 // Copyright (C) 2026 JuanenRac (Electro Hobby 3D). GPL-3.0-or-later.
 #include <string>
 #include <vector>

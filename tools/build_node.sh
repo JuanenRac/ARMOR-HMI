@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# ARMOR-HMI - builds the firmware of one panel in the official ESP-IDF container.
+# ARMOR-NODE-HMI - builds the firmware of one panel in the official ESP-IDF container.
 # Copyright (C) 2026 JuanenRac (Electro Hobby 3D). GPL-3.0-or-later.
 #
 #   tools/build_node.sh generic                # the UNIVERSAL image for the Waveshare ESP32-S3-Touch-LCD-7C-BOX: no panel's data inside, writes dist/generic-lcd7box.bin

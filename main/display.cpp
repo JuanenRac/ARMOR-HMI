@@ -1,4 +1,4 @@
-// ARMOR-HMI - the screen. The panel is an 800x480 RGB (ST7262) driven by the chip's LCD peripheral with two frame buffers in PSRAM, the touch controller a GT911 on the shared
+// ARMOR-NODE-HMI - the screen. The panel is an 800x480 RGB (ST7262) driven by the chip's LCD peripheral with two frame buffers in PSRAM, the touch controller a GT911 on the shared
 // I2C bus; esp_lvgl_port runs LVGL in its own task and draws straight into the frame buffers (direct mode), so the picture does not tear.
 // The timings and the pixel clock are the ones of Waveshare's example for this board family.
 // Copyright (C) 2026 JuanenRac (Electro Hobby 3D). GPL-3.0-or-later.

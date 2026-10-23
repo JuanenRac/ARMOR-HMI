@@ -1,4 +1,4 @@
-// ARMOR-HMI - the small chips of the board that are not the screen: the I2C bus and the I/O expander (backlight, touch reset, speaker amplifier).
+// ARMOR-NODE-HMI - the small chips of the board that are not the screen: the I2C bus and the I/O expander (backlight, touch reset, speaker amplifier).
 // Copyright (C) 2026 JuanenRac (Electro Hobby 3D). GPL-3.0-or-later.
 #pragma once
 #include <cstdint>

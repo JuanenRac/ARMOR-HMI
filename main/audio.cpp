@@ -1,4 +1,4 @@
-// ARMOR-HMI - the sound, following Waveshare's example for this board family (speaker_microphone): one I2S port in full duplex, the speaker on a standard stereo channel and the
+// ARMOR-NODE-HMI - the sound, following Waveshare's example for this board family (speaker_microphone): one I2S port in full duplex, the speaker on a standard stereo channel and the
 // microphones on a four-slot TDM channel, both driven through Espressif's esp_codec_dev (ES8389 for the output, ES7210 for the input).
 // Copyright (C) 2026 JuanenRac (Electro Hobby 3D). GPL-3.0-or-later.
 #include "audio.hpp"

@@ -1,4 +1,4 @@
-// ARMOR-HMI - the 7-inch screen: the RGB panel, the GT911 touch controller and LVGL on top of them (through Espressif's esp_lvgl_port).
+// ARMOR-NODE-HMI - the 7-inch screen: the RGB panel, the GT911 touch controller and LVGL on top of them (through Espressif's esp_lvgl_port).
 // Copyright (C) 2026 JuanenRac (Electro Hobby 3D). GPL-3.0-or-later.
 #pragma once
 

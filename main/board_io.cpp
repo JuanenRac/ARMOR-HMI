@@ -1,4 +1,4 @@
-// ARMOR-HMI - the I2C bus and the I/O expander. The expander is Waveshare's own chip: a mode register (a bit per line, 1 = output), an output register and a PWM register,
+// ARMOR-NODE-HMI - the I2C bus and the I/O expander. The expander is Waveshare's own chip: a mode register (a bit per line, 1 = output), an output register and a PWM register,
 // each written as [register, low byte, high byte] (the PWM register as [register, value]). The lines it owns on this board are in core/board_s3.hpp.
 // Copyright (C) 2026 JuanenRac (Electro Hobby 3D). GPL-3.0-or-later.
 #include "board_io.hpp"

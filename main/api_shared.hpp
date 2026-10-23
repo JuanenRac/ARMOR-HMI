@@ -1,4 +1,4 @@
-// ARMOR-HMI - what the web page does over HTTP: the status, the screen, the settings and the search for Wi-Fi networks.
+// ARMOR-NODE-HMI - what the web page does over HTTP: the status, the screen, the settings and the search for Wi-Fi networks.
 // Copyright (C) 2026 JuanenRac (Electro Hobby 3D). GPL-3.0-or-later.
 #pragma once
 #include <string>

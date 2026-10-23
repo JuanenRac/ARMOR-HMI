@@ -1,4 +1,4 @@
-// ARMOR-HMI - the answer of the speech service: {"heard": "...", "reply": "...", "audio": "<base64 of 16-bit PCM>"}.
+// ARMOR-NODE-HMI - the answer of the speech service: {"heard": "...", "reply": "...", "audio": "<base64 of 16-bit PCM>"}.
 // Copyright (C) 2026 JuanenRac (Electro Hobby 3D). GPL-3.0-or-later.
 //
 // The audio makes the answer much longer than any other document the panel reads (a spoken reply of a few seconds is a hundred thousand characters of base64), and the JSON reader

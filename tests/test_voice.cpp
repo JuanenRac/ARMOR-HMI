@@ -1,4 +1,4 @@
-// ARMOR-HMI - host tests of the voice conversation: the order of the steps, the time limits and what a touch does.
+// ARMOR-NODE-HMI - host tests of the voice conversation: the order of the steps, the time limits and what a touch does.
 // Copyright (C) 2026 JuanenRac (Electro Hobby 3D). GPL-3.0-or-later.
 #include <string>
 

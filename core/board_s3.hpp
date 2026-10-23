@@ -1,4 +1,4 @@
-// ARMOR-HMI - the board this firmware is built for: the Waveshare ESP32-S3-Touch-LCD-7C-BOX, and where everything on it is wired.
+// ARMOR-NODE-HMI - the board this firmware is built for: the Waveshare ESP32-S3-Touch-LCD-7C-BOX, and where everything on it is wired.
 // Copyright (C) 2026 JuanenRac (Electro Hobby 3D). GPL-3.0-or-later.
 //
 // The file keeps the name board_s3.hpp because the firmware the node projects share (ARMOR-COMMON/firmware_base) includes it; here it describes ONE board, with no

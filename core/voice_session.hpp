@@ -1,4 +1,4 @@
-// ARMOR-HMI - the conversation with the voice assistant, as a state machine.
+// ARMOR-NODE-HMI - the conversation with the voice assistant, as a state machine.
 // Copyright (C) 2026 JuanenRac (Electro Hobby 3D). GPL-3.0-or-later.
 //
 // The panel does not understand speech: it listens after a wake word, records at most a few seconds, sends the audio to the speech service of the installation (ARMOR-VOICE-AI

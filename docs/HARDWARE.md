@@ -1,4 +1,4 @@
-# ARMOR-HMI - the board
+# ARMOR-NODE-HMI - the board
 
 The firmware is for the **Waveshare ESP32-S3-Touch-LCD-7C-BOX**: an ESP32-S3 with 32 MB of flash and 16 MB of octal PSRAM, a 7-inch 800 by 480 RGB screen (ST7262) with a GT911 capacitive
 touch controller, four microphones (ES7210), a speaker with its amplifier (ES8389), a real-time clock (PCF85063A), a battery gauge (BQ27220), a microSD socket and an I/O expander. Its

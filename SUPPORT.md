@@ -1,3 +1,3 @@
 # Support
 
-Read the README and the files in `docs/` before opening an issue. Say which version of ARMOR-HMI you use, what you did, what you expected and what happened, and add a log with the passwords, tokens and private addresses removed. Contact: `electrohobby3d@gmail.com`.
+Read the README and the files in `docs/` before opening an issue. Say which version of ARMOR-NODE-HMI you use, what you did, what you expected and what happened, and add a log with the passwords, tokens and private addresses removed. Contact: `electrohobby3d@gmail.com`.

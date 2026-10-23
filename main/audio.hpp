@@ -1,4 +1,4 @@
-// ARMOR-HMI - the sound: the four microphones (ES7210) and the speaker (ES8389 and its amplifier) on one I2S port, at 16 kHz and 16 bits.
+// ARMOR-NODE-HMI - the sound: the four microphones (ES7210) and the speaker (ES8389 and its amplifier) on one I2S port, at 16 kHz and 16 bits.
 // Copyright (C) 2026 JuanenRac (Electro Hobby 3D). GPL-3.0-or-later.
 #pragma once
 #include <cstddef>

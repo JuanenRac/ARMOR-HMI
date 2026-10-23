@@ -1,4 +1,4 @@
-// ARMOR-HMI - the node's web panel and its JSON API.
+// ARMOR-NODE-HMI - the node's web panel and its JSON API.
 // Copyright (C) 2026 JuanenRac (Electro Hobby 3D). GPL-3.0-or-later.
 #pragma once
 #include <string>
