@@ -28,6 +28,7 @@
 #include "core/screen_text.hpp"
 #include "core/server_view.hpp"
 #include "core/view_model.hpp"
+#include "audio.hpp"
 #include "display.hpp"
 #include "node_control.hpp"
 #include "server_link.hpp"
@@ -79,6 +80,7 @@ struct Screen {
   hmi::ViewModel view;           // what was last drawn of the server's news, and the generation it had (core/view_model.hpp)
   std::uint32_t view_seen = 0;
   bool drawn = false;            // the first draw has been done
+  bool was_pending = false;      // an order of the person was on its way at the last look
 };
 Screen g_screen;
 
@@ -313,6 +315,10 @@ void refresh(lv_timer_t*) {
     set_text(g_screen.voice_label, say);
     lv_obj_set_style_bg_color(g_screen.mic_button, lv_color_hex(voice.state == voice::State::kListening ? kRed : voice.state == voice::State::kIdle ? kCyan : kAmber), 0);
   }
+
+  // an order that was on its way has been answered: two short notes when it went through, one note when it did not (the footer says why); the volume of the sound settings applies
+  if (g_screen.was_pending && !view.action_pending && audio::ready()) audio::beep(view.action_error[0] == ' ' ? audio::Tone::kConfirm : audio::Tone::kNotice);
+  g_screen.was_pending = view.action_pending;
 
   // the footer: how to set the panel up, or what is wrong
   const std::string action_error(view.action_error);
