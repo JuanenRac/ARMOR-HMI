@@ -1,4 +1,4 @@
-// ARMOR-HMI - host tests of the live channel: the reading of a frame, the pieces of a frame, and when the panel listens, asks or waits.
+// ARMOR-NODE-HMI - host tests of the live channel: the reading of a frame, the pieces of a frame, and when the panel listens, asks or waits.
 // Copyright (C) 2026 JuanenRac (Electro Hobby 3D). GPL-3.0-or-later.
 #include <string>
 

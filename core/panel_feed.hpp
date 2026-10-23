@@ -1,4 +1,4 @@
-// ARMOR-HMI - the live channel to ARMOR-SERVER: what a frame says, and when the panel listens, when it asks, and when it gives up for a while.
+// ARMOR-NODE-HMI - the live channel to ARMOR-SERVER: what a frame says, and when the panel listens, when it asks, and when it gives up for a while.
 // Copyright (C) 2026 JuanenRac (Electro Hobby 3D). GPL-3.0-or-later.
 //
 // Instead of asking GET /api/v1/panel/summary every few seconds, the panel can keep a WebSocket open at /api/v1/panel/events. The server sends the same small summary when the socket opens,

@@ -1,4 +1,4 @@
-// ARMOR-HMI - host tests of the panel's settings: the defaults, the link to the server, the screen, the voice and the stored document.
+// ARMOR-NODE-HMI - host tests of the panel's settings: the defaults, the link to the server, the screen, the voice and the stored document.
 // Copyright (C) 2026 JuanenRac (Electro Hobby 3D). GPL-3.0-or-later.
 #include <string>
 
@@ -28,7 +28,7 @@ static void test_defaults() {
   CHECK(s.uplink == config::Uplink::kWifi);   // this board has no cable
   CHECK(has(config::validate(s), "sta.enabled", "required"));   // no way in at all is not a valid panel
   CHECK(config::validate(valid_settings()).empty());
-  CHECK(std::string(s.ap.ssid) == "ARMOR-HMI");
+  CHECK(std::string(s.ap.ssid) == "ARMOR-NODE-HMI");
 }
 
 static void test_server_link() {

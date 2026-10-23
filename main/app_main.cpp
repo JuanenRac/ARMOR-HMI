@@ -1,5 +1,5 @@
 /*
- * ARMOR-HMI - the A.R.M.O.R. touch panel: a Waveshare ESP32-S3-Touch-LCD-7C-BOX (7-inch 800x480 touch screen, four microphones, a speaker, 32 MB of flash and 16 MB of PSRAM) that
+ * ARMOR-NODE-HMI - the A.R.M.O.R. touch panel: a Waveshare ESP32-S3-Touch-LCD-7C-BOX (7-inch 800x480 touch screen, four microphones, a speaker, 32 MB of flash and 16 MB of PSRAM) that
  * shows the state of the system and lets a person arm, disarm and acknowledge from the wall, and that will be where the voice assistant lives.
  * Copyright (C) 2026 JuanenRac (Electro Hobby 3D). GPL-3.0-or-later.
  *

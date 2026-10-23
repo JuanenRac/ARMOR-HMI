@@ -1,9 +1,9 @@
-# ARMOR-HMI - design
+# ARMOR-NODE-HMI - design
 
-ARMOR-HMI is the touch panel of an A.R.M.O.R. installation: a 7-inch screen on a wall that shows the state of the system, lets a person arm, disarm and acknowledge from there, and
+ARMOR-NODE-HMI is the touch panel of an A.R.M.O.R. installation: a 7-inch screen on a wall that shows the state of the system, lets a person arm, disarm and acknowledge from there, and
 is the place where the voice assistant will live. It is two things at once, and the design keeps them apart:
 
-1. **A node of the family.** Like ARMOR-RADAR, ARMOR-SOLAR and ARMOR-ELECTRICAL it keeps its settings and its users in flash, joins the Wi-Fi, has its own web page for the
+1. **A node of the family.** Like ARMOR-NODE-RADAR, ARMOR-NODE-SOLAR and ARMOR-NODE-ELECTRICAL it keeps its settings and its users in flash, joins the Wi-Fi, has its own web page for the
    settings, can be set up from a phone over Bluetooth, can be updated from its page (with a roll-back if the new firmware does not come up) and tells ARMOR-SERVER that it
    exists. All of that is `ARMOR-COMMON/firmware_base`, synchronised into this repository (`python ../ARMOR-COMMON/tools/sync_firmware_base.py check`).
 2. **A client of ARMOR-SERVER**, like the Android app and Studio. It signs in with a user an administrator made for it and asks the server what it needs to draw.

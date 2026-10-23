@@ -1,4 +1,4 @@
-// ARMOR-HMI - the PIN typed on the wall panel to disarm, and what the server's refusal of a PIN says. Tested on a computer; the keypad itself (main/ui.cpp) only draws it.
+// ARMOR-NODE-HMI - the PIN typed on the wall panel to disarm, and what the server's refusal of a PIN says. Tested on a computer; the keypad itself (main/ui.cpp) only draws it.
 // Copyright (C) 2026 JuanenRac (Electro Hobby 3D). GPL-3.0-or-later.
 #pragma once
 #include <cstddef>

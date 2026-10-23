@@ -1,4 +1,4 @@
-// ARMOR-HMI - the voice task (see voice.hpp).
+// ARMOR-NODE-HMI - the voice task (see voice.hpp).
 // Copyright (C) 2026 JuanenRac (Electro Hobby 3D). GPL-3.0-or-later.
 #include "voice.hpp"
 

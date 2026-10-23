@@ -4,13 +4,13 @@ The workflow `.github/workflows/firmware-build.yml` compiles the universal image
 same container `tools/build_node.sh` uses) and uploads it as an artifact. It is for people who have no ESP-IDF toolchain at hand; the usual way to build stays `tools/build_node.sh`.
 
 **It consumes GitHub Actions minutes.** A build takes many minutes of a hosted runner, so the workflow never starts on its own (no push, no pull request): only someone with write access
-starts it, from the Actions tab (*Firmware build (manual)* > *Run workflow*) or with `gh workflow run firmware-build.yml -f project=ARMOR-HMI`.
+starts it, from the Actions tab (*Firmware build (manual)* > *Run workflow*) or with `gh workflow run firmware-build.yml -f project=ARMOR-NODE-HMI`.
 
 ## Inputs
 
 | Input | Meaning |
 |---|---|
-| `project` | the node repository to build: ARMOR-HMI, ARMOR-ALARM, ARMOR-ELECTRICAL, ARMOR-RADAR or ARMOR-SOLAR |
+| `project` | the node repository to build: ARMOR-NODE-HMI, ARMOR-NODE-ALARM, ARMOR-NODE-ELECTRICAL, ARMOR-NODE-RADAR or ARMOR-NODE-SOLAR |
 | `board` | the board (for example `lcd7box`, `s3-wifi`, `s3-eth`); empty means the default board of that project |
 | `ref` | branch, tag or commit of that repository (default `main`) |
 | `idf_image` | the ESP-IDF container, `espressif/idf:vX.Y[.Z]` (default `espressif/idf:v5.5.5`) |

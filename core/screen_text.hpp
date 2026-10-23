@@ -1,4 +1,4 @@
-// ARMOR-HMI - the words of the touch screen, in the eight languages of the ecosystem.
+// ARMOR-NODE-HMI - the words of the touch screen, in the eight languages of the ecosystem.
 // Copyright (C) 2026 JuanenRac (Electro Hobby 3D). GPL-3.0-or-later.
 //
 // One table: a key and its eight texts (en, es, de, fr, it, ja, zh, pt). A key without a text in a language falls back to English, and the tests fail when a row has an empty

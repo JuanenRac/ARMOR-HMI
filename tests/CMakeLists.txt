@@ -1,4 +1,4 @@
-# ARMOR-HMI host tests: the panel's settings, what it knows of the server, the voice conversation, the board's pins and the screen's words, built with any C++17 compiler.
+# ARMOR-NODE-HMI host tests: the panel's settings, what it knows of the server, the voice conversation, the board's pins and the screen's words, built with any C++17 compiler.
 # Copyright (C) 2026 JuanenRac (Electro Hobby 3D). GPL-3.0-or-later.
 cmake_minimum_required(VERSION 3.16)
 project(armor_hmi_host_tests CXX)

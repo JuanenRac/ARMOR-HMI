@@ -1,4 +1,4 @@
-// ARMOR-HMI - host tests of the binary voice turn: the framing of the request, the reading of the multipart/mixed answer and the 43 cases every implementation shares.
+// ARMOR-NODE-HMI - host tests of the binary voice turn: the framing of the request, the reading of the multipart/mixed answer and the 43 cases every implementation shares.
 // Run it with the folder of the shared vectors (ARMOR-COMMON/conformance) as the argument; without it only the checks that need no file are made.
 // Copyright (C) 2026 JuanenRac (Electro Hobby 3D). GPL-3.0-or-later.
 #include <cstdint>

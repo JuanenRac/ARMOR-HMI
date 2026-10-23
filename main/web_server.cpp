@@ -1,4 +1,4 @@
-// ARMOR-HMI - the panel's own web page and its JSON API (settings, status, users, the firmware).
+// ARMOR-NODE-HMI - the panel's own web page and its JSON API (settings, status, users, the firmware).
 // Copyright (C) 2026 JuanenRac (Electro Hobby 3D). GPL-3.0-or-later.
 //
 // One dispatcher serves /api/v1/*: it checks the session, reads a bounded body, calls the handler for the method and path and answers
@@ -305,7 +305,7 @@ esp_err_t post_setup(httpd_req_t* r) {
   if (!wifi_ssid.empty()) { s.uplink = config::Uplink::kWifi; s.sta.enabled = true; s.sta.ssid = wifi_ssid; s.sta.password = wifi_password; }
   if (config::needs_own_network_after_setup(s)) {
     s.ap.enabled = true;
-    s.ap.ssid = "ARMOR-HMI-" + netplan::upper(store::mac_tail());
+    s.ap.ssid = "ARMOR-NODE-HMI-" + netplan::upper(store::mac_tail());
     s.ap.security = config::WifiSecurity::kWpa2;
     s.ap.password = code;
   }

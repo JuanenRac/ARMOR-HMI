@@ -1,4 +1,4 @@
-// ARMOR-HMI - host tests of the edges of the wall panel's logic: the PIN keypad, the table of texts, what the summary of the server may say, the words of the voice session and the settings of
+// ARMOR-NODE-HMI - host tests of the edges of the wall panel's logic: the PIN keypad, the table of texts, what the summary of the server may say, the words of the voice session and the settings of
 // the link to the server, the screen, the sound and the voice service.
 // Copyright (C) 2026 JuanenRac (Electro Hobby 3D). GPL-3.0-or-later.
 // No screen, microphone or network is used: the keys, the clock and the documents are written out in the tests.

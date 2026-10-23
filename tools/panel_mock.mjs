@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * ARMOR-HMI - a stand-in for the touch panel, to work on its web page without a board.
+ * ARMOR-NODE-HMI - a stand-in for the touch panel, to work on its web page without a board.
  * Copyright (C) 2026 JuanenRac (Electro Hobby 3D). GPL-3.0-or-later.
  *
  *   node tools/panel_mock.mjs [port]          (default 8090)     open http://127.0.0.1:8090/
@@ -32,7 +32,7 @@ let logText = "I (1200) armor-hmi: A.R.M.O.R. touch panel hmi-a1b2c3, firmware 0
 const config = {
   v: 1, node: { id: "hmi-a1b2c3", name: "Living room panel", hostname: "" },
   uplink: "wifi", ip: { dhcp: true, address: "", netmask: "255.255.255.0", gateway: "", dns1: "", dns2: "" },
-  ap: { enabled: true, ssid: "ARMOR-HMI-A1B2C3", security: "wpa2", password_set: true, channel: 0, hidden: false, max_clients: 8, tx_power_dbm: 15, bandwidth_mhz: 20, country: "ES" },
+  ap: { enabled: true, ssid: "ARMOR-NODE-HMI-A1B2C3", security: "wpa2", password_set: true, channel: 0, hidden: false, max_clients: 8, tx_power_dbm: 15, bandwidth_mhz: 20, country: "ES" },
   sta: { enabled: true, ssid: "HomeRouter", password_set: true, backup: [] },
   mqtt: { enabled: true, uri: "mqtt://192.168.0.180:18883", username: "hmi-node-hmi-a1b2c3", password_set: true, heartbeat_s: 10, ntp: "pool.ntp.org", backup: [] },
   server: { enabled: true, host: "192.168.0.180", port: 18080, tls: false, cert_sha256: "", cert_pem: "", user: "panel-salon", password_set: true, poll_s: 3, live_events: true },
@@ -189,4 +189,4 @@ const server = createServer(async (request, response) => {
   if (method === "POST" && route === "ota") { if (!needAdmin()) return; return json(response, 200, { ok: true, restart_required: true, version: "0.2.4", bytes: raw.length, sha256: "0".repeat(64) }); }
   return json(response, 404, { error: "not_found" });
 });
-server.listen(port, "127.0.0.1", () => console.log(`ARMOR-HMI panel mock on http://127.0.0.1:${port}/ (${users.size ? "signed-in users: " + [...users.keys()].join(", ") : "set-up code TESTCODE"})`));
+server.listen(port, "127.0.0.1", () => console.log(`ARMOR-NODE-HMI panel mock on http://127.0.0.1:${port}/ (${users.size ? "signed-in users: " + [...users.keys()].join(", ") : "set-up code TESTCODE"})`));

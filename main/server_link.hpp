@@ -1,4 +1,4 @@
-// ARMOR-HMI - the panel as a client of ARMOR-SERVER, like the Android app and Studio: it signs in with the login an administrator made for it, asks for the summary every few
+// ARMOR-NODE-HMI - the panel as a client of ARMOR-SERVER, like the Android app and Studio: it signs in with the login an administrator made for it, asks for the summary every few
 // seconds and, when the person at the screen says so, arms, disarms or acknowledges the alarms. The rules (what the answer means, when the data is stale, how long to wait
 // after a failure) are in core/server_view.hpp and are tested on a computer; this file is the HTTP.
 // Copyright (C) 2026 JuanenRac (Electro Hobby 3D). GPL-3.0-or-later.

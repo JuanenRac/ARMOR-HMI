@@ -1,4 +1,4 @@
-// ARMOR-HMI - the voice assistant of the panel. Push to talk in this version: a touch on the microphone button opens the microphone for a few seconds, the audio goes to the
+// ARMOR-NODE-HMI - the voice assistant of the panel. Push to talk in this version: a touch on the microphone button opens the microphone for a few seconds, the audio goes to the
 // speech service of the installation and the reply is spoken. The order of the steps and their time limits are core/voice_session.hpp; this file does the audio and the HTTP.
 //
 // The contract with the speech service (docs/VOICE.md): POST <url>/v1/turn with the audio as 16 kHz mono 16-bit little-endian PCM (Content-Type: audio/L16;rate=16000) and the

@@ -1,8 +1,8 @@
 <p align="center">
-  <img src="images/ARMOR_BANNER.svg" alt="ARMOR-HMI banner" width="100%">
+  <img src="images/ARMOR_BANNER.svg" alt="ARMOR-NODE-HMI banner" width="100%">
 </p>
 
-# 🖥️ ARMOR-HMI
+# 🖥️ ARMOR-NODE-HMI
 
 <p align="center">
   🇺🇸 <b>English</b> |
@@ -46,7 +46,7 @@
 
 * **A client of ARMOR-SERVER, like the Android app:** it signs in with a user an administrator made for it, asks `GET /api/v1/panel/summary` (a few hundred bytes: the mode, the nodes online and the alarms that need a person) every few seconds and, when the person touches the button and confirms, arms, disarms or acknowledges. If the server stops answering the screen says that what it shows is old and the button is disabled. It listens to the server's live channel (a WebSocket) so a change shows at once, and asks as before when the channel is missing, silent or turned off.
 * **The screen (800x480, LVGL):** the mode in the colour of the worst alarm nobody has seen, a large arm/disarm button with a question first, the nodes online, the alarms (the unseen first), a night that dims it, a sleep after a time without touches, a tone and a wake-up when a new alarm arrives, and eight languages with accents, Japanese and Chinese drawn with fonts generated for exactly the characters used.
-* **A node like the others:** the same settings store, Wi-Fi, web page in eight languages, Bluetooth set-up from the phone, firmware update with roll-back and HTTPS as ARMOR-RADAR, ARMOR-SOLAR and ARMOR-ELECTRICAL (they share `ARMOR-COMMON/firmware_base`), plus pages for the server, the screen, the sound and the voice; it tells Studio it exists over MQTT so Studio lists it with its page.
+* **A node like the others:** the same settings store, Wi-Fi, web page in eight languages, Bluetooth set-up from the phone, firmware update with roll-back and HTTPS as ARMOR-NODE-RADAR, ARMOR-NODE-SOLAR and ARMOR-NODE-ELECTRICAL (they share `ARMOR-COMMON/firmware_base`), plus pages for the server, the screen, the sound and the voice; it tells Studio it exists over MQTT so Studio lists it with its page.
 * **The voice assistant, push to talk:** a touch opens the microphone, the audio goes only to the speech service whose address is in the settings (off by default), the reply is shown and spoken; the order of the steps, the time limits and what a touch does are a tested state machine, and the panel carries out no command by itself ([the contract](docs/VOICE.md)). The recording goes as raw bytes in a binary request and the spoken answer comes back as bytes; a server that does not accept it is sent the older request.
 * **The board:** Waveshare ESP32-S3-Touch-LCD-7C-BOX (32 MB flash, 16 MB PSRAM, a 7-inch RGB screen with a GT911 touch, four microphones, a speaker); the pins come from Waveshare's examples and a test proves that no two functions share a GPIO ([the board](docs/HARDWARE.md)).
 * **Signed over-the-air updates:** the node installs from GitHub only an image whose SHA-256 matches and that carries a valid Ed25519 signature of the maintainer (the public key is in the firmware, the private one never leaves the maintainer); a file uploaded by hand by an administrator in the panel is still accepted. The pages and messages of the panel are in eight languages.
@@ -69,12 +69,12 @@ Captured at 1920×1080 on a test bench, with sample data and no real installatio
 
 ## 🧩 Role in A.R.M.O.R.
 
-ARMOR-HMI is the wall panel: a client of [ARMOR-SERVER](https://github.com/JuanenRac/ARMOR-SERVER), like the Android app, with a 7-inch screen, a microphone and a speaker. It shows the mode, the nodes online and the alarms that need a person, arms and disarms (with the PIN) and acknowledges alarms. It is where the voice assistant ([ARMOR-VOICE-AI](https://github.com/JuanenRac/ARMOR-VOICE-AI)) will live once its speech service exists, and, like every node, it is set up and updated from [ARMOR-STUDIO](https://github.com/JuanenRac/ARMOR-STUDIO).
+ARMOR-NODE-HMI is the wall panel: a client of [ARMOR-SERVER](https://github.com/JuanenRac/ARMOR-SERVER), like the Android app, with a 7-inch screen, a microphone and a speaker. It shows the mode, the nodes online and the alarms that need a person, arms and disarms (with the PIN) and acknowledges alarms. It is where the voice assistant ([ARMOR-VOICE-AI](https://github.com/JuanenRac/ARMOR-VOICE-AI)) will live once its speech service exists, and, like every node, it is set up and updated from [ARMOR-STUDIO](https://github.com/JuanenRac/ARMOR-STUDIO).
 
 ## 📂 Repository Structure
 
 ```text
-ARMOR-HMI/
+ARMOR-NODE-HMI/
 ├── main/    the ESP-IDF component: app_main, display (RGB panel, GT911, LVGL), ui (the screen), audio (I2S, ES7210, ES8389), voice, server_link (HTTP to ARMOR-SERVER), board_io (I2C and the expander),
 │            network, web_server, api_shared, mqtt_link, node_store, tls_cert, ble_provision (the shared node firmware), fonts/ (generated)
 ├── core/    hmi_config (the settings), server_view (the summary, the link, what is new), voice_session (the conversation), screen_text (eight languages), board_s3 (the pins), auth, netplan, json...
@@ -107,11 +107,11 @@ To build the firmware by hand on GitHub Actions, see [building on GitHub Actions
 **A.R.M.O.R.** (Autonomous Radar & Multimodal Observation Range) is a perimeter-security system made of independent repositories. Each one has its own version, its own tests and its own README; this is the family:
 
 * **[ARMOR-COMMON](https://github.com/JuanenRac/ARMOR-COMMON)** - Message contracts, validators, conformance vectors and generated types
-* **[ARMOR-RADAR](https://github.com/JuanenRac/ARMOR-RADAR)** - Field-node firmware for ESP32-S3 with three radars and its own web panel
-* **[ARMOR-SOLAR](https://github.com/JuanenRac/ARMOR-SOLAR)** - Solar inverter and battery protocols and the messages of a gateway node
-* **[ARMOR-ELECTRICAL](https://github.com/JuanenRac/ARMOR-ELECTRICAL)** - Electrical node: meters, the message of the network's readings and the rules for switching
-* **[ARMOR-ALARM](https://github.com/JuanenRac/ARMOR-ALARM)** - Alarm node and panel: zones, arming, delays, siren and PIN, with the server or without it
-* **ARMOR-HMI** (this repository) - Touch panel: the state of the system on a wall screen, arming and acknowledging, and the home of the voice assistant
+* **[ARMOR-NODE-RADAR](https://github.com/JuanenRac/ARMOR-NODE-RADAR)** - Field-node firmware for ESP32-S3 with three radars and its own web panel
+* **[ARMOR-NODE-SOLAR](https://github.com/JuanenRac/ARMOR-NODE-SOLAR)** - Solar inverter and battery protocols and the messages of a gateway node
+* **[ARMOR-NODE-ELECTRICAL](https://github.com/JuanenRac/ARMOR-NODE-ELECTRICAL)** - Electrical node: meters, the message of the network's readings and the rules for switching
+* **[ARMOR-NODE-ALARM](https://github.com/JuanenRac/ARMOR-NODE-ALARM)** - Alarm node and panel: zones, arming, delays, siren and PIN, with the server or without it
+* **ARMOR-NODE-HMI** (this repository) - Touch panel: the state of the system on a wall screen, arming and acknowledging, and the home of the voice assistant
 * **[ARMOR-NETWORK](https://github.com/JuanenRac/ARMOR-NETWORK)** - The local network: its devices, the internet and what changes
 * **[ARMOR-SERVER](https://github.com/JuanenRac/ARMOR-SERVER)** - Central coordinator: telemetry, alarms, devices, solar readings and cameras
 * **[ARMOR-STUDIO](https://github.com/JuanenRac/ARMOR-STUDIO)** - Web console: cameras, radar, alarms, solar energy and the 2D/3D site designer

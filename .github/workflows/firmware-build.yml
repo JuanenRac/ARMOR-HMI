@@ -17,13 +17,13 @@ on:
         description: "Node repository to build"
         type: choice
         required: true
-        default: ARMOR-HMI
+        default: ARMOR-NODE-HMI
         options:
-          - ARMOR-HMI
-          - ARMOR-ALARM
-          - ARMOR-ELECTRICAL
-          - ARMOR-RADAR
-          - ARMOR-SOLAR
+          - ARMOR-NODE-HMI
+          - ARMOR-NODE-ALARM
+          - ARMOR-NODE-ELECTRICAL
+          - ARMOR-NODE-RADAR
+          - ARMOR-NODE-SOLAR
       board:
         description: "Board (empty = the default board of the project, for example lcd7box, s3-wifi or s3-eth)"
         type: string

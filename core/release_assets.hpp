@@ -1,4 +1,4 @@
-// ARMOR-HMI - which file of a GitHub release is the firmware of THIS board, and which is its checksum. Pure: tested on a computer.
+// ARMOR-NODE-HMI - which file of a GitHub release is the firmware of THIS board, and which is its checksum. Pure: tested on a computer.
 // Copyright (C) 2026 JuanenRac (Electro Hobby 3D). GPL-3.0-or-later.
 //
 // A release attaches one standalone application image per board, `armor_hmi-<board>.bin` (for example `armor_hmi-s3-wifi.bin`), and next to each its SHA-256, `<image>.sha256`, and the

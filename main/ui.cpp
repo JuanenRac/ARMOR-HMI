@@ -1,4 +1,4 @@
-// ARMOR-HMI - the screen, drawn with LVGL 9 (800x480).
+// ARMOR-NODE-HMI - the screen, drawn with LVGL 9 (800x480).
 //
 //   +------------------------------------------------------------------------------+
 //   | ARMOR              [ ARMED / DISARMED ]                       link   12:34   |

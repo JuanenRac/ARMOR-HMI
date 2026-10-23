@@ -1,4 +1,4 @@
-// ARMOR-HMI - what the panel knows of ARMOR-SERVER: the summary it asks for, the state of the link, and what a change in the summary asks of the screen.
+// ARMOR-NODE-HMI - what the panel knows of ARMOR-SERVER: the summary it asks for, the state of the link, and what a change in the summary asks of the screen.
 // Copyright (C) 2026 JuanenRac (Electro Hobby 3D). GPL-3.0-or-later.
 //
 // The panel signs in with the login an administrator made for it (POST /api/v1/studio/session), then asks GET /api/v1/panel/summary every few seconds: a few hundred bytes

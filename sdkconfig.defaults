@@ -1,4 +1,4 @@
-# ARMOR-HMI defaults. Copyright (C) 2026 JuanenRac (Electro Hobby 3D). GPL-3.0-or-later.
+# ARMOR-NODE-HMI defaults. Copyright (C) 2026 JuanenRac (Electro Hobby 3D). GPL-3.0-or-later.
 #
 # The board is the Waveshare ESP32-S3-Touch-LCD-7C-BOX: 32 MB of flash, 16 MB of octal PSRAM, a 7-inch RGB screen, a USB-C socket on the chip's native USB (the log comes out of
 # it and it is the one used to flash). Waveshare's own example for this board family uses quad flash at 80 MHz and octal PSRAM at 80 MHz; if the module of a board turns out to

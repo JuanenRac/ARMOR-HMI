@@ -1,4 +1,4 @@
-# ARMOR-HMI - the voice assistant
+# ARMOR-NODE-HMI - the voice assistant
 
 The panel has four microphones and a speaker so that it can be the "home assistant with a big screen" of the installation, and so that the AI planned for the Jetson Orin NX can talk
 to the people in the house through it. This version has the panel's half of that, in its simplest honest form.

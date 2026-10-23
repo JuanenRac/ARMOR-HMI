@@ -1,4 +1,4 @@
-// ARMOR-HMI - host tests of the clock settings (time zone, time server), the calendar arithmetic behind the offset and the backup lists keeping their passwords.
+// ARMOR-NODE-HMI - host tests of the clock settings (time zone, time server), the calendar arithmetic behind the offset and the backup lists keeping their passwords.
 // Copyright (C) 2026 JuanenRac (Electro Hobby 3D). GPL-3.0-or-later.
 #include <string>
 

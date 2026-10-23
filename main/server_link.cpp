@@ -1,4 +1,4 @@
-// ARMOR-HMI - the HTTP side of the link to ARMOR-SERVER (see server_link.hpp).
+// ARMOR-NODE-HMI - the HTTP side of the link to ARMOR-SERVER (see server_link.hpp).
 //
 // The session is the server's own: POST /api/v1/studio/session with the panel's user and password gives a cookie, which every later request sends back. Nothing is cached on
 // disk: after a restart the panel signs in again. The answers are read into a bounded buffer (the summary is a few hundred bytes; anything larger is refused).

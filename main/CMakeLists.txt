@@ -1,4 +1,4 @@
-# ARMOR-HMI main component: the shared node firmware (network, settings store, web server, Bluetooth, broker), the screen, the sound and the link to the server.
+# ARMOR-NODE-HMI main component: the shared node firmware (network, settings store, web server, Bluetooth, broker), the screen, the sound and the link to the server.
 # Copyright (C) 2026 JuanenRac (Electro Hobby 3D). GPL-3.0-or-later.
 file(GLOB ARMOR_FONTS "${CMAKE_CURRENT_LIST_DIR}/fonts/*.c")
 set(ARMOR_SOURCES "api_shared.cpp" "app_main.cpp" "audio.cpp" "ble_provision.cpp" "clock_sync.cpp" "board_io.cpp" "display.cpp" "entropy.cpp" "github_update.cpp" "log_buffer.cpp" "node_guard.cpp" "psram_mem.cpp" "task_health.cpp" "node_health.cpp" "node_control.cpp" "node_diag.cpp" "improv_serial.cpp" "mqtt_link.cpp" "network.cpp"

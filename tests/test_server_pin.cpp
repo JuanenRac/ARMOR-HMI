@@ -1,4 +1,4 @@
-// ARMOR-HMI - host tests of how the panel trusts the server over HTTPS: the fingerprint fixed at set-up and the rule that https is never accepted unchecked.
+// ARMOR-NODE-HMI - host tests of how the panel trusts the server over HTTPS: the fingerprint fixed at set-up and the rule that https is never accepted unchecked.
 // Copyright (C) 2026 JuanenRac (Electro Hobby 3D). GPL-3.0-or-later.
 #include <cstdint>
 #include <cstdio>

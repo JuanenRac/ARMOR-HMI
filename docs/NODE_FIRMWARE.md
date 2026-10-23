@@ -1,4 +1,4 @@
-# ARMOR-HMI - building, flashing and setting up the panel
+# ARMOR-NODE-HMI - building, flashing and setting up the panel
 
 The firmware is ESP-IDF C++17 (built with 5.5.5, in the container and on a machine; the image is about 2.4 MB of its 6 MB partition). It has **never been run on a board**: the first power-up will probably need
 the adjustments listed at the end of [HARDWARE](HARDWARE.md).

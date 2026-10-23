@@ -1,4 +1,4 @@
-## ARMOR-HMI: the managed components of the screen and the sound. Everything else is part of ESP-IDF.
+## ARMOR-NODE-HMI: the managed components of the screen and the sound. Everything else is part of ESP-IDF.
 dependencies:
   idf: ">=5.4.0"
   espressif/esp_lvgl_port: "~2.6.0"

@@ -1,4 +1,4 @@
-// ARMOR-HMI - the settings of the touch panel: what its web panel edits, what is stored in flash and what the firmware obeys.
+// ARMOR-NODE-HMI - the settings of the touch panel: what its web panel edits, what is stored in flash and what the firmware obeys.
 // Copyright (C) 2026 JuanenRac (Electro Hobby 3D). GPL-3.0-or-later.
 //
 // One document (JSON) holds everything that differs from panel to panel, so the same firmware image serves every panel and nothing secret has to be compiled in. This
@@ -46,7 +46,7 @@ struct IpSettings {
 
 struct AccessPoint {
   bool enabled = false;
-  std::string ssid = "ARMOR-HMI";
+  std::string ssid = "ARMOR-NODE-HMI";
   WifiSecurity security = WifiSecurity::kWpa2;
   std::string password;
   int channel = 0;  // 0: one of 1, 6 or 11 chosen from the node's MAC

@@ -1,4 +1,4 @@
-// ARMOR-HMI - the binary voice turn: the multipart request that carries the audio as raw bytes and the multipart/mixed answer, as the shared contract describes them.
+// ARMOR-NODE-HMI - the binary voice turn: the multipart request that carries the audio as raw bytes and the multipart/mixed answer, as the shared contract describes them.
 // Copyright (C) 2026 JuanenRac (Electro Hobby 3D). GPL-3.0-or-later.
 //
 // The older request (the whole body is the audio, the answer is JSON with the spoken reply as base64) keeps working and is what the panel falls back to. The binary form saves the third of
