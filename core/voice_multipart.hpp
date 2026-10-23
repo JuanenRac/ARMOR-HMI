@@ -368,7 +368,7 @@ inline bool parse_reply(std::string_view content_type, std::string_view body, st
 // ---- when to ask for the binary form ----------------------------------------------------------------------------------------------------
 
 // The server (or the speech service the panel is pointed at) may not take the binary request: the administrator turned it off, or the address is a service that never learned it. It
-// answers 415. The panel then sends the same recording the older way and does not try the binary form again for a while, so the next turn does not cost a refused request.
+// answers 415 (or, for a speech service that reads a request it does not know as malformed, 400 or 422). The panel then sends the same recording the older way and does not try the binary form again for a while, so the next turn does not cost a refused request.
 class BinaryTurnPolicy {
  public:
   static constexpr std::uint32_t kHoldMs = 10 * 60 * 1000;
@@ -379,8 +379,9 @@ class BinaryTurnPolicy {
   void on_refused(std::uint32_t now_ms) { refused_ = true; refused_at_ms_ = now_ms; }
   void on_accepted() { refused_ = false; }
 
-  // Whether an answer means "I do not take the binary request": 415, whatever the word (a service of another make says another one).
-  static bool refuses_binary(int status) { return status == 415; }
+  // Whether an answer means "I do not take the binary request": 415, and also 400 or 422, which is what a service of another make answers to a multipart body it does not know.
+  // The recording is sent again the older way, so a request that was refused for another reason costs one more request and nothing else.
+  static bool refuses_binary(int status) { return status == 415 || status == 400 || status == 422; }
 
  private:
   bool allowed_;

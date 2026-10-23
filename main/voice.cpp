@@ -171,7 +171,7 @@ bool is_multipart_mixed(const std::string& content_type) {
 }
 
 // Sends the audio, gets the reply. False with a short code in `failure` when the service did not answer well. The binary request is tried first (unless the setting turned it off or the
-// server refused it lately); a 415 sends the same recording the older way at once, so the person does not speak twice.
+// server refused it lately); a 415, 400 or 422 sends the same recording the older way at once, so the person does not speak twice.
 bool ask_service(const std::int16_t* samples, std::size_t count, const config::Settings& s, std::string& heard, std::string& reply_text, std::vector<std::int16_t>& reply_audio, std::string& failure) {
   bool try_binary;
   { std::lock_guard<std::mutex> guard(g_lock); try_binary = g_binary.should_try(now_ms()); }

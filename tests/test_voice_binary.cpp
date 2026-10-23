@@ -150,7 +150,11 @@ static void test_policy() {
   CHECK(!off.should_try(0));                                                            // the panel's own setting wins
   off.set_allowed(true);
   CHECK(off.should_try(0));
-  CHECK(BinaryTurnPolicy::refuses_binary(415) && !BinaryTurnPolicy::refuses_binary(400) && !BinaryTurnPolicy::refuses_binary(200) && !BinaryTurnPolicy::refuses_binary(0));
+  CHECK(BinaryTurnPolicy::refuses_binary(415) && BinaryTurnPolicy::refuses_binary(400) && BinaryTurnPolicy::refuses_binary(422));
+  CHECK(!BinaryTurnPolicy::refuses_binary(200) && !BinaryTurnPolicy::refuses_binary(0) && !BinaryTurnPolicy::refuses_binary(401) && !BinaryTurnPolicy::refuses_binary(403) && !BinaryTurnPolicy::refuses_binary(500) && !BinaryTurnPolicy::refuses_binary(413));
+  BinaryTurnPolicy q;                                                                   // a 400 or a 422 is remembered for the same ten minutes as a 415
+  if (BinaryTurnPolicy::refuses_binary(422)) q.on_refused(2000);
+  CHECK(!q.should_try(2001) && q.should_try(2000 + BinaryTurnPolicy::kHoldMs));
   // the clock wraps around after 49 days: the difference of two unsigned numbers is still the time that passed
   BinaryTurnPolicy w;
   w.on_refused(0xFFFFFF00u);
