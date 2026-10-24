@@ -102,8 +102,10 @@ ARMOR-NODE-HMI/
 ├── core/    hmi_config (the settings), server_view (the summary, the link, what is new), voice_session (the conversation), screen_text (eight languages), board_s3 (the pins), auth, netplan, json...
 ├── panel/   the web page: index.html, app.js, text.js (8 languages), style.css
 ├── tests/   test_config, test_mqtt_tls, test_view, test_voice, test_voice_binary, test_live, test_board
-├── tools/   build_node.sh, make_fonts.py, pack_panel.py, panel_mock.mjs, panel_browser_test.mjs
-├── docs/    DESIGN, HARDWARE, VOICE, NODE_FIRMWARE, FONTS, BLE_PROVISIONING, FIRMWARE_BUILD_ACTIONS
+├── tools/   build_node.sh, check_sdkconfig.py, make_fonts.py, pack_panel.py, panel_mock.mjs, panel_browser_test.mjs, the shared CI checks (armor_ci_validate.py, armor_project_tool.py, _armor_readme_parity.py)
+├── secrets/ node.conf.example (the real files are git-ignored)
+├── CMakeLists.txt, partitions.csv, sdkconfig.defaults, sdkconfig.board.lcd7box, dependencies.lock   the ESP-IDF project, the flash layout, the settings of the board and the pinned components
+├── docs/    DESIGN, HARDWARE, VOICE, NODE_FIRMWARE, FONTS, BLE_PROVISIONING, FIRMWARE_BUILD_ACTIONS, BENCH_TESTS, SETUP_CODE
 └── images/  brand assets
 ```
 
