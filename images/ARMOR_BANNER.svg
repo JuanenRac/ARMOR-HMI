@@ -228,17 +228,17 @@
   <!-- MAIN TYPOGRAPHY / TITLE BLOCK -->
   <g transform="translate(380, 0)">
     <g transform="translate(0, 82)">
-      <rect x="0" y="-18" width="222" height="24" rx="4" fill="#00FF88" fill-opacity="0.1" stroke="#00FF88" stroke-opacity="0.4" stroke-width="1">
+      <rect x="0" y="-18" width="231" height="24" rx="4" fill="#00FF88" fill-opacity="0.1" stroke="#00FF88" stroke-opacity="0.4" stroke-width="1">
         <animate attributeName="stroke-opacity" values="0.3;0.8;0.3" dur="4s" repeatCount="indefinite"/>
       </rect>
-      <text x="12" y="-2" font-family="'Inter', 'Segoe UI', 'Roboto', sans-serif" font-weight="700" font-size="11" fill="#00FF88" letter-spacing="2.5">A.R.M.O.R. · PROJECT</text>
+      <text x="12" y="-2" font-family="'Inter', 'Segoe UI', 'Roboto', sans-serif" font-weight="700" font-size="11" fill="#00FF88" letter-spacing="2.5">A.R.M.O.R. · FIRMWARE</text>
     </g>
 
     <text x="0" y="142" font-family="'Inter', 'Segoe UI', 'Roboto', sans-serif" font-weight="900" font-size="56" fill="#FFFFFF" letter-spacing="5">ARMOR-NODE-HMI</text>
 
     <text x="0" y="182" font-family="'Inter', 'Segoe UI', 'Roboto', sans-serif" font-weight="700" font-size="22" fill="url(#greenGlow)" letter-spacing="4" filter="url(#glowGreen)">CLIENTS</text>
 
-    <text x="0" y="212" font-family="'Inter', 'Segoe UI', 'Roboto', sans-serif" font-weight="500" font-size="12" fill="#8B949E" letter-spacing="1.5">C++17 · ESP-IDF · LVGL · I2S · MQTT</text>
+    <text x="0" y="212" font-family="'Inter', 'Segoe UI', 'Roboto', sans-serif" font-weight="500" font-size="12" fill="#8B949E" letter-spacing="1.5">C++17 · ESP-IDF 5.5 · LVGL · I2S · MQTT</text>
 
     <g transform="translate(0, 232)">
       <rect x="0" y="0" width="67" height="22" rx="11" fill="#161B22" stroke="#30363D" stroke-width="1"/>
@@ -246,21 +246,21 @@
         <animate attributeName="opacity" values="0.5;1;0.5" dur="2.0s" repeatCount="indefinite"/>
       </circle>
       <text x="22" y="15" font-family="sans-serif" font-weight="600" font-size="10" fill="#C9D1D9" letter-spacing="0.5">C++17</text>
-      <rect x="77" y="0" width="80" height="22" rx="11" fill="#161B22" stroke="#30363D" stroke-width="1"/>
+      <rect x="77" y="0" width="106" height="22" rx="11" fill="#161B22" stroke="#30363D" stroke-width="1"/>
       <circle cx="88" cy="11" r="4" fill="#FF9900">
         <animate attributeName="opacity" values="0.5;1;0.5" dur="2.2s" repeatCount="indefinite"/>
       </circle>
-      <text x="99" y="15" font-family="sans-serif" font-weight="600" font-size="10" fill="#C9D1D9" letter-spacing="0.5">ESP-IDF</text>
-      <rect x="167" y="0" width="60" height="22" rx="11" fill="#161B22" stroke="#30363D" stroke-width="1"/>
-      <circle cx="178" cy="11" r="4" fill="#00E5FF">
+      <text x="99" y="15" font-family="sans-serif" font-weight="600" font-size="10" fill="#C9D1D9" letter-spacing="0.5">ESP-IDF 5.5</text>
+      <rect x="193" y="0" width="60" height="22" rx="11" fill="#161B22" stroke="#30363D" stroke-width="1"/>
+      <circle cx="204" cy="11" r="4" fill="#00E5FF">
         <animate attributeName="opacity" values="0.5;1;0.5" dur="2.4s" repeatCount="indefinite"/>
       </circle>
-      <text x="189" y="15" font-family="sans-serif" font-weight="600" font-size="10" fill="#C9D1D9" letter-spacing="0.5">LVGL</text>
-      <rect x="237" y="0" width="53" height="22" rx="11" fill="#161B22" stroke="#30363D" stroke-width="1"/>
-      <circle cx="248" cy="11" r="4" fill="#FF0055">
+      <text x="215" y="15" font-family="sans-serif" font-weight="600" font-size="10" fill="#C9D1D9" letter-spacing="0.5">LVGL</text>
+      <rect x="263" y="0" width="53" height="22" rx="11" fill="#161B22" stroke="#30363D" stroke-width="1"/>
+      <circle cx="274" cy="11" r="4" fill="#FF0055">
         <animate attributeName="opacity" values="0.5;1;0.5" dur="2.6s" repeatCount="indefinite"/>
       </circle>
-      <text x="259" y="15" font-family="sans-serif" font-weight="600" font-size="10" fill="#C9D1D9" letter-spacing="0.5">I2S</text>
+      <text x="285" y="15" font-family="sans-serif" font-weight="600" font-size="10" fill="#C9D1D9" letter-spacing="0.5">I2S</text>
     </g>
   </g>
 
@@ -270,6 +270,6 @@
     <circle cx="2" cy="-2" r="4" fill="#00FF88" filter="url(#glowGreen)">
       <animate attributeName="opacity" values="0.3;1;0.3" dur="1.5s" repeatCount="indefinite"/>
     </circle>
-    <text x="14" y="2" font-family="monospace" font-weight="700" font-size="11" fill="#00FF88" letter-spacing="1">PROJECT</text>
+    <text x="14" y="2" font-family="monospace" font-weight="700" font-size="11" fill="#00FF88" letter-spacing="1">FIRMWARE</text>
   </g>
 </svg>
