@@ -2,6 +2,10 @@
 
 All notable changes to this project are documented here.
 
+## [0.3.9] - The system event task has room to work: its stack grows from 2304 to 4096 bytes
+
+- **The system event task gets 4096 bytes of stack instead of 2304:** every network, Wi-Fi and Bluetooth handler runs in that task, and a running node left only 276 bytes free in it, which the live smoke test of the panel reports as too little. The setting is `CONFIG_ESP_SYSTEM_EVENT_TASK_STACK_SIZE` in sdkconfig.defaults, so a build directory made before it must be regenerated (tools/check_sdkconfig.py says whether the generated file carries it).
+
 ## [0.3.8] - Audio queue, view model, real-time clock and optional sealing of secrets
 
 - **The secrets the node stores can be kept sealed (optional, off by default):** the setting `security.seal_secrets` (in the panel, with its explanation in the eight languages) seals the passwords, tokens, keys, PINs and password hashes in flash with ChaCha20-Poly1305 (`core/secret_seal.hpp`, checked against the RFC vectors) and leaves everything else readable; turning it on or off rewrites the stored values one by one with nothing lost, even if the node stops half-way. The key is a record in the new `nvs_keys` partition: no eFuse is burned and the flash is not encrypted, so it does not protect against someone who holds the board, and a node installed with the earlier partition table keeps its secrets as they were. Tests on a computer cover the cipher, the settings in both directions and a stop in the middle.

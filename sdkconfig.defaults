@@ -56,6 +56,8 @@ CONFIG_MBEDTLS_DYNAMIC_FREE_CA_CERT=y
 # The panel makes its own certificate on the first boot in this task: mbedTLS needs several KB of stack to write a certificate, and 6144 overflowed on a real board of
 # this family (every boot ended in "A stack overflow in task main").
 CONFIG_ESP_MAIN_TASK_STACK_SIZE=16384
+# the system event task runs every network, Wi-Fi and Bluetooth handler: the default 2304 bytes left 276 bytes free on a running node
+CONFIG_ESP_SYSTEM_EVENT_TASK_STACK_SIZE=4096
 
 # The link to ARMOR-SERVER and to the speech service: HTTPS is always checked - against the usual certificate authorities, or against the fingerprint of the server's own
 # certificate fixed in the settings (main/server_link.cpp). There is NO option to skip the check, so the two switches below stay off.
