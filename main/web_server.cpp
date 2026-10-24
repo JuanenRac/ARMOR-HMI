@@ -957,7 +957,7 @@ bool start(const config::Settings& settings) {
     // The certificate is made the first time (a second or two) and kept; without one the node falls back to plain HTTP rather than lose its panel.
     if (tlscert::load_or_create(settings.node_id, g_material)) {
       httpd_ssl_config_t ssl = HTTPD_SSL_CONFIG_DEFAULT();
-      ssl.httpd.stack_size = 10240;
+      ssl.httpd.stack_size = 12288;   // the TLS handshake of a login needs most of it: 332 bytes were left of 10240
       ssl.httpd.max_uri_handlers = 12;
       ssl.httpd.max_open_sockets = 4;
       ssl.httpd.lru_purge_enable = true;

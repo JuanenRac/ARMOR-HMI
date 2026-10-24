@@ -5,6 +5,7 @@ All notable changes to this project are documented here.
 ## [0.3.9] - The system event task has room to work: its stack grows from 2304 to 4096 bytes
 
 - **The system event task gets 4096 bytes of stack instead of 2304:** every network, Wi-Fi and Bluetooth handler runs in that task, and a running node left only 276 bytes free in it, which the live smoke test of the panel reports as too little. The setting is `CONFIG_ESP_SYSTEM_EVENT_TASK_STACK_SIZE` in sdkconfig.defaults, so a build directory made before it must be regenerated (tools/check_sdkconfig.py says whether the generated file carries it).
+- **The HTTPS server of the panel gets 12288 bytes of stack instead of 10240:** the live smoke test found only 332 bytes free in an `httpd` task after the TLS handshakes of a long login, and the node reports a task with less than 400 bytes free as low. The plain HTTP server keeps its 10240 bytes.
 
 ## [0.3.8] - Audio queue, view model, real-time clock and optional sealing of secrets
 
