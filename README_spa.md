@@ -42,6 +42,24 @@
 | Tecnología | C++17 (host-tested core); ESP-IDF firmware for the ESP32-S3 with LVGL, with its web page |
 | En hardware real | Ninguno todavía: el firmware compila (ESP-IDF 5.5.5, sin comprobar en CI) pero no ha corrido en la placa |
 
+## 🚦 Estado del proyecto
+
+Cada línea es una parte de este repositorio y la luz dice hasta dónde llega hoy. Se escribe con lo que el repositorio puede demostrar (pruebas, compilaciones, ejecuciones), no con lo previsto.
+
+🟢 Hecho y verificado · 🟡 Funciona, con límites conocidos · 🟠 Hecho a medias o sin verificar · 🔴 Sin hacer o sin funcionar
+
+| Área | Estado | Qué significa aquí |
+|---|---|---|
+| Software | 🟠 | El firmware se ha compilado una vez (ESP-IDF 5.5.5), pero la compilación no la comprueba la integración continua y nunca ha funcionado en una placa. |
+| Pruebas | 🟢 | Pasan 30.783 comprobaciones en 14 programas de host (`ctest`): los ajustes, lo que el panel sabe del servidor y cuándo está obsoleto, la alarma de coacción que nunca se muestra, el intercambio de voz, los pines, los textos de la pantalla en ocho idiomas y los glifos de sus fuentes. |
+| Protocolos y datos | 🟡 | El intercambio con el servidor y con el servicio de voz ARMOR-VOICE-AI se prueba contra simulaciones; es pulsar para hablar, sin palabra de activación. |
+| Interfaz | 🟠 | La página web se ha ejecutado contra una simulación en un navegador real; la pantalla, el táctil y el sonido están escritos a partir de los ejemplos de Waveshare y esperan su primer encendido. |
+| Hardware | 🔴 | El firmware no ha funcionado en la placa: nada ha funcionado todavía con equipos reales. |
+| Seguridad | 🟡 | El código de configuración, el límite de accesos, el PIN Bluetooth, el manejo de la coacción y las actualizaciones firmadas están probados en el host; no ha habido una revisión independiente. |
+| Actualizaciones | 🟠 | Las comprobaciones de hash y de firma pasan en el host; una actualización por aire nunca se ha ejecutado en una placa. |
+| Integración | 🟡 | Los mensajes se validan contra los esquemas compartidos de ARMOR-COMMON; el enlace con el servidor y con el servicio de voz no se ha probado desde una placa. |
+| Documentación | 🟢 | Ocho idiomas, la guía del firmware, las notas de cableado y el historial de cambios están al día. |
+
 ## 🎯 Descripción general
 
 * **Cliente de ARMOR-SERVER, como la app de Android:** entra con un usuario que un administrador creó para él, pide `GET /api/v1/panel/summary` (unos cientos de bytes: el modo, los nodos conectados y las alarmas que necesitan a una persona) cada pocos segundos y, cuando la persona toca el botón y confirma, arma, desarma o reconoce. Si el servidor deja de responder, la pantalla avisa de que lo que muestra es antiguo y el botón se desactiva. Escucha el canal en directo del servidor (un WebSocket) para que un cambio se vea al instante, y pregunta como antes cuando el canal falta, calla o está desactivado.

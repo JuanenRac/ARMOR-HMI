@@ -42,6 +42,24 @@
 | Technologie | C++17 (host-tested core); ESP-IDF firmware for the ESP32-S3 with LVGL, with its web page |
 | Sur matériel réel | Aucun pour l'instant : le firmware se compile (ESP-IDF 5.5.5, non vérifié par la CI) mais n'a pas tourné sur la carte |
 
+## 🚦 État du projet
+
+Chaque ligne est une partie de ce dépôt et le feu dit où elle en est aujourd'hui. Elle est écrite d'après ce que le dépôt peut montrer (tests, compilations, exécutions), pas d'après ce qui est prévu.
+
+🟢 Fait et vérifié · 🟡 Fonctionne, avec des limites connues · 🟠 À moitié fait ou pas encore vérifié · 🔴 Pas fait ou ne fonctionne pas
+
+| Domaine | État | Ce que cela veut dire ici |
+|---|---|---|
+| Logiciel | 🟠 | Le firmware a été compilé une fois (ESP-IDF 5.5.5), mais la compilation n'est pas contrôlée par l'intégration continue et il n'a jamais tourné sur une carte. |
+| Tests | 🟢 | 30 783 vérifications dans 14 programmes d'hôte réussissent (`ctest`) : les réglages, ce que le panneau sait du serveur et quand c'est périmé, l'alarme sous contrainte qui n'est jamais affichée, l'échange vocal, les broches, les textes de l'écran en huit langues et les glyphes de ses polices. |
+| Protocoles et données | 🟡 | L'échange avec le serveur et avec le service vocal ARMOR-VOICE-AI est testé contre des simulations ; c'est du push-to-talk, sans mot d'activation. |
+| Interface | 🟠 | La page web a tourné contre une simulation dans un vrai navigateur ; l'écran, le tactile et le son sont écrits d'après les exemples de Waveshare et attendent leur première mise sous tension. |
+| Matériel | 🔴 | Le firmware n'a pas tourné sur la carte : rien n'a encore tourné sur de vrais équipements. |
+| Sécurité | 🟡 | Le code de configuration, la limite de connexions, le PIN Bluetooth, la gestion de la contrainte et les mises à jour signées sont testés sur l'hôte ; il n'y a pas eu de revue indépendante. |
+| Mises à jour | 🟠 | Les contrôles de hash et de signature réussissent sur l'hôte ; une mise à jour par voie hertzienne n'a jamais été exécutée sur une carte. |
+| Intégration | 🟡 | Les messages sont validés par rapport aux schémas partagés d'ARMOR-COMMON ; la liaison avec le serveur et avec le service vocal n'a pas été essayée depuis une carte. |
+| Documentation | 🟢 | Huit langues, le guide du firmware, les notes de câblage et le journal des modifications sont à jour. |
+
 ## 🎯 Présentation
 
 * **Un client d'ARMOR-SERVER, comme l'application Android :** il se connecte avec un utilisateur qu'un administrateur a créé pour lui, demande `GET /api/v1/panel/summary` (quelques centaines d'octets : le mode, les nœuds en ligne et les alarmes qui demandent une personne) toutes les quelques secondes et, quand la personne touche le bouton et confirme, arme, désarme ou acquitte. Si le serveur ne répond plus, l'écran dit que ce qu'il montre est ancien et le bouton est désactivé. Il écoute le canal en direct du serveur (un WebSocket) pour qu'un changement s'affiche aussitôt, et interroge comme avant quand le canal est absent, silencieux ou désactivé.

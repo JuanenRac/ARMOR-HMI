@@ -42,6 +42,24 @@
 | Stack | C++17 (host-tested core); ESP-IDF firmware for the ESP32-S3 with LVGL, with its web page |
 | On real hardware | None yet: the firmware builds (ESP-IDF 5.5.5, not checked by CI) but has not run on the board |
 
+## 🚦 Project status
+
+Each line is one part of this repository and the light says how far it is today. It is written from what the repository can show (tests, builds, runs), not from what is planned.
+
+🟢 Done and verified · 🟡 Works, with known limits · 🟠 Partly done or not verified yet · 🔴 Not done or not working
+
+| Area | State | What it means here |
+|---|---|---|
+| Software | 🟠 | The firmware has been built once (ESP-IDF 5.5.5), but the build is not checked by the continuous integration and it has never run on a board. |
+| Tests | 🟢 | 30,783 checks in 14 host programs pass (`ctest`): the settings, what the panel knows of the server and when that is stale, the duress alarm that is never shown, the voice exchange, the pins, the words of the screen in eight languages and the glyphs of its fonts. |
+| Protocols and data | 🟡 | The exchange with the server and with the speech service ARMOR-VOICE-AI is tested against stand-ins; it is push to talk, with no wake word. |
+| Interface | 🟠 | The web page runs against a stand-in in a real browser; the screen, the touch and the sound are written from Waveshare's examples and wait for their first power-up. |
+| Hardware | 🔴 | The firmware has not run on the board: nothing has run on real equipment yet. |
+| Security | 🟡 | The set-up code, the login limit, the Bluetooth PIN, the duress handling and the signed updates are tested on the host; there has been no independent review. |
+| Updates | 🟠 | The hash and signature checks pass on the host; an update over the air has never been run on a board. |
+| Integration | 🟡 | The messages are validated against the shared schemas of ARMOR-COMMON; the link to the server and to the speech service has not been tried from a board. |
+| Documentation | 🟢 | Eight languages, the firmware guide, the wiring notes and the changelog are up to date. |
+
 ## 🎯 Overview
 
 * **A client of ARMOR-SERVER, like the Android app:** it signs in with a user an administrator made for it, asks `GET /api/v1/panel/summary` (a few hundred bytes: the mode, the nodes online and the alarms that need a person) every few seconds and, when the person touches the button and confirms, arms, disarms or acknowledges. If the server stops answering the screen says that what it shows is old and the button is disabled. It listens to the server's live channel (a WebSocket) so a change shows at once, and asks as before when the channel is missing, silent or turned off.

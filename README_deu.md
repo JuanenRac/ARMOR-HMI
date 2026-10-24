@@ -42,6 +42,24 @@
 | Technik | C++17 (host-tested core); ESP-IDF firmware for the ESP32-S3 with LVGL, with its web page |
 | Auf echter Hardware | Noch keiner: die Firmware baut (ESP-IDF 5.5.5, von der CI nicht geprüft), lief aber nicht auf der Platine |
 
+## 🚦 Projektstatus
+
+Jede Zeile ist ein Teil dieses Repositorys, und die Ampel sagt, wie weit er heute ist. Sie beruht auf dem, was das Repository zeigen kann (Tests, Builds, Läufe), nicht auf dem, was geplant ist.
+
+🟢 Fertig und überprüft · 🟡 Funktioniert, mit bekannten Grenzen · 🟠 Teilweise fertig oder noch nicht überprüft · 🔴 Nicht gemacht oder funktioniert nicht
+
+| Bereich | Stand | Was das hier bedeutet |
+|---|---|---|
+| Software | 🟠 | Die Firmware wurde einmal gebaut (ESP-IDF 5.5.5), der Build wird aber nicht von der kontinuierlichen Integration geprüft, und sie lief nie auf einer Platine. |
+| Tests | 🟢 | 30.783 Prüfungen in 14 Host-Programmen bestehen (`ctest`): die Einstellungen, was das Panel vom Server weiß und wann das veraltet ist, der nie angezeigte Zwangsalarm, der Sprachaustausch, die Pins, die Texte des Bildschirms in acht Sprachen und die Glyphen seiner Schriften. |
+| Protokolle und Daten | 🟡 | Der Austausch mit dem Server und mit dem Sprachdienst ARMOR-VOICE-AI ist gegen Nachbildungen getestet; es ist Push-to-Talk, ohne Weckwort. |
+| Oberfläche | 🟠 | Die Webseite lief gegen eine Nachbildung in einem echten Browser; Bildschirm, Touch und Ton sind nach den Beispielen von Waveshare geschrieben und warten auf das erste Einschalten. |
+| Hardware | 🔴 | Die Firmware lief nicht auf der Platine: Bisher lief nichts auf echten Geräten. |
+| Sicherheit | 🟡 | Der Einrichtungscode, die Anmeldebegrenzung, die Bluetooth-PIN, der Umgang mit Zwang und die signierten Aktualisierungen sind auf dem Host getestet; es gab keine unabhängige Prüfung. |
+| Aktualisierungen | 🟠 | Die Hash- und Signaturprüfungen bestehen auf dem Host; eine Aktualisierung über die Luft wurde nie auf einer Platine ausgeführt. |
+| Integration | 🟡 | Die Nachrichten werden gegen die gemeinsamen Schemas von ARMOR-COMMON geprüft; die Verbindung zum Server und zum Sprachdienst wurde nicht von einer Platine aus erprobt. |
+| Dokumentation | 🟢 | Acht Sprachen, die Firmware-Anleitung, die Verdrahtungshinweise und das Änderungsprotokoll sind aktuell. |
+
 ## 🎯 Überblick
 
 * **Ein Client von ARMOR-SERVER wie die Android-App:** Es meldet sich mit einem Benutzer an, den ein Administrator dafür angelegt hat, fragt alle paar Sekunden `GET /api/v1/panel/summary` ab (wenige hundert Byte: Modus, Knoten online und die Alarme, die einen Menschen brauchen) und schaltet scharf, unscharf oder quittiert, wenn die Person die Taste berührt und bestätigt. Antwortet der Server nicht mehr, sagt der Bildschirm, dass das Gezeigte alt ist, und die Taste ist gesperrt. Er hört den Live-Kanal des Servers ab (ein WebSocket), damit eine Änderung sofort erscheint, und fragt wie bisher, wenn der Kanal fehlt, schweigt oder abgeschaltet ist.
